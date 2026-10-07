@@ -930,7 +930,6 @@
   <div class="dbottom">
     <div class="dsearch"><span>🔍</span><input id="drawerSearch" placeholder="Search" oninput="filterDrawer(this.value)" autocomplete="off"></div>
     <button class="diconbtn" onclick="drawerGo('settings')" title="Settings" aria-label="Settings">⚙️</button>
-    <button class="diconbtn" onclick="newChatFromDrawer()" title="New chat" aria-label="New chat">✎</button>
   </div>
 </aside>
 
@@ -3110,11 +3109,6 @@ async function clearChat(){
   renderChatEmpty();
   loadDrawerHistory();
   showToast('🗑️ Chat cleared — fresh start!');
-}
-function newChatFromDrawer(){
-  toggleDrawer(false);
-  switchMainTab('ask');
-  clearChat();
 }
 async function sendChat(){
   if(chatSending) return;
