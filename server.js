@@ -16,15 +16,153 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 /* ------------------------------------------------------------------ */
-/* Phase 3 — simple user system + daily limits                          */
+/* Auth — email + password accounts (file-based, users.json)            */
 /*                                                                     */
-/* Username-based sessions (no password for now). Usage is tracked in   */
-/* a local JSON file.                                                   */
+/* Passwords are hashed with PBKDF2 (SHA-512, 120k iterations, unique   */
+/* salt per user). Plain passwords are never stored. Sessions are      */
+/* random 256-bit bearer tokens stored with the user record.           */
+/*                                                                     */
+/* HONEST LIMITS (file-based store):                                   */
+/* - users.json / usage.json live on the local filesystem. On free     */
+/*   hosting (Render free tier) the filesystem is EPHEMERAL — accounts */
+/*   and usage reset whenever the service restarts or sleeps.          */
+/* - No rate limiting on login/register (production needs it).         */
+/* - No email verification (production should verify emails).          */
+/* Production path: move users + usage to Supabase Postgres +          */
+/* Supabase Auth / Better Auth.                                        */
+/* ------------------------------------------------------------------ */
+
+const USERS_FILE = path.join(__dirname, 'users.json');
+const PBKDF2_ITER = 120000;
+const TOKEN_BYTES = 32;
+
+let userStore = { users: {} };
+function loadUsers() {
+  try {
+    if (fs.existsSync(USERS_FILE)) {
+      const parsed = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
+      if (parsed && parsed.users) userStore = parsed;
+    }
+  } catch (e) { console.log('users.json unreadable, starting fresh'); }
+}
+loadUsers();
+function saveUsers() {
+  fs.writeFile(USERS_FILE, JSON.stringify(userStore), (e) => {
+    if (e) console.log('users save failed:', e.message);
+  });
+}
+
+function normEmail(e) { return (e || '').toString().trim().toLowerCase(); }
+function validEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e); }
+
+function hashPassword(password, salt) {
+  const s = salt || crypto.randomBytes(16).toString('hex');
+  const hash = crypto.pbkdf2Sync(password, s, PBKDF2_ITER, 64, 'sha512').toString('hex');
+  return { salt: s, hash };
+}
+function verifyPassword(password, salt, hash) {
+  try {
+    const h = crypto.pbkdf2Sync(password, salt, PBKDF2_ITER, 64, 'sha512');
+    const expected = Buffer.from(hash, 'hex');
+    return h.length === expected.length && crypto.timingSafeEqual(h, expected);
+  } catch (e) { return false; }
+}
+function newToken() { return crypto.randomBytes(TOKEN_BYTES).toString('hex'); }
+
+/** Find user record by bearer token (checks expiry: 30 days). */
+function userByToken(token) {
+  if (!token) return null;
+  for (const email of Object.keys(userStore.users)) {
+    const u = userStore.users[email];
+    if (u && Array.isArray(u.tokens)) {
+      const t = u.tokens.find((x) => x.token === token);
+      if (t) {
+        if (Date.now() - t.createdAt > 30 * 24 * 3600 * 1000) return null; // expired
+        return { email, user: u };
+      }
+    }
+  }
+  return null;
+}
+
+/** Auth middleware. Sets req.authEmail or 401s. */
+function requireAuth(req, res, next) {
+  const hdr = req.headers.authorization || '';
+  const m = hdr.match(/^Bearer\s+(\S+)$/i);
+  const found = m && userByToken(m[1]);
+  if (!found) {
+    return res.status(401).json({ error: 'Please sign in first.', code: 'auth_required' });
+  }
+  req.authEmail = found.email;
+  next();
+}
+
+/**
+ * POST /api/register  { email, password }
+ * Creates an account, returns { token, email }.
+ */
+app.post('/api/register', (req, res) => {
+  const email = normEmail(req.body && req.body.email);
+  const password = (req.body && req.body.password || '').toString();
+  if (!validEmail(email)) return res.status(400).json({ error: 'Please enter a valid email address.' });
+  if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters.' });
+  if (userStore.users[email]) return res.status(409).json({ error: 'An account with this email already exists. Please sign in.' });
+  const { salt, hash } = hashPassword(password);
+  const token = newToken();
+  userStore.users[email] = {
+    salt,
+    hash,
+    createdAt: new Date().toISOString(),
+    tokens: [{ token, createdAt: Date.now() }],
+  };
+  saveUsers();
+  res.status(201).json({ token, email, credits: creditsFor(email) });
+});
+
+/**
+ * POST /api/login  { email, password }
+ * Verifies credentials, returns a fresh { token, email }.
+ */
+app.post('/api/login', (req, res) => {
+  const email = normEmail(req.body && req.body.email);
+  const password = (req.body && req.body.password || '').toString();
+  const u = userStore.users[email];
+  if (!u || !verifyPassword(password, u.salt, u.hash)) {
+    return res.status(401).json({ error: 'Invalid email or password.' });
+  }
+  const token = newToken();
+  u.tokens = (u.tokens || []).concat([{ token, createdAt: Date.now() }]).slice(-5); // keep last 5 sessions
+  saveUsers();
+  res.json({ token, email, credits: creditsFor(email) });
+});
+
+/**
+ * POST /api/logout  (Authorization: Bearer <token>)
+ * Invalidates the current session token.
+ */
+app.post('/api/logout', requireAuth, (req, res) => {
+  const u = userStore.users[req.authEmail];
+  const hdr = req.headers.authorization || '';
+  const token = (hdr.match(/^Bearer\s+(\S+)$/i) || [])[1];
+  if (u && token) {
+    u.tokens = (u.tokens || []).filter((x) => x.token !== token);
+    saveUsers();
+  }
+  res.json({ ok: true });
+});
+
+/** GET /api/me (Authorization: Bearer <token>) -> { email, limits, used, remaining, ads } */
+app.get('/api/me', requireAuth, (req, res) => {
+  res.json(creditsFor(req.authEmail));
+});
+
+/* ------------------------------------------------------------------ */
+/* Daily limits + rewarded ads                                          */
+/*                                                                     */
+/* Usage is tracked per account (email) in usage.json.                 */
 /* HONEST LIMIT: free hosting (Render free tier) has an EPHEMERAL       */
-/* filesystem — usage.json resets whenever the service restarts or      */
+/* filesystem — usage.json resets whenever the service restarts or     */
 /* sleeps. Real production needs a database (Supabase Postgres).        */
-/* Also: usernames are not authenticated — anyone can type any name.    */
-/* Real production needs proper auth (Better Auth / Supabase Auth).     */
 /* ------------------------------------------------------------------ */
 
 const DAILY_IMAGE_LIMIT = 6;
@@ -32,7 +170,7 @@ const DAILY_VIDEO_LIMIT = 3;
 const USAGE_FILE = path.join(__dirname, 'usage.json');
 
 /* ------------------------------------------------------------------ */
-/* Phase 4 — rewarded ads (simulated for now)                           */
+/* Rewarded ads (simulated for now)                                     */
 /*                                                                     */
 /* AD_PROVIDER = "simulated" | "adsterra"                               */
 /* "simulated": frontend shows a 30s countdown, then calls              */
@@ -62,36 +200,38 @@ function saveUsage() {
 }
 
 function todayStr() { return new Date().toISOString().slice(0, 10); }
-function cleanName(n) { return (n || '').toString().trim().slice(0, 30); }
 
-function getUsage(name) {
+/** Usage record keyed by email (stable account identity). */
+function getUsage(email) {
   const today = todayStr();
-  let rec = usageStore.users[name];
+  let rec = usageStore.users[email];
   if (!rec || rec.date !== today) {
     rec = { date: today, images: 0, videos: 0, ads: 0, bonusImages: 0, bonusVideos: 0 };
-    usageStore.users[name] = rec;
+    usageStore.users[email] = rec;
   }
   return rec;
 }
 
 /** Check the limit WITHOUT recording. Returns {ok} or {ok:false,status,message}. */
-function checkLimit(name, type) {
-  const clean = cleanName(name);
-  if (!clean) return { ok: false, status: 401, message: 'Pehle apna naam set karein (upar name box mein).' };
-  const rec = getUsage(clean);
+function checkLimit(email, type) {
+  const rec = getUsage(email);
   const baseLimit = type === 'image' ? DAILY_IMAGE_LIMIT : DAILY_VIDEO_LIMIT;
   const bonus = type === 'image' ? (rec.bonusImages || 0) : (rec.bonusVideos || 0);
   const limit = baseLimit + bonus;
   const used = type === 'image' ? rec.images : rec.videos;
   if (used >= limit) {
-    return { ok: false, status: 429, message: `Aaj ki ${type === 'image' ? 'image' : 'video'} limit khatam! (${used}/${limit}). 📺 Ad dekh kar extra credits pao, ya kal phir try karein.` };
+    return {
+      ok: false,
+      status: 429,
+      message: `Daily ${type} limit reached (${used}/${limit}). Watch an ad to earn extra credits, or try again tomorrow.`,
+    };
   }
-  return { ok: true, user: clean };
+  return { ok: true };
 }
 
 /** Record one generation after it succeeded. */
-function recordUsage(name, type) {
-  const rec = getUsage(cleanName(name));
+function recordUsage(email, type) {
+  const rec = getUsage(email);
   if (type === 'image') rec.images++; else rec.videos++;
   saveUsage();
   const totalImages = DAILY_IMAGE_LIMIT + (rec.bonusImages || 0);
@@ -104,16 +244,15 @@ function recordUsage(name, type) {
   };
 }
 
-/** Public credits snapshot for a username (no recording). */
-function creditsFor(name) {
-  const clean = cleanName(name);
-  const rec = clean ? getUsage(clean) : { images: 0, videos: 0, ads: 0, bonusImages: 0, bonusVideos: 0 };
+/** Credits snapshot for an account (no recording). */
+function creditsFor(email) {
+  const rec = getUsage(email);
   const bonusImages = rec.bonusImages || 0;
   const bonusVideos = rec.bonusVideos || 0;
   const totalImages = DAILY_IMAGE_LIMIT + bonusImages;
   const totalVideos = DAILY_VIDEO_LIMIT + bonusVideos;
   return {
-    user: clean || null,
+    email,
     limits: { images: DAILY_IMAGE_LIMIT, videos: DAILY_VIDEO_LIMIT },
     totals: { images: totalImages, videos: totalVideos },
     bonus: { images: bonusImages, videos: bonusVideos },
@@ -134,46 +273,41 @@ function creditsFor(name) {
 
 /**
  * POST /api/watch-ad-complete — award ad credits after a completed ad view.
- * Body: { username }
+ * (Authorization: Bearer <token>)
  * Simulated mode: frontend calls this after its 30s countdown.
  * Adsterra mode: call ONLY after server-side postback verifies the view.
  */
-app.post('/api/watch-ad-complete', (req, res) => {
-  const name = cleanName(req.body && req.body.username);
-  if (!name) return res.status(401).json({ error: 'Pehle apna naam set karein (upar name box mein).' });
-  const rec = getUsage(name);
+app.post('/api/watch-ad-complete', requireAuth, (req, res) => {
+  const email = req.authEmail;
+  const rec = getUsage(email);
   rec.ads = rec.ads || 0;
   if (rec.ads >= MAX_ADS_PER_DAY) {
-    return res.status(429).json({ error: `Aaj ke ${MAX_ADS_PER_DAY} ads dekh liye! Kal phir try karein.` });
+    return res.status(429).json({ error: `You have watched all ${MAX_ADS_PER_DAY} ads for today. Try again tomorrow.` });
   }
   rec.ads++;
   rec.bonusImages = (rec.bonusImages || 0) + AD_REWARD_IMAGES;
   rec.bonusVideos = (rec.bonusVideos || 0) + AD_REWARD_VIDEOS;
   saveUsage();
   res.json({
-    message: `Mubarak! +${AD_REWARD_IMAGES} images, +${AD_REWARD_VIDEOS} video credits mil gaye!`,
+    message: `Congratulations! +${AD_REWARD_IMAGES} images, +${AD_REWARD_VIDEOS} video credits earned!`,
     adsWatched: rec.ads,
     adsMax: MAX_ADS_PER_DAY,
-    credits: creditsFor(name),
+    credits: creditsFor(email),
   });
-});
-
-/** GET /api/me?username=X -> { user, limits, used, remaining } */
-app.get('/api/me', (req, res) => {
-  res.json(creditsFor(req.query.username));
 });
 
 /**
  * GET /api/generate-image?prompt=...&width=...&height=...
+ * (Authorization: Bearer <token>)
  * Primary: Pollinations.ai (free, no key required)
  * Fallback: Hugging Face Inference router (needs HF_TOKEN)
  */
-app.get('/api/generate-image', (req, res) => {
+app.get('/api/generate-image', requireAuth, (req, res) => {
   const prompt = (req.query.prompt || '').toString().slice(0, 500);
   if (!prompt) return res.status(400).json({ error: 'prompt required' });
 
-  // Phase 3: daily limit check (recorded only after the provider returns 200)
-  const gate = checkLimit(req.query.username, 'image');
+  // Daily limit check (recorded only after the provider returns 200)
+  const gate = checkLimit(req.authEmail, 'image');
   if (!gate.ok) return res.status(gate.status).json({ error: gate.message });
 
   const width = Math.min(parseInt(req.query.width) || 512, 1024);
@@ -188,10 +322,10 @@ app.get('/api/generate-image', (req, res) => {
   https.get(url, { timeout: 120000 }, (imgRes) => {
     if (imgRes.statusCode !== 200) {
       // Try Hugging Face fallback if token is configured
-      if (HF_TOKEN) return generateViaHF(prompt, res, req.query.username);
+      if (HF_TOKEN) return generateViaHF(prompt, res, req.authEmail);
       return res.status(502).json({ error: 'image provider returned ' + imgRes.statusCode });
     }
-    const left = recordUsage(req.query.username, 'image');
+    const left = recordUsage(req.authEmail, 'image');
     res.setHeader('X-Images-Left', left.images);
     res.setHeader('X-Videos-Left', left.videos);
     res.setHeader('X-Images-Total', left.totalImages);
@@ -200,13 +334,13 @@ app.get('/api/generate-image', (req, res) => {
     res.setHeader('Cache-Control', 'public, max-age=86400');
     imgRes.pipe(res);
   }).on('error', (e) => {
-    if (HF_TOKEN) return generateViaHF(prompt, res, req.query.username);
+    if (HF_TOKEN) return generateViaHF(prompt, res, req.authEmail);
     res.status(502).json({ error: 'image provider unreachable: ' + e.message });
   });
 });
 
 /** Fallback: Hugging Face Inference router (SDXL). Needs HF_TOKEN env var. */
-function generateViaHF(prompt, res, username) {
+function generateViaHF(prompt, res, email) {
   const body = JSON.stringify({ inputs: prompt });
   const req = https.request({
     hostname: 'router.huggingface.co',
@@ -225,7 +359,7 @@ function generateViaHF(prompt, res, username) {
       hfRes.on('end', () => res.status(502).json({ error: 'HF error ' + hfRes.statusCode, detail: data.slice(0, 300) }));
       return;
     }
-    const left = recordUsage(username, 'image');
+    const left = recordUsage(email, 'image');
     res.setHeader('X-Images-Left', left.images);
     res.setHeader('X-Videos-Left', left.videos);
     res.setHeader('X-Images-Total', left.totalImages);
@@ -243,13 +377,14 @@ app.get('/api/health', (req, res) => res.json({
   ok: true,
   hfFallback: !!HF_TOKEN,
   video: true,
+  auth: true,
   adProvider: AD_PROVIDER,
   adsPerDay: MAX_ADS_PER_DAY,
   adReward: { images: AD_REWARD_IMAGES, videos: AD_REWARD_VIDEOS },
 }));
 
 /* ------------------------------------------------------------------ */
-/* Phase 2 — FREE video generation                                      */
+/* FREE video generation                                                */
 /*                                                                     */
 /* Honest design: there is no keyless, truly-free text-to-video AI API. */
 /* pollinations.ai has no video endpoint; HF video models are not on   */
@@ -359,15 +494,16 @@ function tryHFVideo(prompt) {
 
 /**
  * GET /api/generate-video?prompt=...&duration=5&motion=zoomin&seed=...
+ * (Authorization: Bearer <token>)
  * duration: 3–8 seconds (default 5). motion: zoomin|zoomout|panleft|panright.
  * Streams back an MP4 (720x720, 25fps, h264).
  */
-app.get('/api/generate-video', async (req, res) => {
+app.get('/api/generate-video', requireAuth, async (req, res) => {
   const prompt = (req.query.prompt || '').toString().slice(0, 500);
   if (!prompt) return res.status(400).json({ error: 'prompt required' });
 
-  // Phase 3: daily limit check (recorded only after a video is produced)
-  const gate = checkLimit(req.query.username, 'video');
+  // Daily limit check (recorded only after a video is produced)
+  const gate = checkLimit(req.authEmail, 'video');
   if (!gate.ok) return res.status(gate.status).json({ error: gate.message });
 
   const duration = Math.min(Math.max(parseInt(req.query.duration) || 5, 3), MAX_VIDEO_SEC);
@@ -380,7 +516,7 @@ app.get('/api/generate-video', async (req, res) => {
   try {
     const hfVideo = await tryHFVideo(prompt);
     if (hfVideo && hfVideo.length > 10000) {
-      const left = recordUsage(req.query.username, 'video');
+      const left = recordUsage(req.authEmail, 'video');
       res.setHeader('Content-Type', 'video/mp4');
       res.setHeader('X-Video-Source', 'huggingface');
       res.setHeader('X-Images-Left', left.images);
@@ -401,7 +537,7 @@ app.get('/api/generate-video', async (req, res) => {
     imgPath = await downloadToTemp(imgUrl);
     vidPath = tmpName('aas-vid', 'mp4');
     await runFfmpeg(imgPath, vidPath, motionFilter(motion, frames), frames);
-    const left = recordUsage(req.query.username, 'video');
+    const left = recordUsage(req.authEmail, 'video');
     res.setHeader('Content-Type', 'video/mp4');
     res.setHeader('Content-Disposition', 'inline; filename="ayaz-ai-studio.mp4"');
     res.setHeader('X-Video-Source', 'animated-still');
