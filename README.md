@@ -1,6 +1,15 @@
-# 🎨 Ayaz AI Studio — Phase 5 (Real Accounts + English UI)
+# 🎨 Ayaz AI Studio — Phase 6 (Menu, CAPTCHA, Branding, Voice)
 
 A REAL, PUBLIC web app for free AI image + video generation. **Not a Muse artifact** — plain Node.js + Express, deployable to free hosting in minutes.
+
+## What's new in Phase 6 — Menu 🍔, CAPTCHA 🔒, Branding, Voice 🎤
+
+- ✅ **Hamburger menu (☰)** top-left — slide-out drawer with Home, Settings, Privacy Policy, Terms of Service, Help/FAQ, Contact Us, About
+- ✅ **Settings modal** — change password, delete account (double-confirm), shows signed-in email
+- ✅ **Math CAPTCHA on login/register** — free, self-hosted (`GET /api/captcha`), one-time use, 5-min expiry; branded **"🔒 Secured by Ayaz AI Studio"**
+- ✅ **Notification bar** — fixed top announcement bar, dismissible (✕), dismissal persisted in `localStorage` (keyed to the message, so a new message re-appears); message edited via the `NOTICE_MSG` JS variable at the top of the script
+- ✅ **Voice input 🎤** — mic buttons next to both prompt textareas (image + video); uses Web Speech API (`en-US`); "Listening..." state; graceful fallback hides the buttons where unsupported
+- ✅ **Professional dark-navy theme** — OpenAI/Runway-style, no purple
 
 ## What's new in Phase 5 — Real Accounts 🔐 + English UI 🇬🇧
 
