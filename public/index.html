@@ -292,10 +292,10 @@
   #attachPreview img { width: 44px; height: 44px; object-fit: cover; border-radius: 8px; }
   #attachPreview button { background: none; border: none; color: var(--faint); font-size: 16px; cursor: pointer; }
   /* ---------- Grok-style two-row bottom bar ---------- */
-  #chatBar { flex-direction: column; align-items: stretch; border-radius: 26px; padding: 8px 8px 6px; gap: 0; }
-  #chatBar .cbrow1 { display: flex; align-items: center; gap: 4px; }
+  #chatBar { flex-direction: column; align-items: stretch; border-radius: 26px; padding: 10px 10px 8px; gap: 0; }
+  #chatBar .cbrow1 { display: flex; align-items: center; gap: 6px; }
   #chatBar .cbrow1 input { padding: 10px 8px; }
-  #chatBar .cbrow2 { display: flex; align-items: center; gap: 2px; padding-top: 2px; }
+  #chatBar .cbrow2 { display: flex; align-items: center; gap: 6px; padding-top: 5px; }
   .cb2spacer { flex: 1; }
   #modeWrap { position: relative; }
   #modeBtn {
@@ -323,15 +323,14 @@
   #modeMenu i { display: block; font-size: 11px; color: var(--faint); font-style: normal; }
   #modeMenu .tick { margin-left: auto; color: var(--green); font-size: 14px; }
   #speakBtn {
-    display: flex; align-items: center; gap: 7px; background: #fff; color: #000;
-    border: none; border-radius: 999px; font-size: 14px; font-weight: 700;
-    padding: 9px 16px; cursor: pointer; font-family: inherit; white-space: nowrap;
+    background: none; border: none; color: var(--muted); font-size: 20px;
+    width: 40px; height: 40px; border-radius: 50%; cursor: pointer; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-family: inherit; padding: 0;
   }
-  #speakBtn:active { background: #d4d4d4; }
-  #speakBtn.speaking { background: #ef4444; color: #fff; }
-  #speakBtn .wave { font-size: 13px; letter-spacing: -1px; }
-  body.light #speakBtn { background: #111; color: #fff; }
-  body.light #speakBtn.speaking { background: #ef4444; color: #fff; }
+  #speakBtn:active { background: var(--card2); }
+  #speakBtn.speaking { color: #ef4444; }
+  #speakBtn .wave { font-size: 17px; letter-spacing: -1px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
   /* ---------- enhanced drawer ---------- */
   #drawer { width: 300px; }
   .dprofile { display: flex; align-items: center; gap: 12px; padding: 4px 16px 14px; border-bottom: 1px solid var(--border); }
@@ -394,20 +393,16 @@
   .projitem .pdel:active { color: #ef4444; }
   .autotime { background: var(--card2); border: 1px solid var(--border); color: var(--text);
     border-radius: 10px; padding: 9px 11px; font-size: 14px; font-family: inherit; }
-  /* ---------- Ayaz Bot floating widget (Grok Bot style) ---------- */
+  /* ---------- Ayaz Bot floating widget ---------- */
   #botFab {
     position: fixed; right: 16px; bottom: calc(108px + env(safe-area-inset-bottom)); z-index: 80;
-    width: 58px; height: 58px; border-radius: 50%; border: 1px solid var(--border);
-    background: linear-gradient(135deg, #1d4ed8, #7c3aed); color: #fff; font-size: 28px;
+    width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border);
+    background: var(--card); color: #fff; font-size: 20px;
     cursor: pointer; display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 8px 28px rgba(59,130,246,.45); font-family: inherit;
-    animation: botpulse 2.6s ease-in-out infinite;
+    box-shadow: 0 4px 16px rgba(0,0,0,.45); font-family: inherit; padding: 0; overflow: hidden;
   }
   #botFab:active { transform: scale(.93); }
-  @keyframes botpulse {
-    0%, 100% { box-shadow: 0 8px 28px rgba(59,130,246,.45); }
-    50% { box-shadow: 0 8px 36px rgba(124,58,237,.65); }
-  }
+  #botFab img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
   #botPanel {
     position: fixed; right: 16px; bottom: calc(176px + env(safe-area-inset-bottom)); z-index: 85;
     width: 360px; max-width: calc(100vw - 32px); height: 480px; max-height: calc(100dvh - 220px);
@@ -420,9 +415,9 @@
   #botPanel.open { transform: translateY(0) scale(1); opacity: 1; }
   .bothead { display: flex; align-items: center; gap: 10px; padding: 13px 14px;
     border-bottom: 1px solid var(--border); background: var(--card); flex-shrink: 0; }
-  .bothead .bav { width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
-    background: linear-gradient(135deg, #1d4ed8, #7c3aed);
-    display: flex; align-items: center; justify-content: center; font-size: 21px; }
+  .bothead .bav { width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; overflow: hidden;
+    border: 1px solid var(--border); }
+  .bothead .bav img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .bothead .bt { flex: 1; min-width: 0; }
   .bothead .bt b { display: block; font-size: 15px; }
   .bothead .bt .on { display: flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--green); margin-top: 1px; }
@@ -468,10 +463,13 @@
   .stylecard {
     flex: 0 0 118px; height: 148px; border-radius: 16px; border: 1px solid var(--border);
     cursor: pointer; position: relative; overflow: hidden;
-    display: flex; align-items: flex-end; padding: 10px;
-    font-size: 13px; font-weight: 700; color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.8);
+    display: flex; flex-direction: column; justify-content: space-between; padding: 10px;
+    color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.8);
   }
   .stylecard:active { transform: scale(.96); }
+  .stylecard .sico { font-size: 38px; line-height: 1; margin-top: 4px; text-align: center;
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,.45)); }
+  .stylecard .sname { font-size: 13px; font-weight: 700; }
   .stylecard .sub { display: block; font-size: 10px; font-weight: 400; opacity: .85; }
   .refbox {
     border: 1px dashed var(--border); border-radius: 16px; padding: 14px;
@@ -744,8 +742,9 @@
   }
   .featcard .flabel b { display: block; font-size: 14.5px; font-weight: 700; }
   .featcard .flabel i { display: block; font-size: 11.5px; font-style: normal; opacity: .85; margin-top: 1px; }
-  .featcard .fic { position: absolute; top: 10px; left: 12px; font-size: 22px;
-    text-shadow: 0 2px 8px rgba(0,0,0,.5); }
+  .featcard .fic { position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 40px;
+    text-shadow: 0 2px 12px rgba(0,0,0,.5); padding-bottom: 32px; }
   /* ---------- refresh button spin ---------- */
   #refreshBtn.spinning { animation: rspin .9s linear infinite; }
   @keyframes rspin { to { transform: rotate(360deg); } }
@@ -908,7 +907,7 @@
     <button data-label="automations" onclick="drawerGo('automations')"><span class="ic">⚡</span>Automations</button>
     <button data-label="library my creations" onclick="drawerGo('library')"><span class="ic">📚</span>Library</button>
     <button data-label="projects saved prompts" onclick="drawerGo('projects')"><span class="ic">📁</span>Projects</button>
-    <button data-label="ayaz bot assistant" onclick="drawerGo('ayazbot')"><span class="ic">🤖</span><span>Ayaz Bot<span class="newbadge">New</span></span></button>
+    <button data-label="ayaz bot assistant" onclick="drawerGo('ayazbot')"><span class="ic"><img src="logo-icon.webp" alt="Ayaz Bot" style="width:22px;height:22px;border-radius:7px;object-fit:cover;vertical-align:-5px"></span><span>Ayaz Bot<span class="newbadge">New</span></span></button>
     <div class="dsect">Chats</div>
     <div id="drawerHistory"><div class="hempty">No chat history yet.</div></div>
     <div class="dsect">More</div>
@@ -942,11 +941,11 @@
   <div id="chatBarWrap">
     <div id="chatBar">
       <div class="cbrow1">
+        <button class="cbtn" id="attachBtn" onclick="document.getElementById('chatFile').click()" title="Attach image" aria-label="Attach image">+</button>
         <input id="chatInput" placeholder="Ask anything..." autocomplete="off" maxlength="2000">
         <button class="cbtn" id="chatSend" onclick="sendChat()" title="Send" aria-label="Send">➤</button>
       </div>
       <div class="cbrow2">
-        <button class="cbtn" id="attachBtn" onclick="document.getElementById('chatFile').click()" title="Attach image" aria-label="Attach image">+</button>
         <div id="modeWrap">
           <button id="modeBtn" onclick="toggleModeMenu(event)"><span id="modeIcon">⚡</span><span id="modeLabel">Fast</span><span class="caret">▾</span></button>
           <div id="modeMenu">
@@ -957,7 +956,7 @@
         </div>
         <span class="cb2spacer"></span>
         <button class="cbtn" id="chatMic" onclick="startVoiceChat()" title="Voice input" aria-label="Voice input">🎤</button>
-        <button id="speakBtn" onclick="speakLast()" title="Read last reply aloud" aria-label="Speak"><span class="wave">▂▄▆</span><span id="speakLabel">Speak</span></button>
+        <button class="cbtn" id="speakBtn" onclick="speakLast()" title="Read last reply aloud" aria-label="Speak"><span class="wave">▂▄▆</span><span id="speakLabel" class="sr-only">Speak</span></button>
       </div>
     </div>
   </div>
@@ -1103,10 +1102,10 @@
 </main>
 
 <!-- ══════════ AYAZ BOT floating widget ══════════ -->
-<button id="botFab" onclick="toggleBotPanel()" title="Chat with Ayaz Bot" aria-label="Chat with Ayaz Bot">🤖</button>
+<button id="botFab" onclick="toggleBotPanel()" title="Chat with Ayaz Bot" aria-label="Chat with Ayaz Bot"><img src="logo-icon.webp" alt="Ayaz Bot"></button>
 <div id="botPanel" role="dialog" aria-label="Ayaz Bot chat">
   <div class="bothead">
-    <div class="bav">🤖</div>
+    <div class="bav"><img src="logo-icon.webp" alt="Ayaz Bot"></div>
     <div class="bt"><b>Ayaz Bot</b><span class="on">Online — replies instantly</span></div>
     <button onclick="botExpand()" title="Open full chat" aria-label="Open full chat">⤢</button>
     <button onclick="toggleBotPanel(false)" title="Close" aria-label="Close">✕</button>
@@ -1586,14 +1585,14 @@ function switchMainTab(which){
 
 /* ---------- trending styles ---------- */
 const TRENDING_STYLES = [
-  { name: 'Chibi', sub: 'cute 3D cartoon', prompt: ', chibi style, cute 3D cartoon, big expressive eyes, soft lighting', bg: 'linear-gradient(135deg,#f9a8d4,#c084fc)' },
-  { name: 'Photoreal', sub: 'ultra realistic', prompt: ', ultra photorealistic, 8k, sharp focus, natural lighting, high detail', bg: 'linear-gradient(135deg,#334155,#0f172a)' },
-  { name: 'Anime', sub: 'japanese anime', prompt: ', anime style, studio ghibli inspired, vibrant colors, detailed', bg: 'linear-gradient(135deg,#f472b6,#8b5cf6)' },
-  { name: 'Cyberpunk', sub: 'neon future', prompt: ', cyberpunk style, neon lights, futuristic city, dramatic glow', bg: 'linear-gradient(135deg,#06b6d4,#3b82f6)' },
-  { name: 'Oil Paint', sub: 'classical art', prompt: ', classical oil painting, visible brush strokes, museum quality', bg: 'linear-gradient(135deg,#b45309,#78350f)' },
-  { name: 'Pixel Art', sub: 'retro 16-bit', prompt: ', pixel art, 16-bit retro game style, crisp pixels', bg: 'linear-gradient(135deg,#22c55e,#15803d)' },
-  { name: 'Sketch', sub: 'pencil drawing', prompt: ', detailed pencil sketch, fine linework, shading', bg: 'linear-gradient(135deg,#6b7280,#1f2937)' },
-  { name: 'Fantasy', sub: 'epic magical', prompt: ', epic fantasy art, magical atmosphere, dramatic lighting, intricate details', bg: 'linear-gradient(135deg,#7c3aed,#4c1d95)' },
+  { name: 'Chibi', sub: 'cute 3D cartoon', icon: '🧸', prompt: ', chibi style, cute 3D cartoon, big expressive eyes, soft lighting', bg: 'linear-gradient(135deg,#f9a8d4,#c084fc)' },
+  { name: 'Photoreal', sub: 'ultra realistic', icon: '📷', prompt: ', ultra photorealistic, 8k, sharp focus, natural lighting, high detail', bg: 'linear-gradient(135deg,#334155,#0f172a)' },
+  { name: 'Anime', sub: 'japanese anime', icon: '🌸', prompt: ', anime style, studio ghibli inspired, vibrant colors, detailed', bg: 'linear-gradient(135deg,#f472b6,#8b5cf6)' },
+  { name: 'Cyberpunk', sub: 'neon future', icon: '🌃', prompt: ', cyberpunk style, neon lights, futuristic city, dramatic glow', bg: 'linear-gradient(135deg,#06b6d4,#3b82f6)' },
+  { name: 'Oil Paint', sub: 'classical art', icon: '🎨', prompt: ', classical oil painting, visible brush strokes, museum quality', bg: 'linear-gradient(135deg,#b45309,#78350f)' },
+  { name: 'Pixel Art', sub: 'retro 16-bit', icon: '👾', prompt: ', pixel art, 16-bit retro game style, crisp pixels', bg: 'linear-gradient(135deg,#22c55e,#15803d)' },
+  { name: 'Sketch', sub: 'pencil drawing', icon: '✏️', prompt: ', detailed pencil sketch, fine linework, shading', bg: 'linear-gradient(135deg,#6b7280,#1f2937)' },
+  { name: 'Fantasy', sub: 'epic magical', icon: '🐉', prompt: ', epic fantasy art, magical atmosphere, dramatic lighting, intricate details', bg: 'linear-gradient(135deg,#7c3aed,#4c1d95)' },
 ];
 let activeStyle = null;
 function renderStyles(){
@@ -1602,14 +1601,14 @@ function renderStyles(){
   const none = document.createElement('div');
   none.className = 'stylecard';
   none.style.background = 'var(--card2)';
-  none.innerHTML = '<div>None<span class="sub">plain prompt</span></div>';
+  none.innerHTML = '<div class="sico">📝</div><div><div class="sname">None</div><span class="sub">plain prompt</span></div>';
   none.onclick = function(){ activeStyle = null; markStyle(none); };
   row.appendChild(none);
   TRENDING_STYLES.forEach(function(s){
     const c = document.createElement('div');
     c.className = 'stylecard';
     c.style.background = s.bg;
-    c.innerHTML = '<div>' + escapeHtml(s.name) + '<span class="sub">' + escapeHtml(s.sub) + '</span></div>';
+    c.innerHTML = '<div class="sico">' + s.icon + '</div><div><div class="sname">' + escapeHtml(s.name) + '</div><span class="sub">' + escapeHtml(s.sub) + '</span></div>';
     c.onclick = function(){ activeStyle = s; markStyle(c); showToast('✨ Style: ' + s.name + ' — it will be added to your prompt.'); };
     row.appendChild(c);
   });
