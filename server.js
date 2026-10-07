@@ -1487,6 +1487,64 @@ function isClientErrorFastFail(err) {
   return typeof code === 'number' && code >= 400 && code < 500 && code !== 429;
 }
 
+/* ------------------------------------------------------------------ */
+/* Google Gemini — primary AI provider (key from env var only).        */
+/* Set GEMINI_API_KEY as a Render environment variable. Never commit   */
+/* the key to source. Pollinations remains as automatic fallback.      */
+/* ------------------------------------------------------------------ */
+
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
+
+/** Call Google Gemini (gemini-2.0-flash). Resolves text or throws. */
+function geminiText(prompt, systemPrompt, timeoutMs = 30000) {
+  return new Promise((resolve, reject) => {
+    const key = GEMINI_API_KEY;
+    if (!key) {
+      const e = new Error('Gemini API key not configured');
+      e.statusCode = 401;
+      return reject(e);
+    }
+    const body = JSON.stringify({
+      contents: [{ parts: [{ text: (systemPrompt || '') + '\n\n' + prompt }] }],
+      generationConfig: { maxOutputTokens: 1000 },
+    });
+    const path = '/v1beta/models/gemini-2.0-flash:generateContent?key=' + encodeURIComponent(key);
+    const req = https.request({
+      hostname: 'generativelanguage.googleapis.com',
+      path: path,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body),
+        'User-Agent': 'AyazAIStudio/2.0',
+      },
+      timeout: timeoutMs,
+    }, (res) => {
+      if (res.statusCode !== 200) {
+        res.resume();
+        const e = new Error('Gemini returned ' + res.statusCode);
+        e.statusCode = res.statusCode;
+        return reject(e);
+      }
+      let data = '';
+      res.on('data', (c) => { data += c; if (data.length > 24000) { res.destroy(); } });
+      res.on('end', () => {
+        try {
+          const j = JSON.parse(data);
+          const parts = j && j.candidates && j.candidates[0] && j.candidates[0].content && j.candidates[0].content.parts;
+          const text = parts && parts[0] && parts[0].text;
+          if (text && text.trim()) return resolve(text.trim().slice(0, 4000));
+        } catch (e) { /* fall through */ }
+        resolve('');
+      });
+    });
+    req.on('timeout', () => { req.destroy(); reject(new Error('Gemini timed out')); });
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
+}
+
 /** Call Pollinations text API with retries + POST fallback. Resolves text or throws. */
 async function pollinationsText(prompt, timeoutMs = 60000) {
   const backoffs = [1000, 2000, 4000];
@@ -1620,9 +1678,18 @@ app.post('/api/chat', requireAuth, async (req, res) => {
       if (v) { reply = v; visionUsed = true; }
     }
     if (!reply) {
-      const prompt = activePrompt + '\n\nUser: ' + (message || 'Describe the attached image.') +
+      const userText = (message || 'Describe the attached image.') +
         (dataUrl ? '\n(Note: the user attached an image, but image analysis is unavailable right now — answer based on the text only and mention this honestly.)' : '');
-      reply = await pollinationsText(prompt);
+      // Primary: Google Gemini. Fallback: Pollinations.
+      try {
+        if (GEMINI_API_KEY) {
+          reply = await geminiText(userText, activePrompt);
+        }
+      } catch (gErr) { /* fall through to Pollinations */ }
+      if (!reply) {
+        const prompt = activePrompt + '\n\nUser: ' + userText;
+        reply = await pollinationsText(prompt);
+      }
     }
     if (!reply) throw new Error('empty AI response');
   } catch (e) {
