@@ -6,6 +6,7 @@ const os = require('os');
 const crypto = require('crypto');
 const { spawn } = require('child_process');
 const db = require('./db'); // storage backend: PostgreSQL (DATABASE_URL) or JSON files
+const { Client } = require('@gradio/client');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -1688,6 +1689,51 @@ function tryPollinationsVideo(prompt) {
  * duration: 3–8 seconds (default 5). motion: zoomin|zoomout|panleft|panright.
  * Streams back an MP4 (720x720, 25fps, h264).
  */
+
+/**
+ * POST /api/lipsync — Talking Photo / Lip-Sync
+ * Body (JSON): { image_url, audio_url, lang, mode }
+ * - image_url: public URL of photo (human or animal)
+ * - audio_url: public URL of audio file (generate via /api/tts first)
+ * - mode: 'animal' (LivePortrait) or 'human' (LatentSync)
+ * Returns: MP4 video with lip-synced character
+ */
+app.post('/api/lipsync', requireAuth, express.json({ limit: '2mb' }), async (req, res) => {
+  try {
+    const { image_url, audio_url, lang = 'ur', mode = 'human' } = req.body || {};
+    if (!image_url) return res.status(400).json({ error: 'image_url required' });
+    if (!audio_url) return res.status(400).json({ error: 'audio_url required (generate via /api/tts first)' });
+
+    // Call Hugging Face Space via gradio client
+    // LivePortrait: KwaiVGI/LivePortrait (humans + animals)
+    // LatentSync: ByteDance/LatentSync (HD human)
+    const space = mode === 'animal' ? 'KwaiVGI/LivePortrait' : 'ByteDance/LatentSync1.5';
+    const client = await Client.connect(space);
+
+    const result = await client.predict('/generate', {
+      image: image_url,
+      audio: audio_url,
+    });
+
+    const videoUrl = result?.data?.[0]?.url || result?.data?.[0];
+    if (!videoUrl) return res.status(502).json({ error: 'lipsync provider returned no video' });
+
+    // Download and stream back
+    const dlClient = videoUrl.startsWith('https') ? https : require('http');
+    dlClient.get(videoUrl, { timeout: 120000 }, (dlRes) => {
+      if (dlRes.statusCode !== 200) { dlRes.resume(); return res.status(502).json({ error: 'video download failed' }); }
+      const left = recordUsage(req.authEmail, 'video');
+      recordCreation(req.authEmail, 'video', 'lipsync', { source: 'lipsync-' + mode });
+      res.setHeader('Content-Type', 'video/mp4');
+      res.setHeader('X-Video-Source', 'lipsync-' + mode);
+      res.setHeader('X-Videos-Left', left.videos);
+      dlRes.pipe(res);
+    }).on('error', (e) => res.status(502).json({ error: 'download error: ' + e.message }));
+  } catch (e) {
+    res.status(502).json({ error: 'lipsync failed: ' + e.message });
+  }
+});
+
 app.get('/api/generate-video', requireAuth, async (req, res) => {
   const prompt = (req.query.prompt || '').toString().slice(0, 500);
   if (!prompt) return res.status(400).json({ error: 'prompt required' });
