@@ -1,0 +1,1 @@
+{"author":"Ayaz","dependencies":{"express":"^5.2.1"},"description":"Ayaz AI Studio — free AI image + video generation (public web app)","engines":{"node":">=18"},"keywords":["ai","image-generation","video-generation"],"license":"ISC","main":"server.js","name":"ayaz-ai-studio","scripts":{"start":"node server.js"},"version":"1.0.0"}

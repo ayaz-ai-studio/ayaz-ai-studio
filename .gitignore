@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+
+# Secrets (never commit)
+.env
+
+# Local usage tracking (ephemeral on free hosting anyway)
+usage.json
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+*.log

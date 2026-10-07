@@ -1,0 +1,22 @@
+# Render deployment blueprint for Ayaz AI Studio
+# Usage: push this repo to GitHub, then in Render Dashboard choose
+# "New +" -> "Blueprint" and point it at the repo. Render reads this file.
+services:
+  - type: web
+    name: ayaz-ai-studio
+    runtime: node
+    plan: free
+    # Install ffmpeg (needed for the free video path: AI still -> MP4 animation).
+    # First deploy takes a few extra minutes because of the apt-get step.
+    buildCommand: "npm install && (which ffmpeg || (apt-get update && apt-get install -y ffmpeg))"
+    startCommand: "node server.js"
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      # Optional: a free Hugging Face token enables the HF image fallback
+      # and a best-effort true-AI-video attempt. Get one free at
+      # https://huggingface.co/settings/tokens (read-only is enough).
+      # Leave empty to run 100% keyless on Pollinations.ai.
+      - key: HF_TOKEN
+        sync: false
