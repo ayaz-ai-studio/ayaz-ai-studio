@@ -16,6 +16,10 @@ const HF_TOKEN = process.env.HF_TOKEN || '';
 // Multiple keys rotate automatically; exhausted keys are skipped.
 const SILICONFLOW_KEYS = (process.env.SILICONFLOW_KEYS || '').split(',').map(k => k.trim()).filter(Boolean);
 let sfKeyIndex = 0;
+// NovAI ($0/video forever via cogvideox-flash) — priority 2
+const NOVAI_API_KEY = process.env.NOVAI_API_KEY || '';
+// Agnes AI ($0/sec limited time via agnes-video-2.5-flash) — priority 1 (use before offer ends)
+const AGNES_API_KEY = process.env.AGNES_API_KEY || '';
 
 app.use(express.json({ limit: '2mb' })); // 2mb: profile photo uploads go through JSON
 app.use(express.static(path.join(__dirname, 'public')));
@@ -1405,6 +1409,129 @@ function trySiliconFlowVideo(prompt) {
 }
 
 /**
+ * PRIORITY 1: Agnes AI video (agnes-video-2.5-flash, $0/sec limited time).
+ * Use first — offer may end. OpenAI-compatible API.
+ */
+function tryAgnesVideo(prompt) {
+  return new Promise((resolve) => {
+    if (!AGNES_API_KEY) return resolve(null);
+    const body = JSON.stringify({
+      model: 'agnes-video-2.5-flash',
+      prompt: prompt.slice(0, 500),
+    });
+    const req = https.request({
+      hostname: 'apihub.agnes-ai.com',
+      path: '/v1/video/generations',
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${AGNES_API_KEY}`,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body),
+      },
+      timeout: 30000,
+    }, (res) => {
+      let data = '';
+      res.on('data', (c) => data += c);
+      res.on('end', () => {
+        try {
+          const parsed = JSON.parse(data);
+          const url = parsed.data?.[0]?.url || parsed.url;
+          if (url) return downloadVideoUrl(url, resolve);
+        } catch (e) {}
+        resolve(null);
+      });
+    });
+    req.on('timeout', () => { req.destroy(); resolve(null); });
+    req.on('error', () => resolve(null));
+    req.write(body);
+    req.end();
+  });
+}
+
+/**
+ * PRIORITY 2: NovAI video (cogvideox-flash, $0/generation forever).
+ * OpenAI-compatible API at aiapi-pro.com/v1.
+ */
+function tryNovAIVideo(prompt) {
+  return new Promise((resolve) => {
+    if (!NOVAI_API_KEY) return resolve(null);
+    const body = JSON.stringify({
+      model: 'cogvideox-flash',
+      prompt: prompt.slice(0, 500),
+    });
+    const req = https.request({
+      hostname: 'aiapi-pro.com',
+      path: '/v1/video/generations',
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${NOVAI_API_KEY}`,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body),
+      },
+      timeout: 30000,
+    }, (res) => {
+      let data = '';
+      res.on('data', (c) => data += c);
+      res.on('end', () => {
+        try {
+          const parsed = JSON.parse(data);
+          const url = parsed.data?.[0]?.url || parsed.url;
+          if (url) return downloadVideoUrl(url, resolve);
+          // Async: poll if task id returned
+          const taskId = parsed.id || parsed.task_id;
+          if (taskId) return pollNovAI(taskId, 0, resolve);
+        } catch (e) {}
+        resolve(null);
+      });
+    });
+    req.on('timeout', () => { req.destroy(); resolve(null); });
+    req.on('error', () => resolve(null));
+    req.write(body);
+    req.end();
+  });
+}
+
+function pollNovAI(taskId, attempts, resolve) {
+  if (attempts > 40) return resolve(null);
+  https.get({
+    hostname: 'aiapi-pro.com',
+    path: `/v1/video/generations/${taskId}`,
+    headers: { 'Authorization': `Bearer ${NOVAI_API_KEY}` },
+    timeout: 15000,
+  }, (res) => {
+    let data = '';
+    res.on('data', (c) => data += c);
+    res.on('end', () => {
+      try {
+        const parsed = JSON.parse(data);
+        const status = parsed.status || parsed.data?.[0]?.status;
+        const url = parsed.data?.[0]?.url || parsed.url;
+        if ((status === 'succeeded' || status === 'completed') && url) {
+          return downloadVideoUrl(url, resolve);
+        }
+        if (status === 'failed') return resolve(null);
+      } catch (e) {}
+      setTimeout(() => pollNovAI(taskId, attempts + 1, resolve), 15000);
+    });
+  }).on('timeout', function() { this.destroy(); setTimeout(() => pollNovAI(taskId, attempts + 1, resolve), 15000); })
+    .on('error', () => setTimeout(() => pollNovAI(taskId, attempts + 1, resolve), 15000));
+}
+
+function downloadVideoUrl(url, resolve) {
+  const client = url.startsWith('https') ? https : require('http');
+  client.get(url, { timeout: 60000 }, (dlRes) => {
+    if (dlRes.statusCode !== 200) { dlRes.resume(); return resolve(null); }
+    const chunks = [];
+    dlRes.on('data', (c) => chunks.push(c));
+    dlRes.on('end', () => {
+      const buf = Buffer.concat(chunks);
+      resolve(buf.length > 10000 ? buf : null);
+    });
+  }).on('timeout', function() { this.destroy(); resolve(null); })
+    .on('error', () => resolve(null));
+}
+
+/**
  * GET /api/generate-video?prompt=...&duration=5&motion=zoomin&seed=...
  * (Authorization: Bearer <token>)
  * duration: 3–8 seconds (default 5). motion: zoomin|zoomout|panleft|panright.
@@ -1424,6 +1551,54 @@ app.get('/api/generate-video', requireAuth, async (req, res) => {
   const seed = parseInt(req.query.seed) || Math.floor(Math.random() * 999999);
   const frames = duration * VIDEO_FPS;
 
+  // PRIORITY 1: Agnes AI (limited-time $0/sec — use before offer ends)
+  try {
+    const agnesVideo = await tryAgnesVideo(prompt);
+    if (agnesVideo && agnesVideo.length > 10000) {
+      const left = recordUsage(req.authEmail, 'video');
+      recordCreation(req.authEmail, 'video', prompt, { duration, motion, seed, source: 'agnes-video-2.5-flash' });
+      res.setHeader('Content-Type', 'video/mp4');
+      res.setHeader('X-Video-Source', 'agnes-video-2.5-flash');
+      res.setHeader('X-Images-Left', left.images);
+      res.setHeader('X-Videos-Left', left.videos);
+      res.setHeader('X-Images-Total', left.totalImages);
+      res.setHeader('X-Videos-Total', left.totalVideos);
+      return res.send(agnesVideo);
+    }
+  } catch (e) { /* fall through */ }
+
+  // PRIORITY 2: NovAI (cogvideox-flash, $0/generation forever)
+  try {
+    const novaiVideo = await tryNovAIVideo(prompt);
+    if (novaiVideo && novaiVideo.length > 10000) {
+      const left = recordUsage(req.authEmail, 'video');
+      recordCreation(req.authEmail, 'video', prompt, { duration, motion, seed, source: 'novai-cogvideox-flash' });
+      res.setHeader('Content-Type', 'video/mp4');
+      res.setHeader('X-Video-Source', 'novai-cogvideox-flash');
+      res.setHeader('X-Images-Left', left.images);
+      res.setHeader('X-Videos-Left', left.videos);
+      res.setHeader('X-Images-Total', left.totalImages);
+      res.setHeader('X-Videos-Total', left.totalVideos);
+      return res.send(novaiVideo);
+    }
+  } catch (e) { /* fall through */ }
+
+  // PRIORITY 3: SiliconFlow (Wan 2.2, paid credits — use sparingly)
+  try {
+    const sfVideo = await trySiliconFlowVideo(prompt);
+    if (sfVideo && sfVideo.length > 10000) {
+      const left = recordUsage(req.authEmail, 'video');
+      recordCreation(req.authEmail, 'video', prompt, { duration, motion, seed, source: 'siliconflow-wan22' });
+      res.setHeader('Content-Type', 'video/mp4');
+      res.setHeader('X-Video-Source', 'siliconflow-wan22');
+      res.setHeader('X-Images-Left', left.images);
+      res.setHeader('X-Videos-Left', left.videos);
+      res.setHeader('X-Images-Total', left.totalImages);
+      res.setHeader('X-Videos-Total', left.totalVideos);
+      return res.send(sfVideo);
+    }
+  } catch (e) { /* fall through */ }
+
   // Optional: true AI video via HF (usually unavailable on serverless -> null)
   try {
     const hfVideo = await tryHFVideo(prompt);
@@ -1437,22 +1612,6 @@ app.get('/api/generate-video', requireAuth, async (req, res) => {
       res.setHeader('X-Images-Total', left.totalImages);
       res.setHeader('X-Videos-Total', left.totalVideos);
       return res.send(hfVideo);
-    }
-  } catch (e) { /* fall through */ }
-
-  // Real AI video via SiliconFlow (Wan 2.2) with multi-key rotation
-  try {
-    const sfVideo = await trySiliconFlowVideo(prompt);
-    if (sfVideo && sfVideo.length > 10000) {
-      const left = recordUsage(req.authEmail, 'video');
-      recordCreation(req.authEmail, 'video', prompt, { duration, motion, seed, source: 'siliconflow-wan22' });
-      res.setHeader('Content-Type', 'video/mp4');
-      res.setHeader('X-Video-Source', 'siliconflow-wan22');
-      res.setHeader('X-Images-Left', left.images);
-      res.setHeader('X-Videos-Left', left.videos);
-      res.setHeader('X-Images-Total', left.totalImages);
-      res.setHeader('X-Videos-Total', left.totalVideos);
-      return res.send(sfVideo);
     }
   } catch (e) { /* fall through to animation */ }
 
