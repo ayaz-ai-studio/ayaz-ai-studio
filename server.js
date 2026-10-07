@@ -22,7 +22,7 @@ const NOVAI_API_KEY = process.env.NOVAI_API_KEY || '';
 // Agnes AI ($0/sec limited time via agnes-video-2.5-flash) — priority 1 (use before offer ends)
 const AGNES_API_KEY = process.env.AGNES_API_KEY || '';
 
-app.use(express.json({ limit: '2mb' })); // 2mb: profile photo uploads go through JSON
+app.use(express.json({ limit: '50mb' })); // 50mb: camera photos as base64 data URLs can be 10MB+; per-route limits still apply below
 app.use(express.static(path.join(__dirname, 'public')));
 
 /* ------------------------------------------------------------------ */
@@ -273,7 +273,9 @@ app.post('/api/register', (req, res) => {
     verificationExpiry: Date.now() + VERIFY_CODE_TTL_MS,
   };
   saveUsers();
-  // DEMO MODE: code returned in the response (replace with real email send in production)
+  // DEMO MODE: code returned in the response (replace with real email send in production).
+  // Fallback: also log to server console so the code is recoverable from Render logs.
+  console.log(`[verify] code for ${email}: ${verifyCode} (valid 15 min)`);
   res.status(201).json({ email, needsVerification: true, demoCode: verifyCode });
 });
 
@@ -341,7 +343,9 @@ app.post('/api/resend-verification', (req, res) => {
   u.verificationCode = verifyCode;
   u.verificationExpiry = Date.now() + VERIFY_CODE_TTL_MS;
   saveUsers();
-  // DEMO MODE: code returned in the response (replace with real email send in production)
+  // DEMO MODE: code returned in the response (replace with real email send in production).
+  // Fallback: also log to server console so the code is recoverable from Render logs.
+  console.log(`[verify] code for ${email}: ${verifyCode} (valid 15 min)`);
   res.json({ email, demoCode: verifyCode });
 });
 
@@ -1078,13 +1082,38 @@ function creditsFor(email) {
 }
 
 /**
+ * POST /api/watch-ad-start — begin a rewarded-ad view.
+ * (Authorization: Bearer <token>)
+ * Stores the server-side start timestamp. The frontend must call this when
+ * the ad actually starts rendering, then call /api/watch-ad-complete after
+ * its countdown. Direct calls to /api/watch-ad-complete without a valid
+ * start are rejected — this closes the console-fetch credit exploit.
+ */
+const AD_MIN_WATCH_MS = 30 * 1000; // minimum verified watch time
+const adStartTimes = {}; // email -> timestamp ms (in-memory; resets on restart)
+app.post('/api/watch-ad-start', requireAuth, (req, res) => {
+  adStartTimes[req.authEmail] = Date.now();
+  res.json({ started: true, minWatchMs: AD_MIN_WATCH_MS });
+});
+
+/**
  * POST /api/watch-ad-complete — award ad credits after a completed ad view.
  * (Authorization: Bearer <token>)
- * Simulated mode: frontend calls this after its 30s countdown.
+ * Requires a prior POST /api/watch-ad-start with >= 30s elapsed, otherwise
+ * rejected (400). The start record is single-use: cleared after completion.
+ * Simulated mode: frontend calls start when the 30s countdown begins.
  * Adsterra mode: call ONLY after server-side postback verifies the view.
  */
 app.post('/api/watch-ad-complete', requireAuth, (req, res) => {
   const email = req.authEmail;
+  const startedAt = adStartTimes[email];
+  if (!startedAt) {
+    return res.status(400).json({ error: 'Ad view not started. Call /api/watch-ad-start first.', code: 'ad_not_started' });
+  }
+  delete adStartTimes[email]; // single-use: prevent replay
+  if (Date.now() - startedAt < AD_MIN_WATCH_MS) {
+    return res.status(400).json({ error: 'Ad was not watched long enough. Please watch the full ad.', code: 'ad_too_short' });
+  }
   const rec = getUsage(email);
   rec.ads = rec.ads || 0;
   if (rec.ads >= MAX_ADS_PER_DAY) {
@@ -1798,6 +1827,20 @@ app.get('/api/generate-video', requireAuth, async (req, res) => {
   const prompt = (req.query.prompt || '').toString().slice(0, 500);
   if (!prompt) return res.status(400).json({ error: 'prompt required' });
 
+  // Safety net: never leave the client hanging. If the whole provider chain
+  // takes longer than this, return a clean JSON error instead of a dropped
+  // connection (Render's proxy kills idle sockets at ~30-60s anyway).
+  // NOTE: true async job IDs + client polling is the proper long-term fix.
+  req.setTimeout(240000);
+  res.setTimeout(240000);
+  let timedOut = false;
+  const onTimeout = () => {
+    timedOut = true;
+    if (!res.headersSent) res.status(504).json({ error: 'Video generation timed out. Please try again.' });
+  };
+  req.on('timeout', onTimeout);
+  res.on('timeout', onTimeout);
+
   // Daily limit check (recorded only after a video is produced)
   const gate = checkLimit(req.authEmail, 'video');
   if (!gate.ok) return res.status(gate.status).json({ error: gate.message });
@@ -2306,7 +2349,11 @@ app.delete('/api/chat/history', requireAuth, (req, res) => {
 /* POST /api/upload { image: "data:image/...;base64,...", name? }       */
 /* Auth required. 5MB max. Files live in the OS temp dir and are       */
 /* served at /uploads/<id>. Old files (>24h) are pruned on upload.     */
-/* Ephemeral on free hosting — uploads vanish on restart (documented). */
+/* NOTE (BUG 4): uploads are EPHEMERAL on free hosting — os.tmpdir()   */
+/* is wiped on every Render restart/redeploy, so /uploads/<id> URLs    */
+/* saved in "My Creations" or shared links WILL break after a restart. */
+/* Permanent fix: migrate uploads to object storage (R2/S3) or a      */
+/* persistent DB; tracked as a separate task.                          */
 /* ------------------------------------------------------------------ */
 
 const UPLOAD_DIR = path.join(os.tmpdir(), 'aas-uploads');
@@ -2335,7 +2382,7 @@ function pruneUploads() {
  * POST /api/upload  { image: dataURL }
  * (Authorization: Bearer <token>)
  */
-app.post('/api/upload', requireAuth, express.json({ limit: '6mb' }), (req, res) => {
+app.post('/api/upload', requireAuth, express.json({ limit: '10mb' }), (req, res) => {
   const dataUrl = (req.body && req.body.image || '').toString();
   const m = dataUrl.match(/^data:(image\/(png|jpeg|webp|gif));base64,([A-Za-z0-9+/=]+)$/);
   if (!m) return res.status(400).json({ error: 'Please upload a PNG, JPEG, WEBP or GIF image.' });
@@ -2510,6 +2557,67 @@ app.delete('/api/queue/:id', requireAuth, (req, res) => {
     }
   }
   res.status(404).json({ error: 'Request not found.' });
+});
+
+/* ------------------------------------------------------------------ */
+/* Admin panel — owner-only stats & user management                     */
+/*                                                                     */
+/* GET /api/admin/stats (Bearer token of an admin email required)       */
+/* GET /admin — simple HTML dashboard (reads aas_token from            */
+/*   localStorage, same origin, so no extra login needed)              */
+/* ------------------------------------------------------------------ */
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'alising09876@gmail.com')
+  .split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+function requireAdmin(req, res, next) {
+  const email = (req.authEmail || '').toLowerCase();
+  if (!ADMIN_EMAILS.includes(email)) return res.status(403).json({ error: 'Admin access only.' });
+  next();
+}
+
+app.get('/api/admin/stats', requireAuth, requireAdmin, (req, res) => {
+  const users = userStore.users || {};
+  const emails = Object.keys(users);
+  let totalVideos = 0, totalImages = 0;
+  for (const em of emails) {
+    for (const c of (creationsStore.users[em] || [])) {
+      if (c.type === 'video') totalVideos++;
+      else if (c.type === 'image') totalImages++;
+    }
+  }
+  const recentSignups = emails
+    .map((e) => ({ email: e, createdAt: users[e].createdAt || null, verified: !!users[e].emailVerified }))
+    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+    .slice(0, 10);
+  res.json({
+    totalUsers: emails.length,
+    totalVideos,
+    totalImages,
+    videoQueuePending: pendingQueueItems(videoQueue).length,
+    imageQueuePending: pendingQueueItems(imageQueue).length,
+    recentSignups,
+  });
+});
+
+app.get('/admin', (req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.send('<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
+    + '<title>Ayaz AI Studio — Admin</title>'
+    + '<style>body{font-family:system-ui,sans-serif;background:#111;color:#eee;margin:0;padding:24px}h1{font-size:22px}.cards{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0}.card{background:#1c1c1c;border:1px solid #333;border-radius:10px;padding:16px 20px;min-width:140px}.card b{font-size:28px;display:block}table{border-collapse:collapse;width:100%;margin-top:12px}td,th{border:1px solid #333;padding:8px;text-align:left;font-size:14px}.err{color:#ff8080}</style></head><body>'
+    + '<h1>Ayaz AI Studio — Admin Dashboard</h1><div id="out">Loading…</div>'
+    + '<script>'
+    + 'var t=localStorage.getItem("aas_token")||"";'
+    + 'fetch("/api/admin/stats",{headers:t?{"Authorization":"Bearer "+t}:{}}).then(function(r){return r.json().then(function(j){return{r:r,j:j}})}).then(function(x){'
+    + 'var o=document.getElementById("out");'
+    + 'if(!x.r.ok){o.innerHTML=\'<p class="err">\'+(x.j.error||"Access denied")+"</p>";return;}'
+    + 'var s=x.j,h=\'<div class="cards">\''
+    + '+c("Users",s.totalUsers)+c("Videos",s.totalVideos)+c("Images",s.totalImages)'
+    + '+c("Video queue",s.videoQueuePending)+c("Image queue",s.imageQueuePending)+"</div>";'
+    + 'h+="<h3>Recent signups</h3><table><tr><th>Email</th><th>Created</th><th>Verified</th></tr>";'
+    + 's.recentSignups.forEach(function(u){h+="<tr><td>"+u.email+"</td><td>"+(u.createdAt||"-")+"</td><td>"+(u.verified?"yes":"no")+"</td></tr>"});'
+    + 'o.innerHTML=h+"</table>";'
+    + 'function c(l,v){return \'<div class="card"><b>\'+v+"</b>"+l+"</div>"}'
+    + '}).catch(function(e){document.getElementById("out").innerHTML=\'<p class="err">\'+e+"</p>"});'
+    + '</script></body></html>');
 });
 
 /* Boot: load all stores (PostgreSQL when DATABASE_URL is set, JSON   */
