@@ -12,6 +12,10 @@ const PORT = process.env.PORT || 3000;
 
 // Optional: Hugging Face token for higher-quality SDXL (free token at huggingface.co/settings/tokens)
 const HF_TOKEN = process.env.HF_TOKEN || '';
+// SiliconFlow API keys (comma-separated) for real AI video via Wan 2.2.
+// Multiple keys rotate automatically; exhausted keys are skipped.
+const SILICONFLOW_KEYS = (process.env.SILICONFLOW_KEYS || '').split(',').map(k => k.trim()).filter(Boolean);
+let sfKeyIndex = 0;
 
 app.use(express.json({ limit: '2mb' })); // 2mb: profile photo uploads go through JSON
 app.use(express.static(path.join(__dirname, 'public')));
@@ -1298,6 +1302,109 @@ function tryHFVideo(prompt) {
 }
 
 /**
+ * Real AI video via SiliconFlow (Wan 2.2 T2V). Rotates through SILICONFLOW_KEYS;
+ * keys reporting insufficient balance are skipped for this call.
+ * Resolves video bytes or null.
+ */
+function trySiliconFlowVideo(prompt) {
+  return new Promise((resolve) => {
+    if (!SILICONFLOW_KEYS.length) return resolve(null);
+    const keys = [...SILICONFLOW_KEYS];
+    // Start from rotation index for even usage
+    const startIdx = sfKeyIndex % keys.length;
+    const ordered = keys.map((_, i) => keys[(startIdx + i) % keys.length]);
+
+    const tryKey = (ki) => {
+      if (ki >= ordered.length) return resolve(null);
+      const key = ordered[ki];
+      const body = JSON.stringify({
+        model: 'Wan-AI/Wan2.2-T2V-A14B',
+        prompt: prompt.slice(0, 500),
+        negative_prompt: 'cartoon, blurry, low quality',
+      });
+      const submitReq = https.request({
+        hostname: 'api.siliconflow.com',
+        path: '/v1/video/submit',
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${key}`,
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(body),
+        },
+        timeout: 30000,
+      }, (submitRes) => {
+        let data = '';
+        submitRes.on('data', (c) => data += c);
+        submitRes.on('end', () => {
+          let requestId = null;
+          try { requestId = JSON.parse(data).requestId; } catch (e) {}
+          if (!requestId) {
+            // Key exhausted or error -> try next key
+            return tryKey(ki + 1);
+          }
+          // Mark this key as used for rotation
+          sfKeyIndex = (startIdx + ki + 1) % keys.length;
+          pollStatus(key, requestId, 0);
+        });
+      });
+      submitReq.on('timeout', () => { submitReq.destroy(); tryKey(ki + 1); });
+      submitReq.on('error', () => tryKey(ki + 1));
+      submitReq.write(body);
+      submitReq.end();
+    };
+
+    const pollStatus = (key, requestId, attempts) => {
+      if (attempts > 40) return resolve(null); // ~10 min max
+      const body = JSON.stringify({ requestId });
+      const statusReq = https.request({
+        hostname: 'api.siliconflow.com',
+        path: '/v1/video/status',
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${key}`,
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(body),
+        },
+        timeout: 20000,
+      }, (statusRes) => {
+        let data = '';
+        statusRes.on('data', (c) => data += c);
+        statusRes.on('end', () => {
+          let parsed = {};
+          try { parsed = JSON.parse(data); } catch (e) {}
+          if (parsed.status === 'Succeed' && parsed.results?.videos?.[0]?.url) {
+            downloadVideo(parsed.results.videos[0].url);
+          } else if (parsed.status === 'Failed') {
+            resolve(null);
+          } else {
+            setTimeout(() => pollStatus(key, requestId, attempts + 1), 15000);
+          }
+        });
+      });
+      statusReq.on('timeout', () => { statusReq.destroy(); setTimeout(() => pollStatus(key, requestId, attempts + 1), 15000); });
+      statusReq.on('error', () => setTimeout(() => pollStatus(key, requestId, attempts + 1), 15000));
+      statusReq.write(body);
+      statusReq.end();
+    };
+
+    const downloadVideo = (url) => {
+      https.get(url, { timeout: 60000 }, (dlRes) => {
+        if (dlRes.statusCode !== 200) { dlRes.resume(); return resolve(null); }
+        const chunks = [];
+        dlRes.on('data', (c) => chunks.push(c));
+        dlRes.on('end', () => {
+          const buf = Buffer.concat(chunks);
+          resolve(buf.length > 10000 ? buf : null);
+        });
+      }).on('timeout', function() { this.destroy(); resolve(null); })
+        .on('error', () => resolve(null));
+    };
+
+    tryKey(0);
+  });
+}
+
+/**
  * GET /api/generate-video?prompt=...&duration=5&motion=zoomin&seed=...
  * (Authorization: Bearer <token>)
  * duration: 3–8 seconds (default 5). motion: zoomin|zoomout|panleft|panright.
@@ -1330,6 +1437,22 @@ app.get('/api/generate-video', requireAuth, async (req, res) => {
       res.setHeader('X-Images-Total', left.totalImages);
       res.setHeader('X-Videos-Total', left.totalVideos);
       return res.send(hfVideo);
+    }
+  } catch (e) { /* fall through */ }
+
+  // Real AI video via SiliconFlow (Wan 2.2) with multi-key rotation
+  try {
+    const sfVideo = await trySiliconFlowVideo(prompt);
+    if (sfVideo && sfVideo.length > 10000) {
+      const left = recordUsage(req.authEmail, 'video');
+      recordCreation(req.authEmail, 'video', prompt, { duration, motion, seed, source: 'siliconflow-wan22' });
+      res.setHeader('Content-Type', 'video/mp4');
+      res.setHeader('X-Video-Source', 'siliconflow-wan22');
+      res.setHeader('X-Images-Left', left.images);
+      res.setHeader('X-Videos-Left', left.videos);
+      res.setHeader('X-Images-Total', left.totalImages);
+      res.setHeader('X-Videos-Total', left.totalVideos);
+      return res.send(sfVideo);
     }
   } catch (e) { /* fall through to animation */ }
 
