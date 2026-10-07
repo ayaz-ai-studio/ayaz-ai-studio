@@ -31,6 +31,22 @@ const DAILY_IMAGE_LIMIT = 6;
 const DAILY_VIDEO_LIMIT = 3;
 const USAGE_FILE = path.join(__dirname, 'usage.json');
 
+/* ------------------------------------------------------------------ */
+/* Phase 4 — rewarded ads (simulated for now)                           */
+/*                                                                     */
+/* AD_PROVIDER = "simulated" | "adsterra"                               */
+/* "simulated": frontend shows a 30s countdown, then calls              */
+/*   POST /api/watch-ad-complete.                                       */
+/* "adsterra": frontend must load Adsterra's rewarded-ad unit (see     */
+/*   ADSTERRA_PLACEHOLDER comment in public/index.html) and call       */
+/*   /api/watch-ad-complete ONLY after the provider's server-side      */
+/*   postback verifies the completed view (anti-fraud).                 */
+/* ------------------------------------------------------------------ */
+const AD_PROVIDER = process.env.AD_PROVIDER || 'simulated';
+const MAX_ADS_PER_DAY = 5;      // max rewarded-ad watches per user per day
+const AD_REWARD_IMAGES = 2;     // +images per completed ad watch
+const AD_REWARD_VIDEOS = 1;     // +videos per completed ad watch
+
 let usageStore = { users: {} };
 try {
   if (fs.existsSync(USAGE_FILE)) {
@@ -52,7 +68,7 @@ function getUsage(name) {
   const today = todayStr();
   let rec = usageStore.users[name];
   if (!rec || rec.date !== today) {
-    rec = { date: today, images: 0, videos: 0 };
+    rec = { date: today, images: 0, videos: 0, ads: 0, bonusImages: 0, bonusVideos: 0 };
     usageStore.users[name] = rec;
   }
   return rec;
@@ -63,10 +79,12 @@ function checkLimit(name, type) {
   const clean = cleanName(name);
   if (!clean) return { ok: false, status: 401, message: 'Pehle apna naam set karein (upar name box mein).' };
   const rec = getUsage(clean);
-  const limit = type === 'image' ? DAILY_IMAGE_LIMIT : DAILY_VIDEO_LIMIT;
+  const baseLimit = type === 'image' ? DAILY_IMAGE_LIMIT : DAILY_VIDEO_LIMIT;
+  const bonus = type === 'image' ? (rec.bonusImages || 0) : (rec.bonusVideos || 0);
+  const limit = baseLimit + bonus;
   const used = type === 'image' ? rec.images : rec.videos;
   if (used >= limit) {
-    return { ok: false, status: 429, message: `Aaj ki ${type === 'image' ? 'image' : 'video'} limit khatam! (${used}/${limit}). Kal phir try karein.` };
+    return { ok: false, status: 429, message: `Aaj ki ${type === 'image' ? 'image' : 'video'} limit khatam! (${used}/${limit}). 📺 Ad dekh kar extra credits pao, ya kal phir try karein.` };
   }
   return { ok: true, user: clean };
 }
@@ -76,26 +94,69 @@ function recordUsage(name, type) {
   const rec = getUsage(cleanName(name));
   if (type === 'image') rec.images++; else rec.videos++;
   saveUsage();
+  const totalImages = DAILY_IMAGE_LIMIT + (rec.bonusImages || 0);
+  const totalVideos = DAILY_VIDEO_LIMIT + (rec.bonusVideos || 0);
   return {
-    images: DAILY_IMAGE_LIMIT - rec.images,
-    videos: DAILY_VIDEO_LIMIT - rec.videos,
+    images: Math.max(0, totalImages - rec.images),
+    videos: Math.max(0, totalVideos - rec.videos),
+    totalImages,
+    totalVideos,
   };
 }
 
 /** Public credits snapshot for a username (no recording). */
 function creditsFor(name) {
   const clean = cleanName(name);
-  const rec = clean ? getUsage(clean) : { images: 0, videos: 0 };
+  const rec = clean ? getUsage(clean) : { images: 0, videos: 0, ads: 0, bonusImages: 0, bonusVideos: 0 };
+  const bonusImages = rec.bonusImages || 0;
+  const bonusVideos = rec.bonusVideos || 0;
+  const totalImages = DAILY_IMAGE_LIMIT + bonusImages;
+  const totalVideos = DAILY_VIDEO_LIMIT + bonusVideos;
   return {
     user: clean || null,
     limits: { images: DAILY_IMAGE_LIMIT, videos: DAILY_VIDEO_LIMIT },
+    totals: { images: totalImages, videos: totalVideos },
+    bonus: { images: bonusImages, videos: bonusVideos },
     used: { images: rec.images, videos: rec.videos },
     remaining: {
-      images: Math.max(0, DAILY_IMAGE_LIMIT - rec.images),
-      videos: Math.max(0, DAILY_VIDEO_LIMIT - rec.videos),
+      images: Math.max(0, totalImages - rec.images),
+      videos: Math.max(0, totalVideos - rec.videos),
     },
+    ads: {
+      watched: rec.ads || 0,
+      max: MAX_ADS_PER_DAY,
+      rewardImages: AD_REWARD_IMAGES,
+      rewardVideos: AD_REWARD_VIDEOS,
+    },
+    adProvider: AD_PROVIDER,
   };
 }
+
+/**
+ * POST /api/watch-ad-complete — award ad credits after a completed ad view.
+ * Body: { username }
+ * Simulated mode: frontend calls this after its 30s countdown.
+ * Adsterra mode: call ONLY after server-side postback verifies the view.
+ */
+app.post('/api/watch-ad-complete', (req, res) => {
+  const name = cleanName(req.body && req.body.username);
+  if (!name) return res.status(401).json({ error: 'Pehle apna naam set karein (upar name box mein).' });
+  const rec = getUsage(name);
+  rec.ads = rec.ads || 0;
+  if (rec.ads >= MAX_ADS_PER_DAY) {
+    return res.status(429).json({ error: `Aaj ke ${MAX_ADS_PER_DAY} ads dekh liye! Kal phir try karein.` });
+  }
+  rec.ads++;
+  rec.bonusImages = (rec.bonusImages || 0) + AD_REWARD_IMAGES;
+  rec.bonusVideos = (rec.bonusVideos || 0) + AD_REWARD_VIDEOS;
+  saveUsage();
+  res.json({
+    message: `Mubarak! +${AD_REWARD_IMAGES} images, +${AD_REWARD_VIDEOS} video credits mil gaye!`,
+    adsWatched: rec.ads,
+    adsMax: MAX_ADS_PER_DAY,
+    credits: creditsFor(name),
+  });
+});
 
 /** GET /api/me?username=X -> { user, limits, used, remaining } */
 app.get('/api/me', (req, res) => {
@@ -133,6 +194,8 @@ app.get('/api/generate-image', (req, res) => {
     const left = recordUsage(req.query.username, 'image');
     res.setHeader('X-Images-Left', left.images);
     res.setHeader('X-Videos-Left', left.videos);
+    res.setHeader('X-Images-Total', left.totalImages);
+    res.setHeader('X-Videos-Total', left.totalVideos);
     res.setHeader('Content-Type', imgRes.headers['content-type'] || 'image/jpeg');
     res.setHeader('Cache-Control', 'public, max-age=86400');
     imgRes.pipe(res);
@@ -165,6 +228,8 @@ function generateViaHF(prompt, res, username) {
     const left = recordUsage(username, 'image');
     res.setHeader('X-Images-Left', left.images);
     res.setHeader('X-Videos-Left', left.videos);
+    res.setHeader('X-Images-Total', left.totalImages);
+    res.setHeader('X-Videos-Total', left.totalVideos);
     res.setHeader('Content-Type', hfRes.headers['content-type'] || 'image/jpeg');
     hfRes.pipe(res);
   });
@@ -174,7 +239,14 @@ function generateViaHF(prompt, res, username) {
   req.end();
 }
 
-app.get('/api/health', (req, res) => res.json({ ok: true, hfFallback: !!HF_TOKEN, video: true }));
+app.get('/api/health', (req, res) => res.json({
+  ok: true,
+  hfFallback: !!HF_TOKEN,
+  video: true,
+  adProvider: AD_PROVIDER,
+  adsPerDay: MAX_ADS_PER_DAY,
+  adReward: { images: AD_REWARD_IMAGES, videos: AD_REWARD_VIDEOS },
+}));
 
 /* ------------------------------------------------------------------ */
 /* Phase 2 — FREE video generation                                      */
@@ -313,6 +385,8 @@ app.get('/api/generate-video', async (req, res) => {
       res.setHeader('X-Video-Source', 'huggingface');
       res.setHeader('X-Images-Left', left.images);
       res.setHeader('X-Videos-Left', left.videos);
+      res.setHeader('X-Images-Total', left.totalImages);
+      res.setHeader('X-Videos-Total', left.totalVideos);
       return res.send(hfVideo);
     }
   } catch (e) { /* fall through to animation */ }
@@ -333,6 +407,8 @@ app.get('/api/generate-video', async (req, res) => {
     res.setHeader('X-Video-Source', 'animated-still');
     res.setHeader('X-Images-Left', left.images);
     res.setHeader('X-Videos-Left', left.videos);
+    res.setHeader('X-Images-Total', left.totalImages);
+    res.setHeader('X-Videos-Total', left.totalVideos);
     const rs = fs.createReadStream(vidPath);
     rs.on('error', () => { if (!res.headersSent) res.status(502).json({ error: 'failed to read video' }); cleanup(); });
     rs.pipe(res);

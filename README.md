@@ -1,8 +1,20 @@
-# 🎨 Ayaz AI Studio — Phase 3 (Deployment-Ready)
+# 🎨 Ayaz AI Studio — Phase 4 (Rewarded Ads + Credits)
 
 A REAL, PUBLIC web app for free AI image + video generation. **Not a Muse artifact** — plain Node.js + Express, deployable to free hosting in minutes.
 
-## What's new in Phase 3
+## What's new in Phase 4 — Rewarded Ads 📺
+
+- ✅ **"📺 Ad Dekho, +2 Credits Pao" button** — prominent, pulsing, in the user panel
+- ✅ **30-second ad countdown modal** — simulated ad view (progress bar + timer); real Adsterra unit drops in later via the `ADSTERRA_PLACEHOLDER` comment in `public/index.html`
+- ✅ **Credit system**: each completed ad view = **+2 images, +1 video**, max **5 watches/day** per user
+- ✅ **New endpoint**: `POST /api/watch-ad-complete` `{ username }` → awards credits, returns updated credit state
+- ✅ **Live credit balance**: `🖼️ Images x/y • 🎬 Videos x/y • 📺 Ads x/5`, updates after every generation and ad
+- ✅ **Generate buttons auto-disable** when credits are exhausted, with a "📺 Ad dekho" prompt
+- ✅ **Toast notifications**: "🎉 Mubarak! +2 images, +1 video credits mil gaye!"
+- ✅ **Ad provider flag**: `AD_PROVIDER` env var (`simulated` | `adsterra`); exposed in `/api/health`
+- ✅ **Anti-fraud notes**: in adsterra mode, `/api/watch-ad-complete` must be called only after server-side postback verification
+
+## What's in Phase 3
 
 - ✅ **Deployment-ready**: `process.env.PORT`, `npm start` script, Node 18+ engines, `render.yaml` blueprint
 - ✅ **Simple user system**: username-based (no password yet) — name saved in browser
@@ -10,6 +22,44 @@ A REAL, PUBLIC web app for free AI image + video generation. **Not a Muse artifa
 - ✅ **Credits display**: UI shows remaining images/videos, updates live after each generation
 - ✅ **ffmpeg on Render**: `render.yaml` installs ffmpeg automatically in the build step
 - ✅ **`.gitignore`**: node_modules, .env, usage.json never committed
+
+## API reference
+
+**Images** — `GET /api/generate-image?prompt=...&width=512&height=512&seed=123&username=ali`
+- Pollinations.ai (free, keyless) primary; Hugging Face SDXL fallback if `HF_TOKEN` set
+
+**Videos** — `GET /api/generate-video?prompt=...&duration=5&motion=zoomin&seed=123&username=ali`
+- AI still → ffmpeg Ken Burns animation → real MP4 (720×720, 25fps)
+- `duration`: 3–8 sec, `motion`: zoomin | zoomout | panleft | panright
+- Header `X-Video-Source`: `animated-still` (free path) or `huggingface` (rare)
+
+**Credits** — `GET /api/me?username=ali` →
+```json
+{ "user":"ali", "limits":{"images":6,"videos":3}, "totals":{"images":8,"videos":4},
+  "bonus":{"images":2,"videos":1}, "used":{"images":0,"videos":0},
+  "remaining":{"images":8,"videos":4},
+  "ads":{"watched":1,"max":5,"rewardImages":2,"rewardVideos":1}, "adProvider":"simulated" }
+```
+
+**Watch ad** — `POST /api/watch-ad-complete` `{ "username":"ali" }` →
+- Awards +2 images / +1 video (per-day cap: 5 watches)
+- 429 when: no username (401), or daily ad cap reached
+- Response includes the "Mubarak!" message + updated `credits` snapshot
+
+**Health** — `GET /api/health` → `{ ok, hfFallback, video, adProvider, adsPerDay, adReward }`
+
+## How the ad system works (and how to go real)
+
+1. User taps **📺 Ad Dekho** → modal opens with a 30s countdown (simulated ad).
+2. At 0s the frontend calls `POST /api/watch-ad-complete`.
+3. Server checks the daily cap (5/day), awards +2 images / +1 video, updates `usage.json`, returns fresh credits.
+4. UI shows the toast, re-enables generate buttons, updates the Ads counter.
+
+**Going real with Adsterra:**
+1. Sign up at Adsterra (approval ~5–10 min) and create a **Rewarded Ad** unit for your live URL.
+2. Paste Adsterra's script into `public/index.html` at the `ADSTERRA_PLACEHOLDER` comment.
+3. Set `AD_PROVIDER=adsterra` in Render → Environment.
+4. Wire Adsterra's rewarded-callback to call `/api/watch-ad-complete` — and add their server-side postback verification before awarding (prevents fake views).
 
 ## What works
 
@@ -108,20 +158,20 @@ You need: a GitHub account + a Render account (both free). ~10 minutes.
 | Rate limiting / abuse protection | `express-rate-limit` + CAPTCHA on generate |
 | Prompt content moderation | Blocklist + HF safety checker |
 | Payments (Pakistan) | Manual JazzCash/Easypaisa first, then Safepay |
-| Rewarded ads for extra credits | Adsterra (fast approval) |
+| Rewarded ads for extra credits | ✅ Simulated 30s view + credits done (Phase 4); swap in real Adsterra unit later |
 | Custom domain | ~$10–12/year (Namecheap/Cloudflare) + free Cloudflare Pages frontend |
 
 ## Project structure
 
 ```
 ayaz-ai-studio-real/
-├── server.js          # Express backend: image/video APIs + user limits
+├── server.js          # Express backend: image/video APIs, user limits, rewarded ads
 ├── package.json       # npm start, Node >= 18
 ├── render.yaml        # Render Blueprint (auto ffmpeg install)
 ├── .gitignore
-├── usage.json         # (created at runtime) daily usage per username — gitignored
+├── usage.json         # (created at runtime) daily usage + ad watches per username — gitignored
 ├── public/
-│   └── index.html     # Mobile-friendly UI: name box, credits, image/video tabs
+│   └── index.html     # Mobile-friendly UI: name box, credits, image/video tabs, ad modal + toast
 ├── sample-output.jpg  # Proof: real generated image
 └── sample-output-video.mp4  # Proof: real generated video (3s)
 ```
