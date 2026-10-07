@@ -357,7 +357,8 @@
   .dpname { font-size: 19px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .dpemail, .dpcredits { display: none; }
   .dpgo { background: #1a1a1a; border: none; color: #fff;
-    width: 44px; height: 44px; border-radius: 50%; font-size: 20px; cursor: pointer; flex-shrink: 0; }
+    width: 44px; height: 44px; border-radius: 50%; font-size: 20px; cursor: pointer; flex-shrink: 0;
+    display: inline-flex; align-items: center; justify-content: center; }
   .dpgo:active { background: var(--border); }
   .newbadge { background: rgba(59,130,246,.20); color: #60a5fa; font-size: 11px; font-weight: 700;
     border-radius: 10px; padding: 3px 9px; margin-left: 8px; }
@@ -372,15 +373,15 @@
   #drawer nav .dmenu button:last-child { margin-bottom: 0; }
   #drawer nav .dmenu button:active { background: #2a2a2a; }
   #drawer nav .dmenu button .ic { font-size: 22px; width: 28px; text-align: center; flex-shrink: 0; }
-  .dpromo { display: flex; align-items: center; gap: 12px; margin: 14px 16px 0; padding: 18px 16px;
+  .dpromo { display: flex; align-items: center; gap: 10px; margin: 14px 16px 0; padding: 16px 14px;
     background: linear-gradient(135deg, #1e40af, #2563eb); border-radius: 20px; }
-  .dpromo .dpicon { font-size: 28px; flex-shrink: 0; color: #fff; }
+  .dpromo .dpicon { font-size: 24px; flex-shrink: 0; color: #fff; }
   .dpromo .dpt { flex: 1; min-width: 0; }
-  .dpromo .dpt b { display: block; font-size: 16px; font-weight: 800; color: #fff; }
-  .dpromo .dpt span { display: block; font-size: 13px; color: rgba(255,255,255,.85); margin-top: 3px; }
-  .dpromo .dpt span b { display: inline; font-size: 13px; }
+  .dpromo .dpt b { display: block; font-size: 15px; font-weight: 800; color: #fff; line-height: 1.25; }
+  .dpromo .dpt span { display: block; font-size: 12px; color: rgba(255,255,255,.85); margin-top: 3px; line-height: 1.3; }
+  .dpromo .dpt span b { display: inline; font-size: 12px; }
   .dpromo button { background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,.55); border-radius: 999px;
-    padding: 10px 18px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; flex-shrink: 0;
+    padding: 8px 14px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; flex-shrink: 0;
     white-space: nowrap; }
   .dpromo button:active { transform: scale(.95); background: rgba(255,255,255,.12); }
   #drawer nav button.dwatchad { display: flex; align-items: center; gap: 14px; width: calc(100% - 32px);
@@ -1026,14 +1027,14 @@
 
 <div id="drawerOverlay" onclick="toggleDrawer(false)"></div>
 <aside id="drawer">
-  <div class="dprofile">
+  <div class="dprofile" onclick="drawerGo('settings')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();drawerGo('settings')}" style="cursor:pointer" role="button" tabindex="0" aria-label="Open Settings">
     <div class="davatar" id="drawerAvatar">?</div>
     <div class="dpinfo">
       <div class="dpname" id="drawerName">Ayaz AI Studio</div>
       <div class="dpemail" id="drawerEmail">Not signed in</div>
       <div class="dpcredits" id="drawerCredits"></div>
     </div>
-    <button class="dpgo" onclick="drawerGo('settings')" title="Account" aria-label="Account">»</button>
+    <span class="dpgo" aria-hidden="true">»</span>
   </div>
   <nav id="drawerNav">
     <div class="dmenu">
