@@ -1,6 +1,15 @@
-# 🎨 Ayaz AI Studio — Phase 14 (Build Tab + Imagine Templates + Settings)
+# 🎨 Ayaz AI Studio — Phase 15 (Real Google OAuth Login)
 
 A REAL, PUBLIC web app for free AI chat, tutoring, image + video generation. **Not a Muse artifact** — plain Node.js + Express, deployable to free hosting in minutes.
+
+## What's new in Phase 15 — 🔐 Real "Continue with Google" OAuth
+
+- ✅ **Real Google sign-in** — the login screen's **G Continue with Google** button now starts a real OAuth 2.0 flow: `GET /auth/google` → 302 redirect to Google's consent screen → `GET /auth/google/callback` exchanges the code server-to-server, fetches the verified Google profile, creates (or links) the local account, and redirects to `/?token=<session>` which the app validates and stores.
+- ✅ **Security** — one-time `state` CSRF tokens (10-min expiry); the client secret lives ONLY in the backend (`GOOGLE_CLIENT_SECRET` env var, never in the frontend, logs, or `/api/health`); Google-verified emails are trusted (`emailVerified: true`, no demo code needed); existing email accounts get their Google identity linked and keep their password.
+- ✅ **Referral passthrough** — `/auth/google?ref=CODE` carries the referral code through the OAuth round-trip and awards +5 images / +3 videos to both parties on new accounts.
+- ✅ **Error handling** — cancelled/expired/invalid flows redirect to `/?oauth_error=<message>` with a friendly toast; nothing crashes.
+- ✅ **X login hidden** — the "Continue with X" button is removed from the login screen (no X developer app exists yet); only Google and Email options are shown.
+- ⚠️ **Render setup required**: set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` as environment variables in the Render dashboard (Environment) for production; the app falls back to the baked-in dev values otherwise. The Google Cloud OAuth consent screen is in **Testing** mode — only the configured test user can sign in until the app is published/verified.
 
 ## What's new in Phase 14 — 🔨 Build Tab, Featured Templates, Imagine Settings
 

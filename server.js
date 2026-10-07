@@ -360,6 +360,9 @@ app.post('/api/login', (req, res) => {
   const password = (req.body && req.body.password || '').toString();
   if (!checkCaptcha(req)) return res.status(400).json({ error: 'Incorrect security answer. Please try again.', code: 'captcha_failed' });
   const u = userStore.users[email];
+  if (u && u.authProvider === 'google' && !u.hash) {
+    return res.status(401).json({ error: 'This account uses Google sign-in. Please use "Continue with Google".', code: 'google_only' });
+  }
   if (!u || !verifyPassword(password, u.salt, u.hash)) {
     return res.status(401).json({ error: 'Invalid email or password.' });
   }
@@ -517,6 +520,240 @@ app.delete('/api/account', requireAuth, (req, res) => {
 app.get('/api/me', requireAuth, (req, res) => {
   res.json(creditsFor(req.authEmail));
 });
+
+/* ------------------------------------------------------------------ */
+/* Google OAuth 2.0 login                                               */
+/*                                                                     */
+/* Real "Continue with Google" sign-in.                                 */
+/*                                                                     */
+/* Required Render environment variables:                              */
+/*   GOOGLE_CLIENT_ID     - OAuth client ID (Google Cloud Console)      */
+/*   GOOGLE_CLIENT_SECRET - OAuth client secret (NEVER expose publicly)*/
+/* Optional:                                                           */
+/*   GOOGLE_REDIRECT_URI  - defaults to the production callback URL    */
+/*                                                                     */
+/* Flow:                                                               */
+/*   1. GET /auth/google[?ref=CODE] -> 302 redirect to Google          */
+/*   2. Google redirects back to GET /auth/google/callback?code&state  */
+/*   3. Server exchanges the code for tokens (server-to-server),       */
+/*      fetches the user's profile from Google, creates/links the      */
+/*      local account, issues our own session token, and redirects    */
+/*      the browser to /?token=<session> (or /?oauth_error=...).      */
+/*                                                                     */
+/* Security notes:                                                     */
+/* - The client SECRET lives only in this backend process. It is never */
+/*   sent to the browser, never logged, and never in any response.     */
+/* - `state` is a one-time random CSRF token (10-minute expiry).       */
+/* - Google accounts are trusted as email-verified by Google.          */
+/* ------------------------------------------------------------------ */
+
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID ||
+  '201734170317-golukdkaodb660vudqsk5t06onufpavv.apps.googleusercontent.com';
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
+// IMPORTANT: Set GOOGLE_CLIENT_SECRET as environment variable on Render.
+// Never commit the real secret to GitHub. Get it from Google Cloud Console.
+const GOOGLE_REDIRECT_URI = (process.env.GOOGLE_REDIRECT_URI ||
+  'https://ayaz-ai-studio.onrender.com/auth/google/callback').replace(/\/$/, '');
+const OAUTH_STATE_TTL_MS = 10 * 60 * 1000;
+const oauthStates = new Map(); // state -> { createdAt, ref }
+
+function pruneOauthStates() {
+  const now = Date.now();
+  for (const [k, v] of oauthStates) {
+    if (now - v.createdAt > OAUTH_STATE_TTL_MS) oauthStates.delete(k);
+  }
+}
+
+/** Exchange an OAuth authorization code for tokens (server-to-server). */
+function googleExchangeCode(code) {
+  return new Promise((resolve, reject) => {
+    const body = new URLSearchParams({
+      code,
+      client_id: GOOGLE_CLIENT_ID,
+      client_secret: GOOGLE_CLIENT_SECRET,
+      redirect_uri: GOOGLE_REDIRECT_URI,
+      grant_type: 'authorization_code',
+    }).toString();
+    const req = https.request({
+      hostname: 'oauth2.googleapis.com',
+      path: '/token',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Length': Buffer.byteLength(body),
+        'User-Agent': 'AyazAIStudio/1.0',
+      },
+      timeout: 20000,
+    }, (res) => {
+      let data = '';
+      res.on('data', (c) => { data += c; });
+      res.on('end', () => {
+        try {
+          const j = JSON.parse(data);
+          if (res.statusCode !== 200 || !j.access_token) {
+            return reject(new Error('Token exchange failed: ' +
+              (j.error_description || j.error || ('HTTP ' + res.statusCode))));
+          }
+          resolve(j);
+        } catch (e) { reject(new Error('Token exchange: bad response from Google')); }
+      });
+    });
+    req.on('timeout', () => { req.destroy(); reject(new Error('Google token request timed out')); });
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
+}
+
+/** Fetch the Google profile for an access token (server-to-server). */
+function googleUserInfo(accessToken) {
+  return new Promise((resolve, reject) => {
+    const req = https.get('https://www.googleapis.com/oauth2/v3/userinfo', {
+      timeout: 20000,
+      headers: { 'Authorization': 'Bearer ' + accessToken, 'User-Agent': 'AyazAIStudio/1.0' },
+    }, (res) => {
+      let data = '';
+      res.on('data', (c) => { data += c; });
+      res.on('end', () => {
+        try {
+          const j = JSON.parse(data);
+          if (res.statusCode !== 200 || !j.email) {
+            return reject(new Error('Could not verify Google account'));
+          }
+          resolve(j);
+        } catch (e) { reject(new Error('Bad profile response from Google')); }
+      });
+    });
+    req.on('timeout', () => { req.destroy(); reject(new Error('Google profile request timed out')); });
+    req.on('error', reject);
+  });
+}
+
+/**
+ * GET /auth/google[?ref=CODE]
+ * Starts the Google OAuth flow with a 302 redirect to Google's consent
+ * screen. `state` is a one-time CSRF token.
+ */
+app.get('/auth/google', (req, res) => {
+  if (!GOOGLE_CLIENT_SECRET) {
+    return res.status(500).send(
+      '<h2>Google sign-in is not configured</h2>' +
+      '<p>The server is missing the <b>GOOGLE_CLIENT_SECRET</b> environment variable. ' +
+      'Set <b>GOOGLE_CLIENT_ID</b> and <b>GOOGLE_CLIENT_SECRET</b> in the hosting ' +
+      'dashboard (Render &rarr; Environment), then redeploy.</p>'
+    );
+  }
+  pruneOauthStates();
+  // Optional referral passthrough: /auth/google?ref=CODE
+  let ref = null;
+  const rawRef = (req.query.ref || '').toString().trim().toUpperCase();
+  if (rawRef) {
+    const refEmail = findUserByReferralCode(rawRef);
+    if (refEmail) ref = rawRef;
+  }
+  const state = crypto.randomBytes(16).toString('hex');
+  oauthStates.set(state, { createdAt: Date.now(), ref });
+  const params = new URLSearchParams({
+    client_id: GOOGLE_CLIENT_ID,
+    redirect_uri: GOOGLE_REDIRECT_URI,
+    response_type: 'code',
+    scope: 'openid email profile',
+    state,
+    access_type: 'online',
+    prompt: 'select_account',
+  });
+  res.redirect('https://accounts.google.com/o/oauth2/v2/auth?' + params.toString());
+});
+
+/**
+ * GET /auth/google/callback?code=...&state=...
+ * Google redirects here after consent. Validates `state`, exchanges the
+ * code for tokens, verifies the Google profile, creates/links the local
+ * account, issues our session token, and redirects to /?token=<session>
+ * (or /?oauth_error=<message> on failure).
+ */
+app.get('/auth/google/callback', async (req, res) => {
+  const fail = (msg) => res.redirect('/?oauth_error=' + encodeURIComponent(msg));
+  try {
+    if (!GOOGLE_CLIENT_SECRET) return fail('Google sign-in is not configured on the server.');
+    const code = (req.query.code || '').toString();
+    const state = (req.query.state || '').toString();
+    const oauthErr = (req.query.error || '').toString();
+    if (oauthErr) {
+      const desc = (req.query.error_description || '').toString();
+      return fail('Google sign-in was cancelled' + (desc ? ': ' + desc : '') + '.');
+    }
+    if (!code || !state) return fail('Invalid Google response. Please try again.');
+    pruneOauthStates();
+    const entry = oauthStates.get(state);
+    oauthStates.delete(state); // one-time use
+    if (!entry || Date.now() - entry.createdAt > OAUTH_STATE_TTL_MS) {
+      return fail('Session expired. Please try signing in again.');
+    }
+    const tokens = await googleExchangeCode(code);
+    const profile = await googleUserInfo(tokens.access_token);
+    const email = normEmail(profile.email);
+    if (!validEmail(email) || profile.email_verified === false) {
+      return fail('Google did not provide a verified email address.');
+    }
+    let u = userStore.users[email];
+    let isNew = false;
+    if (!u) {
+      // Brand-new account via Google: email already verified by Google,
+      // no password needed (authProvider marks the sign-in method).
+      u = {
+        salt: null,
+        hash: null,
+        authProvider: 'google',
+        googleId: profile.sub || null,
+        googleName: profile.name || null,
+        createdAt: new Date().toISOString(),
+        tokens: [],
+        referralCode: uniqueReferralCode(),
+        referredBy: null,
+        referralCount: 0,
+        referralEarned: { images: 0, videos: 0 },
+        emailVerified: true,
+        verificationCode: null,
+        verificationExpiry: null,
+      };
+      // Referral bonus — same deal as verified email signup
+      if (entry.ref) {
+        const refEmail = findUserByReferralCode(entry.ref);
+        if (refEmail && refEmail !== email) {
+          u.referredBy = refEmail;
+          awardReferralBonus(email);
+          awardReferralBonus(refEmail);
+          const ru = userStore.users[refEmail];
+          if (ru) {
+            ru.referralCount = (ru.referralCount || 0) + 1;
+            ru.referralEarned = ru.referralEarned || { images: 0, videos: 0 };
+            ru.referralEarned.images += REFERRAL_BONUS_IMAGES;
+            ru.referralEarned.videos += REFERRAL_BONUS_VIDEOS;
+          }
+        }
+      }
+      userStore.users[email] = u;
+      isNew = true;
+    } else {
+      // Existing account — link the Google identity and trust Google's
+      // email verification. A previously set password keeps working.
+      u.googleId = u.googleId || profile.sub || null;
+      u.authProvider = u.authProvider || 'google';
+      if (!u.emailVerified) u.emailVerified = true;
+      if (!u.referralCode) u.referralCode = uniqueReferralCode();
+      if (!Array.isArray(u.tokens)) u.tokens = [];
+    }
+    const token = newToken();
+    u.tokens = (u.tokens || []).concat([{ token, createdAt: Date.now() }]).slice(-5);
+    saveUsers();
+    res.redirect('/?token=' + encodeURIComponent(token) + (isNew ? '&welcome=1' : ''));
+  } catch (e) {
+    console.log('Google OAuth callback failed:', e.message);
+    fail('Google sign-in failed. Please try again.');
+  }
+});
+
 
 /* ------------------------------------------------------------------ */
 /* Feedback                                                             */
@@ -906,6 +1143,7 @@ app.get('/api/health', (req, res) => res.json({
   chatDailyLimit: CHAT_DAILY_LIMIT,
   uploads: true,
   auth: true,
+  googleOAuth: !!GOOGLE_CLIENT_SECRET,
   passwordReset: true,
   newsletter: true,
   adProvider: AD_PROVIDER,
