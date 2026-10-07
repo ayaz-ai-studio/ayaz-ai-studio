@@ -1748,11 +1748,20 @@ function tryPollinationsVideo(prompt) {
  * - mode: 'animal' (LivePortrait) or 'human' (LatentSync)
  * Returns: MP4 video with lip-synced character
  */
-app.post('/api/lipsync', requireAuth, express.json({ limit: '2mb' }), async (req, res) => {
+app.post('/api/lipsync', requireAuth, express.json({ limit: '10mb' }), async (req, res) => {
   try {
-    const { image_url, audio_url, lang = 'ur', mode = 'human' } = req.body || {};
+    let { image_url, audio_url, lang = 'ur', mode = 'human' } = req.body || {};
     if (!image_url) return res.status(400).json({ error: 'image_url required' });
     if (!audio_url) return res.status(400).json({ error: 'audio_url required (generate via /api/tts first)' });
+
+    // Handle base64 data URLs: write to temp file for gradio client
+    let tmpAudio = null;
+    if (audio_url.startsWith('data:audio')) {
+      const base64Data = audio_url.split(',')[1];
+      tmpAudio = tmpName('lipsync-audio', 'mp3');
+      fs.writeFileSync(tmpAudio, Buffer.from(base64Data, 'base64'));
+      audio_url = tmpAudio; // gradio client accepts local file paths
+    }
 
     // Call Hugging Face Space via gradio client
     // LivePortrait: KwaiVGI/LivePortrait (humans + animals, no login)
