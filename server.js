@@ -1206,16 +1206,22 @@ app.get('/api/health', (req, res) => res.json({
 /* Fallback: Google Translate TTS                                      */
 /* ------------------------------------------------------------------ */
 const TTS_VOICES = {
-  ur: 'ur-PK-AsadNeural',
-  hi: 'hi-IN-MadhurNeural',
-  ar: 'ar-SA-HamedNeural',
-  en: 'en-US-GuyNeural',
+  ur: 'ur-PK-AsadNeural',        // Urdu male (Pakistan)
+  ur_f: 'ur-PK-UzmaNeural',      // Urdu female (Pakistan)
+  ur_in: 'ur-IN-SalmanNeural',   // Urdu male (India)
+  ur_in_f: 'ur-IN-GulNeural',    // Urdu female (India)
+  hi: 'hi-IN-MadhurNeural',      // Hindi male
+  hi_f: 'hi-IN-SwaraNeural',     // Hindi female
+  ar: 'ar-SA-HamedNeural',       // Arabic male
+  ar_f: 'ar-SA-ZariyahNeural',   // Arabic female
+  en: 'en-US-GuyNeural',         // English male
+  en_f: 'en-US-AriaNeural',      // English female
 };
 
 app.get('/api/tts', requireAuth, async (req, res) => {
   const text = (req.query.text || '').toString().slice(0, 500);
   if (!text) return res.status(400).json({ error: 'text required' });
-  const lang = (req.query.lang || 'ur').toString().slice(0, 5).replace(/[^a-z-]/gi, '');
+  const lang = (req.query.lang || 'ur').toString().slice(0, 6).replace(/[^a-z_]/gi, '');
   const voice = TTS_VOICES[lang] || TTS_VOICES['ur'];
 
   // Try Edge-TTS first (better quality)
