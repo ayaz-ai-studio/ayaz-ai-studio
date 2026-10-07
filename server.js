@@ -216,10 +216,36 @@ app.get('/api/captcha', (req, res) => {
 });
 
 /**
+ * Email verification (demo mode — no SMTP configured yet).
+ * A 6-digit code is generated at registration; in production this would be
+ * emailed via Gmail/SendGrid. For now the code is returned in the API
+ * response and shown in the UI so the flow is fully testable.
+ * Referral bonuses are awarded at VERIFICATION time (not registration)
+ * so fake/unverified emails can't farm credits.
+ */
+const VERIFY_CODE_TTL_MS = 15 * 60 * 1000; // 15 minutes
+function newVerifyCode() {
+  // crypto-random 6-digit code
+  const n = crypto.randomInt(0, 1000000);
+  return String(n).padStart(6, '0');
+}
+// Simple in-memory rate limit for resend-verification: max 5/hour per email
+const resendAttempts = {};
+function resendAllowed(email) {
+  const now = Date.now();
+  const arr = (resendAttempts[email] || []).filter((t) => now - t < 3600 * 1000);
+  if (arr.length >= 5) return false;
+  arr.push(now);
+  resendAttempts[email] = arr;
+  return true;
+}
+
+/**
  * POST /api/register  { email, password, referralCode? }
- * Creates an account, returns { token, email }.
- * If a valid referralCode is supplied, both the referrer and the new
- * user get +5 image / +3 video bonus credits.
+ * Creates an UNVERIFIED account, returns { email, needsVerification: true, demoCode }.
+ * The user must verify via POST /api/verify-email before they can sign in.
+ * If a valid referralCode is supplied, it is recorded; bonuses are awarded
+ * at verification time.
  */
 app.post('/api/register', (req, res) => {
   const email = normEmail(req.body && req.body.email);
@@ -230,7 +256,6 @@ app.post('/api/register', (req, res) => {
   if (!checkCaptcha(req)) return res.status(400).json({ error: 'Incorrect security answer. Please try again.', code: 'captcha_failed' });
   if (userStore.users[email]) return res.status(409).json({ error: 'An account with this email already exists. Please sign in.' });
   const { salt, hash } = hashPassword(password);
-  const token = newToken();
   const myCode = uniqueReferralCode();
   // Resolve referrer (can't refer yourself — the account doesn't exist yet, but guard anyway)
   let referredBy = null;
@@ -238,41 +263,97 @@ app.post('/api/register', (req, res) => {
     const refEmail = findUserByReferralCode(referralCode);
     if (refEmail && refEmail !== email) referredBy = refEmail;
   }
+  const verifyCode = newVerifyCode();
   userStore.users[email] = {
     salt,
     hash,
     createdAt: new Date().toISOString(),
-    tokens: [{ token, createdAt: Date.now() }],
+    tokens: [],
     referralCode: myCode,
     referredBy,
     referralCount: 0,
     referralEarned: { images: 0, videos: 0 },
+    emailVerified: false,
+    verificationCode: verifyCode,
+    verificationExpiry: Date.now() + VERIFY_CODE_TTL_MS,
   };
   saveUsers();
+  // DEMO MODE: code returned in the response (replace with real email send in production)
+  res.status(201).json({ email, needsVerification: true, demoCode: verifyCode });
+});
+
+/**
+ * POST /api/verify-email  { email, code }
+ * Verifies the 6-digit code; on success marks the email verified, awards any
+ * pending referral bonus, and returns a session { token, email, credits }.
+ */
+app.post('/api/verify-email', (req, res) => {
+  const email = normEmail(req.body && req.body.email);
+  const code = (req.body && req.body.code || '').toString().trim();
+  const u = userStore.users[email];
+  if (!u) return res.status(404).json({ error: 'Account not found. Please register first.' });
+  if (u.emailVerified) {
+    // Already verified — just issue a fresh session
+    const token = newToken();
+    u.tokens = (u.tokens || []).concat([{ token, createdAt: Date.now() }]).slice(-5);
+    saveUsers();
+    return res.json({ token, email, credits: creditsFor(email), alreadyVerified: true });
+  }
+  if (!u.verificationCode || !u.verificationExpiry || Date.now() > u.verificationExpiry) {
+    return res.status(400).json({ error: 'This code has expired. Please request a new one.', code: 'code_expired' });
+  }
+  if (code !== u.verificationCode) {
+    return res.status(400).json({ error: 'Incorrect verification code. Please try again.', code: 'code_invalid' });
+  }
+  // Success — verify + award pending referral bonus (anti-abuse: only verified emails earn)
+  u.emailVerified = true;
+  u.verificationCode = null;
+  u.verificationExpiry = null;
   let referralApplied = false;
-  if (referredBy) {
-    // Bonus for the new user
+  if (u.referredBy) {
     awardReferralBonus(email);
-    // Bonus + stats for the referrer
-    awardReferralBonus(referredBy);
-    const ru = userStore.users[referredBy];
+    awardReferralBonus(u.referredBy);
+    const ru = userStore.users[u.referredBy];
     if (ru) {
       ru.referralCount = (ru.referralCount || 0) + 1;
       ru.referralEarned = ru.referralEarned || { images: 0, videos: 0 };
       ru.referralEarned.images += REFERRAL_BONUS_IMAGES;
       ru.referralEarned.videos += REFERRAL_BONUS_VIDEOS;
-      saveUsers();
     }
     referralApplied = true;
   }
+  const token = newToken();
+  u.tokens = (u.tokens || []).concat([{ token, createdAt: Date.now() }]).slice(-5);
+  saveUsers();
   const credits = creditsFor(email);
   credits.referralApplied = referralApplied;
-  res.status(201).json({ token, email, credits });
+  res.json({ token, email, credits });
+});
+
+/**
+ * POST /api/resend-verification  { email }
+ * Issues a fresh 6-digit code (rate-limited: 5/hour per email).
+ */
+app.post('/api/resend-verification', (req, res) => {
+  const email = normEmail(req.body && req.body.email);
+  const u = userStore.users[email];
+  if (!u) return res.status(404).json({ error: 'Account not found. Please register first.' });
+  if (u.emailVerified) return res.status(400).json({ error: 'This email is already verified. Please sign in.' });
+  if (!resendAllowed(email)) {
+    return res.status(429).json({ error: 'Too many requests. Please try again in an hour.' });
+  }
+  const verifyCode = newVerifyCode();
+  u.verificationCode = verifyCode;
+  u.verificationExpiry = Date.now() + VERIFY_CODE_TTL_MS;
+  saveUsers();
+  // DEMO MODE: code returned in the response (replace with real email send in production)
+  res.json({ email, demoCode: verifyCode });
 });
 
 /**
  * POST /api/login  { email, password }
  * Verifies credentials, returns a fresh { token, email }.
+ * Unverified emails get 403 email_not_verified.
  */
 app.post('/api/login', (req, res) => {
   const email = normEmail(req.body && req.body.email);
@@ -281,6 +362,9 @@ app.post('/api/login', (req, res) => {
   const u = userStore.users[email];
   if (!u || !verifyPassword(password, u.salt, u.hash)) {
     return res.status(401).json({ error: 'Invalid email or password.' });
+  }
+  if (!u.emailVerified) {
+    return res.status(403).json({ error: 'Please verify your email before signing in. Check your verification code.', code: 'email_not_verified', email });
   }
   const token = newToken();
   u.tokens = (u.tokens || []).concat([{ token, createdAt: Date.now() }]).slice(-5); // keep last 5 sessions
@@ -1127,6 +1211,10 @@ function pollinationsVision(text, dataUrl, systemPrompt, timeoutMs = 90000) {
 
 const SYSTEM_PROMPT = 'You are Ayaz AI Assistant, a helpful, friendly AI assistant inside Ayaz AI Studio. Answer clearly and concisely in the user\'s language. Keep responses focused and useful.';
 
+const SMART_PROMPT = 'You are Ayaz AI Assistant in Smart mode inside Ayaz AI Studio. Give thorough, detailed, well-organized answers. ' +
+'Use short headings or bold key points where helpful, cover important angles and nuances, give concrete examples, and end with a brief summary. ' +
+'Be accurate and complete, but stay focused on what the user asked. Answer in the user\'s language.';
+
 const STUDY_PROMPT = 'You are Ayaz Study Tutor, an expert, encouraging tutor inside Ayaz AI Studio\'s Study Mode. ' +
 'Give detailed, well-structured educational explanations. Rules:\n' +
 '1. Structure every answer with: a short direct answer first, then a clear step-by-step explanation, then a concrete example, then 2-3 key takeaways.\n' +
@@ -1147,7 +1235,9 @@ app.post('/api/chat', requireAuth, async (req, res) => {
   const email = req.authEmail;
   const message = (req.body && req.body.message || '').toString().trim().slice(0, 2000);
   const imageId = (req.body && req.body.imageId || '').toString().slice(0, 64);
-  const studyMode = !!(req.body && req.body.study);
+  const modeParam = (req.body && req.body.mode || '').toString().toLowerCase();
+  const studyMode = modeParam === 'study' || !!(req.body && req.body.study);
+  const smartMode = !studyMode && modeParam === 'smart';
   if (!message && !imageId) return res.status(400).json({ error: 'Please type a message or attach an image.' });
 
   const gate = checkChatLimit(email);
@@ -1168,7 +1258,7 @@ app.post('/api/chat', requireAuth, async (req, res) => {
 
   let reply = '';
   let visionUsed = false;
-  const activePrompt = studyMode ? STUDY_PROMPT : SYSTEM_PROMPT;
+  const activePrompt = studyMode ? STUDY_PROMPT : (smartMode ? SMART_PROMPT : SYSTEM_PROMPT);
   try {
     if (dataUrl) {
       const v = await pollinationsVision(message, dataUrl, activePrompt);
@@ -1185,9 +1275,9 @@ app.post('/api/chat', requireAuth, async (req, res) => {
   }
 
   const left = recordChatUsage(email);
-  recordChatMessage(email, 'user', (studyMode ? '📚 ' : '') + (message || '(image attached)'), imageUrl);
+  recordChatMessage(email, 'user', (studyMode ? '📚 ' : (smartMode ? '🧠 ' : '')) + (message || '(image attached)'), imageUrl);
   recordChatMessage(email, 'ai', reply, null);
-  res.json({ reply, visionUsed, studyMode, chatsLeft: left });
+  res.json({ reply, visionUsed, studyMode, smartMode, chatsLeft: left });
 });
 
 /**

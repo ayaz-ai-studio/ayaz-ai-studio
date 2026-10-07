@@ -1,6 +1,37 @@
-# 🎨 Ayaz AI Studio — Phase 10 (Grok-style Login Screen + Official Logo)
+# 🎨 Ayaz AI Studio — Phase 13 (Ayaz Bot Widget)
 
 A REAL, PUBLIC web app for free AI chat, tutoring, image + video generation. **Not a Muse artifact** — plain Node.js + Express, deployable to free hosting in minutes.
+
+## What's new in Phase 13 — 🤖 Ayaz Bot Widget (Grok Bot style)
+
+- ✅ **Floating bot button** (bottom-right, pulsing blue/purple gradient) — one tap opens the quick bot chat from anywhere in the app.
+- ✅ **Mini chat panel** — compact Grok-Bot-style widget: header with 🤖 avatar, "Ayaz Bot" name, green "Online" indicator, ⤢ expand-to-full-chat button, ✕ close; friendly branded greeting on first open; typing indicator; Enter-to-send; Escape-to-close.
+- ✅ **Drawer integration** — the existing "🤖 Ayaz Bot" drawer item (with "New" badge) now opens the quick widget instead of jumping tabs.
+- ✅ **Same backend** — uses the existing `POST /api/chat` (`mode: 'fast'`), so bot chats count toward the daily chat limit and appear in chat history like normal Ask chats. Auth-gated like everything else.
+
+## What's new in Phase 12 — Email Verification ✉️
+
+- ✅ **6-digit verification codes** — registration creates an UNVERIFIED account and issues a crypto-random 6-digit code (15-minute expiry) stored in `users.json` (`emailVerified`, `verificationCode`, `verificationExpiry`).
+- ✅ **New endpoints**: `POST /api/verify-email { email, code }` (verifies → returns session token + credits) and `POST /api/resend-verification { email }` (fresh code, rate-limited to 5/hour per email).
+- ✅ **Login blocked until verified** — `POST /api/login` returns `403 email_not_verified` for unverified accounts; the app routes straight to the verify screen.
+- ✅ **Frontend verify modal** — big spaced 6-digit input, Verify & Resend buttons, Escape-to-close.
+- ✅ **Anti-abuse**: referral bonuses are now awarded at VERIFICATION time (not registration), so fake emails can't farm credits.
+- ⚠️ **Demo mode (no SMTP yet)**: the code is returned in the API response and shown in the UI ("🔧 Demo mode — no email server configured yet"). **Production TODO**: wire `newVerifyCode()` delivery through Gmail SMTP or SendGrid — the code-generation/storage/verification logic stays exactly the same, only the delivery step changes.
+
+## What's new in Phase 11 — Grok Main Interface Match 📱
+
+- ✅ **Professional two-row bottom prompt bar** (like Grok's "Ask anything") — Row 1: full-width input + send button. Row 2: **+** attach button, **⚡ Fast ▾** model selector dropdown (Fast / Smart / Study), mic button, and a white **Speak** pill that reads the last AI reply aloud (Web Speech API, tap again to stop).
+- ✅ **Model selector** — `POST /api/chat` now accepts `mode: 'fast' | 'smart' | 'study'` (backward compatible with the old `study` boolean). Smart mode uses a new `SMART_PROMPT` for thorough, well-organized answers; chat history badges show 📚 STUDY / 🧠 SMART per reply.
+- ✅ **Scrollable offer/promo cards** above the prompt bar (visible when chat is empty): 🎁 Refer & Earn, 📺 Watch Ads, 🎨 Trending Styles, 📚 Study Mode, ⭐ Go Pro — each tappable and wired to its feature.
+- ✅ **Enhanced drawer** (Grok style):
+  - Profile header: avatar circle (email initial), display name, email, » account button
+  - ⚡ Automations (daily reminder toggle + time, stored on-device; scheduled auto-generation noted as coming soon)
+  - 📚 Library (My Creations), 📁 Projects (save/reuse prompts, on-device), 🤖 Ayaz Bot (New badge, quick assistant greeting)
+  - Blue promo banner: "🎉 Invite friends, earn credits" with Claim button → Refer & Earn
+  - Chats section: recent chat history (tap to refill the input), More section with all existing items
+  - Bottom: search bar (filters menu + history), settings gear, new-chat button
+- ✅ **Center logo empty state** — the chat empty screen now shows the official logo large in the center, like Grok's logo.
+- ✅ All existing features keep working (auth, CAPTCHA, ads, credits, feedback, creations, referrals, voice input, Imagine tab, themes).
 
 ## What's new in Phase 10 — Grok-style Login Screen 🔑 + Official Logo 🅰️
 
@@ -91,10 +122,13 @@ All protected endpoints need `Authorization: Bearer <token>` (token from registe
 
 **Auth**
 - `GET /api/captcha` → `{ "id":"...", "question":"7 + 5" }` — math CAPTCHA (one-time use, expires in 5 min)
-- `POST /api/register` `{ "email":"a@b.com", "password":"secret123", "captchaId":"...", "captchaAnswer":"12" }` → `201 { token, email, credits }`
+- `POST /api/register` `{ "email":"a@b.com", "password":"secret123", "captchaId":"...", "captchaAnswer":"12" }` → `201 { email, needsVerification: true, demoCode: "123456" }` (demo mode returns the code; production: emailed)
   - 400: invalid email / password < 6 chars / wrong CAPTCHA (`code: "captcha_failed"`) · 409: email already registered
+- `POST /api/verify-email` `{ "email":"a@b.com", "code":"123456" }` → `{ token, email, credits }` — verifies the account, awards pending referral bonus
+  - 400: wrong/expired code (`code: "code_invalid"` / `"code_expired"`) · 404: account not found
+- `POST /api/resend-verification` `{ "email":"a@b.com" }` → `{ email, demoCode: "654321" }` — rate-limited: 5/hour per email (429)
 - `POST /api/login` `{ "email":"a@b.com", "password":"secret123", "captchaId":"...", "captchaAnswer":"12" }` → `{ token, email, credits }`
-  - 400: wrong CAPTCHA · 401: invalid email or password
+  - 400: wrong CAPTCHA · 401: invalid email or password · 403: email not verified (`code: "email_not_verified"`)
 - `POST /api/logout` (auth) → `{ ok: true }` — invalidates the current session token
 - `POST /api/change-password` (auth) `{ "currentPassword":"...", "newPassword":"..." }` → `{ ok: true }` — new password min 6 chars, must differ; other sessions are revoked
 - `DELETE /api/account` (auth) `{ "password":"..." }` → `{ ok: true }` — permanently deletes the account + its usage data (password confirmation required)
