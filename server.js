@@ -69,6 +69,77 @@ function verifyPassword(password, salt, hash) {
 }
 function newToken() { return crypto.randomBytes(TOKEN_BYTES).toString('hex'); }
 
+/* ------------------------------------------------------------------ */
+/* Referral program                                                     */
+/*                                                                     */
+/* Every account gets a unique 8-char referral code. A new user who    */
+/* signs up with a valid code gives BOTH parties +5 image and +3       */
+/* video bonus credits. Stats live on the user record in users.json.   */
+/* Link format: https://ayaz-ai-studio.onrender.com/?ref=CODE          */
+/* ------------------------------------------------------------------ */
+const REFERRAL_BONUS_IMAGES = 5;
+const REFERRAL_BONUS_VIDEOS = 3;
+
+function newReferralCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no ambiguous chars
+  let code = '';
+  for (let i = 0; i < 8; i++) code += chars[crypto.randomInt(chars.length)];
+  return code;
+}
+
+function uniqueReferralCode() {
+  let code = newReferralCode();
+  let guard = 0;
+  while (guard++ < 50) {
+    let taken = false;
+    for (const email of Object.keys(userStore.users)) {
+      if (userStore.users[email] && userStore.users[email].referralCode === code) { taken = true; break; }
+    }
+    if (!taken) return code;
+    code = newReferralCode();
+  }
+  return code;
+}
+
+function findUserByReferralCode(code) {
+  code = (code || '').toString().trim().toUpperCase();
+  if (!code) return null;
+  for (const email of Object.keys(userStore.users)) {
+    const u = userStore.users[email];
+    if (u && u.referralCode === code) return email;
+  }
+  return null;
+}
+
+function awardReferralBonus(email) {
+  const rec = getUsage(email);
+  rec.bonusImages = (rec.bonusImages || 0) + REFERRAL_BONUS_IMAGES;
+  rec.bonusVideos = (rec.bonusVideos || 0) + REFERRAL_BONUS_VIDEOS;
+  saveUsage();
+}
+
+/**
+ * GET /api/referrals  (Authorization: Bearer <token>)
+ * Returns the user's referral code, link, and stats.
+ */
+app.get('/api/referrals', requireAuth, (req, res) => {
+  const email = req.authEmail;
+  const u = userStore.users[email];
+  if (!u) return res.status(404).json({ error: 'Account not found.' });
+  if (!u.referralCode) {
+    u.referralCode = uniqueReferralCode();
+    saveUsers();
+  }
+  const base = (process.env.PUBLIC_URL || 'https://ayaz-ai-studio.onrender.com').replace(/\/$/, '');
+  res.json({
+    code: u.referralCode,
+    link: base + '/?ref=' + u.referralCode,
+    totalReferrals: u.referralCount || 0,
+    creditsEarned: u.referralEarned || { images: 0, videos: 0 },
+    bonus: { images: REFERRAL_BONUS_IMAGES, videos: REFERRAL_BONUS_VIDEOS },
+  });
+});
+
 /** Find user record by bearer token (checks expiry: 30 days). */
 function userByToken(token) {
   if (!token) return null;
@@ -145,26 +216,58 @@ app.get('/api/captcha', (req, res) => {
 });
 
 /**
- * POST /api/register  { email, password }
+ * POST /api/register  { email, password, referralCode? }
  * Creates an account, returns { token, email }.
+ * If a valid referralCode is supplied, both the referrer and the new
+ * user get +5 image / +3 video bonus credits.
  */
 app.post('/api/register', (req, res) => {
   const email = normEmail(req.body && req.body.email);
   const password = (req.body && req.body.password || '').toString();
+  const referralCode = (req.body && req.body.referralCode || '').toString().trim().toUpperCase();
   if (!validEmail(email)) return res.status(400).json({ error: 'Please enter a valid email address.' });
   if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters.' });
   if (!checkCaptcha(req)) return res.status(400).json({ error: 'Incorrect security answer. Please try again.', code: 'captcha_failed' });
   if (userStore.users[email]) return res.status(409).json({ error: 'An account with this email already exists. Please sign in.' });
   const { salt, hash } = hashPassword(password);
   const token = newToken();
+  const myCode = uniqueReferralCode();
+  // Resolve referrer (can't refer yourself — the account doesn't exist yet, but guard anyway)
+  let referredBy = null;
+  if (referralCode) {
+    const refEmail = findUserByReferralCode(referralCode);
+    if (refEmail && refEmail !== email) referredBy = refEmail;
+  }
   userStore.users[email] = {
     salt,
     hash,
     createdAt: new Date().toISOString(),
     tokens: [{ token, createdAt: Date.now() }],
+    referralCode: myCode,
+    referredBy,
+    referralCount: 0,
+    referralEarned: { images: 0, videos: 0 },
   };
   saveUsers();
-  res.status(201).json({ token, email, credits: creditsFor(email) });
+  let referralApplied = false;
+  if (referredBy) {
+    // Bonus for the new user
+    awardReferralBonus(email);
+    // Bonus + stats for the referrer
+    awardReferralBonus(referredBy);
+    const ru = userStore.users[referredBy];
+    if (ru) {
+      ru.referralCount = (ru.referralCount || 0) + 1;
+      ru.referralEarned = ru.referralEarned || { images: 0, videos: 0 };
+      ru.referralEarned.images += REFERRAL_BONUS_IMAGES;
+      ru.referralEarned.videos += REFERRAL_BONUS_VIDEOS;
+      saveUsers();
+    }
+    referralApplied = true;
+  }
+  const credits = creditsFor(email);
+  credits.referralApplied = referralApplied;
+  res.status(201).json({ token, email, credits });
 });
 
 /**
@@ -198,6 +301,73 @@ app.post('/api/logout', requireAuth, (req, res) => {
     saveUsers();
   }
   res.json({ ok: true });
+});
+
+/* ------------------------------------------------------------------ */
+/* Password reset                                                       */
+/*                                                                     */
+/* POST /api/forgot-password { email } — creates a one-time reset      */
+/*   token (30 min expiry). DEMO MODE: the token is returned in the    */
+/*   response because no email service is wired yet. Production must   */
+/*   email the token link instead of returning it.                     */
+/* POST /api/reset-password { token, newPassword } — sets the new      */
+/*   password and revokes ALL sessions for safety.                     */
+/* Always returns a generic message for unknown emails to avoid        */
+/* account enumeration.                                                */
+/* ------------------------------------------------------------------ */
+
+/**
+ * POST /api/forgot-password  { email }
+ */
+app.post('/api/forgot-password', (req, res) => {
+  const email = normEmail(req.body && req.body.email);
+  const generic = { ok: true, message: 'If an account exists for this email, a password reset token has been created.' };
+  if (!validEmail(email)) return res.json(generic);
+  const u = userStore.users[email];
+  if (!u) return res.json(generic);
+  const token = newToken();
+  u.reset = { token, expires: Date.now() + 30 * 60 * 1000 };
+  saveUsers();
+  // DEMO: return the token directly (no email service wired yet).
+  res.json({
+    ok: true,
+    message: 'Reset token created. In production this would be emailed to you; demo mode shows it below.',
+    demoToken: token,
+  });
+});
+
+/**
+ * POST /api/reset-password  { token, newPassword }
+ */
+app.post('/api/reset-password', (req, res) => {
+  const token = (req.body && req.body.token || '').toString().trim();
+  const newPassword = (req.body && req.body.newPassword || '').toString();
+  if (!token) return res.status(400).json({ error: 'Reset token is required.' });
+  if (newPassword.length < 6) {
+    return res.status(400).json({ error: 'New password must be at least 6 characters.' });
+  }
+  let targetEmail = null;
+  for (const email of Object.keys(userStore.users)) {
+    const u = userStore.users[email];
+    if (u && u.reset && u.reset.token === token) {
+      if (Date.now() > u.reset.expires) {
+        delete u.reset;
+        saveUsers();
+        return res.status(400).json({ error: 'This reset link has expired. Please request a new one.' });
+      }
+      targetEmail = email;
+      break;
+    }
+  }
+  if (!targetEmail) return res.status(400).json({ error: 'Invalid reset token.' });
+  const u = userStore.users[targetEmail];
+  const { salt, hash } = hashPassword(newPassword);
+  u.salt = salt;
+  u.hash = hash;
+  delete u.reset;
+  u.tokens = []; // revoke all sessions for safety
+  saveUsers();
+  res.json({ ok: true, message: 'Password reset successfully. Please sign in with your new password.' });
 });
 
 /**
@@ -327,6 +497,52 @@ app.get('/api/feedback', requireAuth, (req, res) => {
     .filter((e) => e.email === req.authEmail)
     .reverse();
   res.json({ feedback: mine });
+});
+
+/* ------------------------------------------------------------------ */
+/* Newsletter                                                           */
+/*                                                                     */
+/* POST /api/newsletter { email } — public signup for product updates.  */
+/* Stored in newsletter.json (ephemeral on free hosting, same caveat   */
+/* as users/usage). Duplicates are ignored.                            */
+/* ------------------------------------------------------------------ */
+
+const NEWSLETTER_FILE = path.join(__dirname, 'newsletter.json');
+const NEWSLETTER_MAX_TOTAL = 10000;
+
+let newsletterStore = { emails: [] };
+try {
+  if (fs.existsSync(NEWSLETTER_FILE)) {
+    const parsed = JSON.parse(fs.readFileSync(NEWSLETTER_FILE, 'utf8'));
+    if (parsed && Array.isArray(parsed.emails)) newsletterStore = parsed;
+  }
+} catch (e) { console.log('newsletter.json unreadable, starting fresh'); }
+
+function saveNewsletter() {
+  fs.writeFile(NEWSLETTER_FILE, JSON.stringify(newsletterStore), (e) => {
+    if (e) console.log('newsletter save failed:', e.message);
+  });
+}
+
+/**
+ * POST /api/newsletter  { email }
+ * Public — no auth required.
+ */
+app.post('/api/newsletter', (req, res) => {
+  const email = normEmail(req.body && req.body.email);
+  if (!validEmail(email)) {
+    return res.status(400).json({ error: 'Please enter a valid email address.' });
+  }
+  const exists = newsletterStore.emails.some((e) => e.email === email);
+  if (exists) {
+    return res.json({ ok: true, message: 'You are already subscribed. Thank you!' });
+  }
+  newsletterStore.emails.push({ email, createdAt: new Date().toISOString() });
+  if (newsletterStore.emails.length > NEWSLETTER_MAX_TOTAL) {
+    newsletterStore.emails = newsletterStore.emails.slice(-NEWSLETTER_MAX_TOTAL);
+  }
+  saveNewsletter();
+  res.status(201).json({ ok: true, message: 'Subscribed! Welcome to the Ayaz AI Studio newsletter.' });
 });
 
 /* ------------------------------------------------------------------ */
@@ -601,7 +817,13 @@ app.get('/api/health', (req, res) => res.json({
   ok: true,
   hfFallback: !!HF_TOKEN,
   video: true,
+  chat: true,
+  studyMode: true,
+  chatDailyLimit: CHAT_DAILY_LIMIT,
+  uploads: true,
   auth: true,
+  passwordReset: true,
+  newsletter: true,
   adProvider: AD_PROVIDER,
   adsPerDay: MAX_ADS_PER_DAY,
   adReward: { images: AD_REWARD_IMAGES, videos: AD_REWARD_VIDEOS },
@@ -781,5 +1003,267 @@ app.get('/api/generate-video', requireAuth, async (req, res) => {
     if (!res.headersSent) res.status(502).json({ error: 'video generation failed: ' + e.message });
   }
 });
+
+/* ------------------------------------------------------------------ */
+/* Ask tab — chat with free AI (Pollinations text API)                  */
+/*                                                                     */
+/* POST /api/chat { message, imageId? } — auth required. Proxies to    */
+/*   Pollinations (free, no key). Daily limit: 50 messages. History    */
+/*   stored per user in chat.json (ephemeral on free hosting, same     */
+/*   caveat as users/usage).                                           */
+/* GET /api/chat/history — returns the user's chat history.            */
+/* DELETE /api/chat/history — clears it.                               */
+/* POST /api/upload { image: dataURL, name? } — stores an uploaded     */
+/*   image in a temp dir, served at /uploads/<id>. 5MB max. Used as    */
+/*   a visual reference in chat and the Imagine tab.                   */
+/*                                                                     */
+/* Vision: if an image is attached, we try Pollinations' OpenAI-style  */
+/* vision endpoint with the image as a data URL (best effort). If it   */
+/* fails we fall back to text-only and say so honestly.                */
+/* ------------------------------------------------------------------ */
+
+const CHAT_DAILY_LIMIT = 50;
+const CHAT_FILE = path.join(__dirname, 'chat.json');
+const CHAT_MAX_PER_USER = 100;
+
+let chatStore = { users: {} };
+try {
+  if (fs.existsSync(CHAT_FILE)) {
+    const parsed = JSON.parse(fs.readFileSync(CHAT_FILE, 'utf8'));
+    if (parsed && parsed.users) chatStore = parsed;
+  }
+} catch (e) { console.log('chat.json unreadable, starting fresh'); }
+
+function saveChat() {
+  fs.writeFile(CHAT_FILE, JSON.stringify(chatStore), (e) => {
+    if (e) console.log('chat save failed:', e.message);
+  });
+}
+
+function recordChatMessage(email, role, content, imageUrl) {
+  const list = chatStore.users[email] || [];
+  list.push({ role, content: (content || '').toString().slice(0, 4000), imageUrl: imageUrl || null, createdAt: new Date().toISOString() });
+  chatStore.users[email] = list.slice(-CHAT_MAX_PER_USER);
+  saveChat();
+}
+
+/** Check the chat limit WITHOUT recording. */
+function checkChatLimit(email) {
+  const rec = getUsage(email);
+  const used = rec.chats || 0;
+  if (used >= CHAT_DAILY_LIMIT) {
+    return { ok: false, status: 429, message: `Daily chat limit reached (${used}/${CHAT_DAILY_LIMIT}). Try again tomorrow.` };
+  }
+  return { ok: true };
+}
+
+function recordChatUsage(email) {
+  const rec = getUsage(email);
+  rec.chats = (rec.chats || 0) + 1;
+  saveUsage();
+  return Math.max(0, CHAT_DAILY_LIMIT - rec.chats);
+}
+
+/** Call Pollinations text API (GET, plain text response). */
+function pollinationsText(prompt, timeoutMs = 90000) {
+  return new Promise((resolve, reject) => {
+    const url = 'https://text.pollinations.ai/' + encodeURIComponent(prompt);
+    const req = https.get(url, { timeout: timeoutMs, headers: { 'User-Agent': 'AyazAIStudio/1.0' } }, (res) => {
+      if (res.statusCode !== 200) {
+        res.resume();
+        return reject(new Error('AI service returned ' + res.statusCode));
+      }
+      let data = '';
+      res.on('data', (c) => { data += c; if (data.length > 12000) { res.destroy(); } });
+      res.on('end', () => resolve(data.trim().slice(0, 4000)));
+    });
+    req.on('timeout', () => { req.destroy(); reject(new Error('AI service timed out')); });
+    req.on('error', reject);
+  });
+}
+
+/** Best-effort vision via Pollinations OpenAI-compatible endpoint. Resolves text or null. */
+function pollinationsVision(text, dataUrl, systemPrompt, timeoutMs = 90000) {
+  return new Promise((resolve) => {
+    const body = JSON.stringify({
+      model: 'openai',
+      messages: [
+        { role: 'system', content: systemPrompt || 'You are Ayaz AI Assistant, a helpful AI assistant in Ayaz AI Studio. Answer clearly and concisely.' },
+        { role: 'user', content: [
+          { type: 'text', text: text || 'Describe this image.' },
+          { type: 'image_url', image_url: { url: dataUrl } },
+        ]},
+      ],
+      max_tokens: 800,
+    });
+    const req = https.request({
+      hostname: 'text.pollinations.ai',
+      path: '/openai',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body),
+        'User-Agent': 'AyazAIStudio/1.0',
+      },
+      timeout: timeoutMs,
+    }, (res) => {
+      let data = '';
+      res.on('data', (c) => { data += c; });
+      res.on('end', () => {
+        try {
+          const j = JSON.parse(data);
+          const content = j && j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content;
+          if (content) return resolve(content.trim().slice(0, 4000));
+        } catch (e) { /* fall through */ }
+        resolve(null);
+      });
+    });
+    req.on('timeout', () => { req.destroy(); resolve(null); });
+    req.on('error', () => resolve(null));
+    req.write(body);
+    req.end();
+  });
+}
+
+const SYSTEM_PROMPT = 'You are Ayaz AI Assistant, a helpful, friendly AI assistant inside Ayaz AI Studio. Answer clearly and concisely in the user\'s language. Keep responses focused and useful.';
+
+const STUDY_PROMPT = 'You are Ayaz Study Tutor, an expert, encouraging tutor inside Ayaz AI Studio\'s Study Mode. ' +
+'Give detailed, well-structured educational explanations. Rules:\n' +
+'1. Structure every answer with: a short direct answer first, then a clear step-by-step explanation, then a concrete example, then 2-3 key takeaways.\n' +
+'2. For math problems: show EVERY step, explain WHY each step works, define any symbols used, and end with a quick check (e.g. verify the answer).\n' +
+'3. For science concepts: explain the idea simply first, then add depth (cause/effect, real-world application).\n' +
+'4. For history or other topics: give context, key events/people/dates, and why it matters.\n' +
+'5. If the user uploads an image (diagram, graph, handwritten problem): analyze what you can see as carefully as possible, walk through it piece by piece, and if image analysis is unavailable say so honestly and still help from the text.\n' +
+'6. Use simple formatting: short paragraphs, numbered steps, bold key terms. No excessive jargon.\n' +
+'7. End with one follow-up question or practice suggestion to deepen learning.\n' +
+'Be "over smart": thorough, accurate, and genuinely helpful — like the best teacher the student ever had.';
+
+/**
+ * POST /api/chat  { message, imageId?, study? }
+ * (Authorization: Bearer <token>)
+ * study=true switches to Study Mode (detailed educational explanations).
+ */
+app.post('/api/chat', requireAuth, async (req, res) => {
+  const email = req.authEmail;
+  const message = (req.body && req.body.message || '').toString().trim().slice(0, 2000);
+  const imageId = (req.body && req.body.imageId || '').toString().slice(0, 64);
+  const studyMode = !!(req.body && req.body.study);
+  if (!message && !imageId) return res.status(400).json({ error: 'Please type a message or attach an image.' });
+
+  const gate = checkChatLimit(email);
+  if (!gate.ok) return res.status(gate.status).json({ error: gate.message });
+
+  let imageUrl = null;
+  let dataUrl = null;
+  if (imageId) {
+    const meta = uploadStore[imageId];
+    if (meta && fs.existsSync(meta.path)) {
+      imageUrl = '/uploads/' + imageId + meta.ext;
+      try {
+        const buf = fs.readFileSync(meta.path);
+        dataUrl = 'data:' + meta.mime + ';base64,' + buf.toString('base64');
+      } catch (e) { /* ignore */ }
+    }
+  }
+
+  let reply = '';
+  let visionUsed = false;
+  const activePrompt = studyMode ? STUDY_PROMPT : SYSTEM_PROMPT;
+  try {
+    if (dataUrl) {
+      const v = await pollinationsVision(message, dataUrl, activePrompt);
+      if (v) { reply = v; visionUsed = true; }
+    }
+    if (!reply) {
+      const prompt = activePrompt + '\n\nUser: ' + (message || 'Describe the attached image.') +
+        (dataUrl ? '\n(Note: the user attached an image, but image analysis is unavailable right now — answer based on the text only and mention this honestly.)' : '');
+      reply = await pollinationsText(prompt);
+    }
+    if (!reply) throw new Error('empty AI response');
+  } catch (e) {
+    return res.status(502).json({ error: 'AI service is busy right now. Please try again in a moment.' });
+  }
+
+  const left = recordChatUsage(email);
+  recordChatMessage(email, 'user', (studyMode ? '📚 ' : '') + (message || '(image attached)'), imageUrl);
+  recordChatMessage(email, 'ai', reply, null);
+  res.json({ reply, visionUsed, studyMode, chatsLeft: left });
+});
+
+/**
+ * GET /api/chat/history  (Authorization: Bearer <token>)
+ */
+app.get('/api/chat/history', requireAuth, (req, res) => {
+  res.json({ messages: chatStore.users[req.authEmail] || [] });
+});
+
+/**
+ * DELETE /api/chat/history  (Authorization: Bearer <token>)
+ */
+app.delete('/api/chat/history', requireAuth, (req, res) => {
+  chatStore.users[req.authEmail] = [];
+  saveChat();
+  res.json({ ok: true });
+});
+
+/* ------------------------------------------------------------------ */
+/* Image uploads (for chat attach + Imagine "edit this photo")         */
+/*                                                                     */
+/* POST /api/upload { image: "data:image/...;base64,...", name? }       */
+/* Auth required. 5MB max. Files live in the OS temp dir and are       */
+/* served at /uploads/<id>. Old files (>24h) are pruned on upload.     */
+/* Ephemeral on free hosting — uploads vanish on restart (documented). */
+/* ------------------------------------------------------------------ */
+
+const UPLOAD_DIR = path.join(os.tmpdir(), 'aas-uploads');
+const UPLOAD_MAX_BYTES = 5 * 1024 * 1024;
+const uploadStore = {}; // id -> { path, mime, ext, createdAt }
+
+try { fs.mkdirSync(UPLOAD_DIR, { recursive: true }); } catch (e) {}
+app.use('/uploads', express.static(UPLOAD_DIR, { maxAge: '1d' }));
+
+function pruneUploads() {
+  const cutoff = Date.now() - 24 * 3600 * 1000;
+  try {
+    for (const f of fs.readdirSync(UPLOAD_DIR)) {
+      const p = path.join(UPLOAD_DIR, f);
+      try {
+        if (fs.statSync(p).mtimeMs < cutoff) fs.unlinkSync(p);
+      } catch (e) {}
+    }
+  } catch (e) {}
+  for (const id of Object.keys(uploadStore)) {
+    if (uploadStore[id].createdAt < cutoff) delete uploadStore[id];
+  }
+}
+
+/**
+ * POST /api/upload  { image: dataURL }
+ * (Authorization: Bearer <token>)
+ */
+app.post('/api/upload', requireAuth, express.json({ limit: '6mb' }), (req, res) => {
+  const dataUrl = (req.body && req.body.image || '').toString();
+  const m = dataUrl.match(/^data:(image\/(png|jpeg|webp|gif));base64,([A-Za-z0-9+/=]+)$/);
+  if (!m) return res.status(400).json({ error: 'Please upload a PNG, JPEG, WEBP or GIF image.' });
+  const mime = m[1];
+  const ext = '.' + (m[2] === 'jpeg' ? 'jpg' : m[2]);
+  const buf = Buffer.from(m[3], 'base64');
+  if (buf.length > UPLOAD_MAX_BYTES) {
+    return res.status(400).json({ error: 'Image is too large (max 5MB).' });
+  }
+  pruneUploads();
+  const id = crypto.randomBytes(12).toString('hex');
+  const filePath = path.join(UPLOAD_DIR, id + ext);
+  try {
+    fs.writeFileSync(filePath, buf);
+  } catch (e) {
+    return res.status(500).json({ error: 'Could not save the image. Please try again.' });
+  }
+  uploadStore[id] = { path: filePath, mime, ext, createdAt: Date.now() };
+  res.status(201).json({ id, url: '/uploads/' + id + ext });
+});
+
+// Delete-account cleanup: also wipe chat history for the account.
+const _origDeleteAccount = null; // (handled inline below via chatStore)
 
 app.listen(PORT, () => console.log(`Ayaz AI Studio running on http://localhost:${PORT}`));

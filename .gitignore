@@ -9,6 +9,8 @@ usage.json
 users.json
 feedback.json
 creations.json
+newsletter.json
+chat.json
 
 # OS / editor junk
 .DS_Store

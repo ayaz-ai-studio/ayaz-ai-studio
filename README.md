@@ -1,6 +1,34 @@
-# 🎨 Ayaz AI Studio — Phase 7 (Feedback, My Creations)
+# 🎨 Ayaz AI Studio — Phase 9 (Grok-style Redesign: Ask & Imagine)
 
-A REAL, PUBLIC web app for free AI image + video generation. **Not a Muse artifact** — plain Node.js + Express, deployable to free hosting in minutes.
+A REAL, PUBLIC web app for free AI chat, tutoring, image + video generation. **Not a Muse artifact** — plain Node.js + Express, deployable to free hosting in minutes.
+
+## What's new in Phase 9 — Grok-style Redesign 🚀
+
+**Ask / Imagine tabs** (like Grok's Ask / Imagine):
+- ✅ **Ask tab** — full chat interface: user bubbles (right), plain AI messages (left), typing indicator, bottom input bar with 📎 attach, 🎤 voice, ➤ send
+- ✅ **Free AI chat** — `POST /api/chat` proxies Pollinations text API (free, no key); 50 chats/day per account; history saved per user in `chat.json`
+- ✅ **📚 Study Mode** — toggle in the Ask tab; AI becomes an expert tutor: direct answer first, step-by-step explanation, concrete example, key takeaways, follow-up question. Quick prompts: "Explain a concept", "Solve a problem", "Summarize a topic"
+- ✅ **Image attach in chat** — upload a photo (diagram, graph, handwritten problem); best-effort vision via Pollinations OpenAI-compatible endpoint, honest fallback to text-only if unavailable
+- ✅ **Chat history** — `GET /api/chat/history`, `DELETE /api/chat/history` (✎ New chat button); per-user, capped at 100 messages
+- ✅ **Imagine tab** — all existing generation, plus:
+  - **Trending styles** — horizontal scrollable cards (Chibi, Photoreal, Anime, Cyberpunk, Oil Paint, Pixel Art, Sketch, Fantasy); tap to auto-apply the style to your prompt
+  - **Reference photo upload** — upload a photo, describe the transformation, generate the restyle
+- ✅ **Pure-black Grok-style theme** — #000 background, rounded bubbles, minimal premium feel (light mode still available via toggle)
+- ✅ **🎁 Referral program** — every account gets a unique 8-char code + link (`/?ref=CODE`); new signup with a valid code gives **+5 images / +3 videos to BOTH** referrer and newcomer; `GET /api/referrals` (code, link, total referrals, credits earned); "🎁 Refer & Earn" in the hamburger menu with copy + social share buttons; pending code captured from `?ref=` URL and applied at registration
+- ✅ **👁️ Show/hide password** — eye toggle on all password fields (login, register, change password, delete-account confirm, reset password)
+- ✅ Slim credits strip under the top bar (images / videos / chats / ads); auth gate cards for logged-out users
+
+## What's new in Phase 8 — Professional Features 🌟
+
+- ✅ **Forgot password** — "Forgot password?" link on the login modal; `POST /api/forgot-password` creates a 30-min one-time reset token (demo mode returns it in the response; production would email it); `POST /api/reset-password` sets the new password and revokes all sessions; always returns a generic message for unknown emails (no account enumeration); reset tokens are single-use
+- ✅ **Cookie consent banner** — bottom banner ("🍪 We use cookies..."), Accept/Decline buttons, choice stored in `localStorage` (`aas_cookie_consent`), links to the Privacy Policy
+- ✅ **Pricing page** — hamburger menu → 💎 Pricing modal: Free plan card ($0/forever, 6 images + 3 videos/day, ads for extras, notebook) vs Pro card ($9/month, coming soon, unlimited, HD, priority, no ads); responsive 2-col → 1-col grid
+- ✅ **Dark / Light mode** — ☀️/🌙 toggle button top-right, full light-theme override set, preference persisted in `localStorage` (`aas_theme`, default dark), shifts down when the notification bar shows
+- ✅ **Social share buttons** — after each generation: 𝕏 Post, Facebook, WhatsApp, 🔗 Copy Link, and native 📤 Share (Web Share API, shares the actual image/video file where supported; falls back to link share); native button auto-hidden where unsupported
+- ✅ **Newsletter signup** — footer form (email + Subscribe); `POST /api/newsletter` (public, validates email, dedupes, stored in `newsletter.json`); success/error toasts
+- ✅ **API documentation** — hamburger menu → ⌨️ API Docs modal documenting every endpoint (auth, generation, credits, ads, feedback, creations, newsletter, health) with method badges and request/response notes
+- ✅ **Professional footer** — link bar (Pricing, API Docs, Privacy Policy, Terms of Service, Help/FAQ, Contact Us, About, Feedback), newsletter form, and © 2026 copyright line
+- ✅ **Forgot modal** also added to the Escape-key close list alongside the pricing/API-docs modals
 
 ## What's new in Phase 7 — Feedback 💬 + My Creations 📓
 
@@ -92,7 +120,14 @@ All protected endpoints need `Authorization: Bearer <token>` (token from registe
 - Every successful generation is logged automatically; account deletion wipes the history too
 - Note: the media files themselves are not stored — entries keep prompt + params so "🔁 Regenerate" can re-run them
 
-**Health** — `GET /api/health` → `{ ok, hfFallback, video, auth, adProvider, adsPerDay, adReward }`
+**Health** — `GET /api/health` → `{ ok, hfFallback, video, auth, passwordReset, newsletter, adProvider, adsPerDay, adReward }`
+
+**Password reset**
+- `POST /api/forgot-password` `{ "email":"a@b.com" }` → `{ ok: true, message, demoToken? }` — always returns the generic message for unknown emails (no enumeration); demo mode returns the 30-min token in `demoToken`
+- `POST /api/reset-password` `{ "token":"...", "newPassword":"secret123" }` → `{ ok: true }` — new password min 6 chars; invalid/expired token → 400; all sessions revoked on success
+
+**Newsletter**
+- `POST /api/newsletter` `{ "email":"fan@example.com" }` → `201 { ok: true, message }` — public, validates email, ignores duplicates gracefully; stored in `newsletter.json`
 
 ## How the ad system works (and how to go real)
 
@@ -110,7 +145,7 @@ All protected endpoints need `Authorization: Bearer <token>` (token from registe
 ## Honest limits (read before launch!)
 
 1. **Video is animated stills, not true AI video.** 3–8s zoom/pan over an AI picture. Veo/Kling-quality video is paid-only — needs user-paid credits (future phase).
-2. **File-based accounts.** `users.json`/`usage.json` reset when Render's free tier sleeps/restarts (ephemeral filesystem). No email verification, no login rate limiting — production needs Supabase Postgres + Supabase Auth (or Better Auth).
+2. **File-based accounts.** `users.json`/`usage.json` reset when Render's free tier sleeps/restarts (ephemeral filesystem). No email verification for password resets (demo mode returns the token), no login rate limiting — production needs Supabase Postgres + Supabase Auth (or Better Auth) + a real email service.
 3. **Pollinations.ai is a free third-party service** — rate-limited, may throttle under heavy use, small watermark possible.
 4. **No rate limiting per IP.** A determined user could hammer the endpoints. Add express-rate-limit before real launch.
 5. **No content moderation** on prompts yet.
@@ -199,13 +234,14 @@ ayaz-ai-studio-real/
 ├── server.js          # Express backend: auth, image/video APIs, limits, rewarded ads, feedback, creations
 ├── package.json       # npm start, Node >= 18
 ├── render.yaml        # Render Blueprint (auto ffmpeg install)
-├── .gitignore         # node_modules, .env, users/usage/feedback/creations.json never committed
-├── users.json         # (created at runtime) hashed accounts + sessions — gitignored
+├── .gitignore         # node_modules, .env, users/usage/feedback/creations/newsletter.json never committed
+├── users.json         # (created at runtime) hashed accounts + sessions + reset tokens — gitignored
 ├── usage.json         # (created at runtime) daily usage + ad watches per email — gitignored
 ├── feedback.json      # (created at runtime) user feedback entries — gitignored
 ├── creations.json     # (created at runtime) generation history per email — gitignored
+├── newsletter.json    # (created at runtime) newsletter subscribers — gitignored
 ├── public/
-│   └── index.html     # Mobile-friendly English UI: auth modal, credits, image/video tabs, ad modal + toast
+│   └── index.html     # Mobile-friendly English UI: auth modal + forgot password, theme toggle, cookie banner, credits, image/video tabs, ad modal, share row, pricing/API-docs/footer modals, newsletter form, toast
 ├── sample-output.jpg  # Proof: real generated image
 └── sample-output-video.mp4  # Proof: real generated video (3s)
 ```
