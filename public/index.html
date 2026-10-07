@@ -766,7 +766,7 @@
     <div class="ls-btns">
       <button class="ls-btn" onclick="loginGoogle()"><span class="ls-ic">G</span>Continue with Google</button>
       <button class="ls-btn" onclick="openAuth('login')"><span class="ls-ic">@</span>Continue with Email</button>
-      <!-- X login hidden: no X account configured yet. Re-enable when OAuth app is created. -->
+      <button class="ls-btn" onclick="loginX()"><span class="ls-ic">𝕏</span>Continue with X</button>
     </div>
   </div>
   <div class="ls-legal">By continuing you agree to <a onclick="openInfo('mTerms')">Terms</a> and <a onclick="openInfo('mPrivacy')">Privacy Policy</a></div>
@@ -2008,7 +2008,7 @@ function loginGoogle(){
   const ref = getPendingReferral();
   window.location.href = '/auth/google' + (ref ? '?ref=' + encodeURIComponent(ref) : '');
 }
-function loginX(){ /* hidden: X OAuth not configured (no X developer app). Re-enable when ready. */ showToast('🔜 X sign-in is coming soon!'); }
+function loginX(){ /* X OAuth not configured yet (no X developer app). Wire to real OAuth when ready. */ showToast('🔜 X sign-in coming soon - account setup in progress!'); }
 /* ---------- Google OAuth result (?token= / ?oauth_error=) ---------- */
 function captureOAuthResult(){
   try{
