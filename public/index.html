@@ -2,232 +2,425 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Ayaz AI Studio</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Ayaz AI Studio — Ask & Imagine</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
-    background: linear-gradient(180deg, #0a0e14 0%, #10161f 55%, #0c1016 100%);
-    color: #e8ecf1; min-height: 100vh; padding: 20px 16px 40px;
+  :root {
+    --bg: #000000;
+    --bg2: #0a0a0a;
+    --card: #111111;
+    --card2: #161616;
+    --border: #262626;
+    --text: #ffffff;
+    --muted: #a1a1a1;
+    --faint: #6b6b6b;
+    --accent: #ffffff;
+    --blue: #3b82f6;
+    --green: #22c55e;
+    --bubble-user: #2b2b2e;
   }
-  .wrap { max-width: 560px; margin: 0 auto; }
-  header { text-align: center; margin-bottom: 24px; }
-  header h1 { font-size: 28px; background: linear-gradient(90deg, #ffffff, #9ec2ff);
-    -webkit-background-clip: text; background-clip: text; color: transparent; }
-  header p { opacity: .7; font-size: 14px; margin-top: 6px; }
-  .card { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
-    border-radius: 16px; padding: 18px; backdrop-filter: blur(8px); }
-  textarea { width: 100%; min-height: 90px; border-radius: 12px; border: 1px solid rgba(255,255,255,.2);
-    background: rgba(0,0,0,.3); color: #fff; padding: 12px; font-size: 16px; resize: vertical; }
-  textarea:focus { outline: none; border-color: #5b8cff; }
+  body.light {
+    --bg: #ffffff;
+    --bg2: #f5f5f5;
+    --card: #ffffff;
+    --card2: #f0f0f0;
+    --border: #e2e2e2;
+    --text: #111111;
+    --muted: #555555;
+    --faint: #999999;
+    --accent: #111111;
+    --bubble-user: #e8e8e8;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+  /* ---------- notification bar ---------- */
+  #noticeBar { display: none; background: linear-gradient(90deg, #1e3a8a, #2563eb);
+    color: #fff; font-size: 13px; padding: 8px 12px; text-align: center;
+    position: relative; z-index: 60; }
+  #noticeBar.show { display: block; }
+  #noticeClose { position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; color: #fff; font-size: 14px; cursor: pointer; padding: 4px 8px; }
+  /* ---------- top bar (Grok style) ---------- */
+  #topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 56px; padding: 0 8px; flex-shrink: 0;
+    background: var(--bg); border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 50;
+  }
+  #menuBtn {
+    background: none; border: none; color: var(--text); font-size: 22px;
+    width: 44px; height: 44px; border-radius: 12px; cursor: pointer;
+  }
+  #menuBtn:active { background: var(--card2); }
+  #mainTabs { display: flex; gap: 4px; }
+  #mainTabs button {
+    background: none; border: none; color: var(--faint); font-size: 17px; font-weight: 600;
+    padding: 10px 18px; cursor: pointer; position: relative;
+  }
+  #mainTabs button.active { color: var(--text); }
+  #mainTabs button.active::after {
+    content: ''; position: absolute; left: 18px; right: 18px; bottom: 4px;
+    height: 2px; background: var(--text); border-radius: 2px;
+  }
+  .topactions { display: flex; gap: 2px; }
+  .topactions button {
+    background: none; border: none; color: var(--text); font-size: 18px;
+    width: 40px; height: 40px; border-radius: 12px; cursor: pointer;
+  }
+  .topactions button:active { background: var(--card2); }
+  /* ---------- credits strip ---------- */
+  #creditsStrip {
+    display: none; gap: 8px; justify-content: center; align-items: center;
+    font-size: 12px; color: var(--muted); padding: 8px 12px;
+    border-bottom: 1px solid var(--border); flex-shrink: 0; flex-wrap: wrap;
+  }
+  #creditsStrip.show { display: flex; }
+  #creditsStrip b { color: var(--text); }
+  #creditsStrip .pill {
+    background: var(--card2); border: 1px solid var(--border);
+    border-radius: 20px; padding: 3px 10px;
+  }
+  /* ---------- main views ---------- */
+  .mainview { display: none; flex: 1; flex-direction: column; min-height: 0; }
+  .mainview.active { display: flex; }
+  /* ---------- ASK view : chat ---------- */
+  #studyBar {
+    display: none; align-items: center; gap: 8px; padding: 10px 14px;
+    border-bottom: 1px solid var(--border); flex-shrink: 0; overflow-x: auto;
+  }
+  #studyBar.show { display: flex; }
+  #studyToggle {
+    flex-shrink: 0; font-size: 13px; font-weight: 700; border-radius: 20px;
+    padding: 8px 14px; border: 1px solid var(--border); background: var(--card2);
+    color: var(--text); cursor: pointer; white-space: nowrap;
+  }
+  #studyToggle.on { background: #1e3a8a; border-color: #2563eb; color: #fff; }
+  .qpill {
+    flex-shrink: 0; font-size: 12px; border-radius: 20px; padding: 8px 12px;
+    border: 1px solid var(--border); background: var(--card); color: var(--muted);
+    cursor: pointer; white-space: nowrap;
+  }
+  .qpill:active { background: var(--card2); color: var(--text); }
+  #chatList {
+    flex: 1; overflow-y: auto; padding: 16px 14px 12px;
+    display: flex; flex-direction: column; gap: 14px;
+    max-width: 760px; width: 100%; margin: 0 auto;
+  }
+  .msg { display: flex; flex-direction: column; max-width: 100%; }
+  .msg-user { align-items: flex-end; }
+  .msg-ai { align-items: stretch; }
+  .bubble {
+    padding: 10px 16px; border-radius: 20px; font-size: 15px; line-height: 1.5;
+    max-width: 88%; word-wrap: break-word; white-space: pre-wrap;
+  }
+  .msg-user .bubble { background: var(--bubble-user); color: var(--text); border-bottom-right-radius: 6px; }
+  .msg-ai .bubble { background: none; padding: 4px 2px; max-width: 100%; }
+  .msg-ai .who { font-size: 12px; color: var(--faint); margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+  .msg-ai .who .studybadge {
+    font-size: 10px; background: #1e3a8a; color: #fff; border-radius: 10px; padding: 2px 8px;
+  }
+  .chatimg { max-width: 220px; border-radius: 14px; margin-bottom: 8px; display: block; }
+  .typing { display: inline-flex; gap: 5px; padding: 12px 4px; }
+  .typing span { width: 7px; height: 7px; border-radius: 50%; background: var(--faint); animation: blink 1.2s infinite; }
+  .typing span:nth-child(2) { animation-delay: .2s; }
+  .typing span:nth-child(3) { animation-delay: .4s; }
+  @keyframes blink { 0%, 60%, 100% { opacity: .25; } 30% { opacity: 1; } }
+  .chatempty { text-align: center; color: var(--faint); margin: auto 0; padding: 40px 20px; }
+  .chatempty .big { font-size: 44px; display: block; margin-bottom: 12px; }
+  .chatempty h2 { font-size: 20px; color: var(--text); margin-bottom: 8px; font-weight: 700; }
+  .chatempty p { font-size: 14px; line-height: 1.6; }
+  /* bottom chat bar */
+  #chatBarWrap { flex-shrink: 0; padding: 8px 12px calc(10px + env(safe-area-inset-bottom)); background: var(--bg); }
+  #chatBar {
+    display: flex; align-items: center; gap: 6px; max-width: 760px; margin: 0 auto;
+    background: var(--card); border: 1px solid var(--border); border-radius: 28px;
+    padding: 6px 6px 6px 8px;
+  }
+  #chatBar input {
+    flex: 1; background: none; border: none; color: var(--text);
+    font-size: 16px; padding: 10px 4px; min-width: 0;
+  }
+  #chatBar input:focus { outline: none; }
+  #chatBar input::placeholder { color: var(--faint); }
+  .cbtn {
+    background: none; border: none; color: var(--muted); font-size: 20px;
+    width: 40px; height: 40px; border-radius: 50%; cursor: pointer; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .cbtn:active { background: var(--card2); }
+  #chatSend { background: var(--text); color: var(--bg); font-size: 18px; }
+  #chatSend:disabled { opacity: .35; }
+  #chatMic.listening { color: #ef4444; animation: blink 1s infinite; }
+  #attachPreview { display: none; max-width: 760px; margin: 0 auto 8px; padding: 0 12px; }
+  #attachPreview.show { display: block; }
+  #attachPreview .prev {
+    display: inline-flex; align-items: center; gap: 8px; background: var(--card);
+    border: 1px solid var(--border); border-radius: 12px; padding: 6px 10px 6px 6px; font-size: 13px;
+  }
+  #attachPreview img { width: 44px; height: 44px; object-fit: cover; border-radius: 8px; }
+  #attachPreview button { background: none; border: none; color: var(--faint); font-size: 16px; cursor: pointer; }
+  /* ---------- IMAGINE view ---------- */
+  #imagineView { overflow-y: auto; }
+  #imagineInner { max-width: 560px; width: 100%; margin: 0 auto; padding: 14px 14px 40px; }
+  .secttl { font-size: 15px; font-weight: 700; margin: 18px 0 10px; }
+  #stylesRow {
+    display: flex; gap: 10px; overflow-x: auto; padding: 2px 2px 10px;
+    -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  }
+  #stylesRow::-webkit-scrollbar { display: none; }
+  .stylecard {
+    flex: 0 0 118px; height: 148px; border-radius: 16px; border: 1px solid var(--border);
+    cursor: pointer; position: relative; overflow: hidden;
+    display: flex; align-items: flex-end; padding: 10px;
+    font-size: 13px; font-weight: 700; color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.8);
+  }
+  .stylecard:active { transform: scale(.96); }
+  .stylecard .sub { display: block; font-size: 10px; font-weight: 400; opacity: .85; }
+  .refbox {
+    border: 1px dashed var(--border); border-radius: 16px; padding: 14px;
+    text-align: center; color: var(--muted); font-size: 13px; cursor: pointer; margin-top: 6px;
+  }
+  .refbox img { max-width: 100%; max-height: 180px; border-radius: 12px; margin-bottom: 8px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 16px; margin-top: 12px; }
+  textarea { width: 100%; min-height: 84px; border-radius: 14px; border: 1px solid var(--border);
+    background: var(--bg2); color: var(--text); padding: 12px; font-size: 16px; resize: vertical; }
+  textarea:focus { outline: none; border-color: var(--blue); }
+  .promptrow { display: flex; gap: 8px; align-items: flex-start; }
+  .promptrow textarea { flex: 1; }
+  .micbtn {
+    flex-shrink: 0; width: 48px; height: 48px; border-radius: 14px; font-size: 20px;
+    background: var(--card2); border: 1px solid var(--border); color: var(--text); cursor: pointer;
+  }
+  .micbtn.listening { color: #ef4444; animation: blink 1s infinite; }
   .row { display: flex; gap: 10px; margin-top: 12px; }
-  select, button { font-size: 16px; border-radius: 12px; border: none; padding: 12px 16px; }
-  select { background: rgba(0,0,0,.3); color: #fff; border: 1px solid rgba(255,255,255,.2); flex: 1; }
-  button { background: linear-gradient(90deg, #2563eb, #3b82f6); color: #fff; font-weight: 700;
-    cursor: pointer; flex: 2; }
-  button:disabled { opacity: .5; cursor: wait; }
-  #status { text-align: center; margin: 16px 0; font-size: 14px; opacity: .8; min-height: 20px; }
-  .spinner { display: none; text-align: center; margin: 20px 0; }
+  select, .genbtn { font-size: 15px; border-radius: 14px; border: none; padding: 13px 16px; }
+  select { background: var(--bg2); color: var(--text); border: 1px solid var(--border); flex: 1; }
+  .genbtn { background: #fff; color: #000; font-weight: 700; cursor: pointer; flex: 2; }
+  body.light .genbtn { background: #111; color: #fff; }
+  .genbtn:disabled { opacity: .45; cursor: wait; }
+  #status { text-align: center; margin: 14px 0; font-size: 14px; color: var(--muted); min-height: 20px; }
+  .spinner { display: none; text-align: center; margin: 18px 0; }
   .spinner.show { display: block; }
-  .spinner div { width: 40px; height: 40px; margin: 0 auto; border: 4px solid rgba(255,255,255,.2);
-    border-top-color: #5b8cff; border-radius: 50%; animation: spin 1s linear infinite; }
+  .spinner div { width: 38px; height: 38px; margin: 0 auto; border: 4px solid var(--border);
+    border-top-color: var(--text); border-radius: 50%; animation: spin 1s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
   #result { display: none; margin-top: 8px; text-align: center; }
-  #result img, #result video { max-width: 100%; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,.5); }
-  #result a { display: inline-block; margin-top: 12px; color: #7aa5ff; font-size: 14px; }
-  .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
-  .tabs button { flex: 1; font-size: 16px; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,.2);
-    background: rgba(255,255,255,.06); color: #fff; cursor: pointer; font-weight: 600; }
-  .tabs button.active { background: linear-gradient(90deg, #2563eb, #3b82f6); border-color: transparent; }
+  #result img, #result video { max-width: 100%; border-radius: 16px; }
+  #result a.dl { display: inline-block; margin-top: 12px; color: var(--blue); font-size: 14px; }
+  .sharerow { display: flex; gap: 8px; justify-content: center; margin-top: 12px; flex-wrap: wrap; }
+  .sharebtn { font-size: 13px; padding: 9px 14px; border-radius: 20px; background: var(--card2);
+    border: 1px solid var(--border); color: var(--text); cursor: pointer; font-weight: 600; flex: none; }
+  .imtabs { display: flex; gap: 8px; margin: 14px 0 4px; }
+  .imtabs button { flex: 1; font-size: 15px; padding: 11px; border-radius: 14px; border: 1px solid var(--border);
+    background: var(--card); color: var(--muted); cursor: pointer; font-weight: 700; }
+  .imtabs button.active { background: var(--text); color: var(--bg); border-color: transparent; }
   .panel { display: none; }
   .panel.active { display: block; }
-  .note { font-size: 12px; opacity: .6; margin-top: 10px; text-align: center; }
-  .userbar { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
-    border-radius: 16px; padding: 14px; margin-bottom: 16px; backdrop-filter: blur(8px); }
-  .userbar .row { margin-top: 0; }
-  .credits { display: flex; gap: 8px; margin-top: 10px; }
-  .credits div { flex: 1; text-align: center; font-size: 13px; background: rgba(0,0,0,.3);
-    border-radius: 10px; padding: 8px; border: 1px solid rgba(255,255,255,.1); }
-  .credits b { display: block; font-size: 18px; }
-  .limits-strip { text-align: center; font-size: 12px; opacity: .65; margin-bottom: 14px;
-    background: rgba(255,255,255,.04); border-radius: 10px; padding: 8px; }
+  .note { font-size: 12px; color: var(--faint); margin-top: 10px; text-align: center; }
   .samples { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-  .samples button { flex: 1 1 30%; font-size: 12px; padding: 8px; background: rgba(255,255,255,.1); }
-  /* ---- rewarded ads ---- */
-  .adbtn { width: 100%; margin-top: 12px; padding: 14px; font-size: 16px;
+  .samples button { flex: 1 1 30%; font-size: 12px; padding: 9px; background: var(--card2);
+    border: 1px solid var(--border); color: var(--text); border-radius: 12px; cursor: pointer; }
+  .limits-strip { text-align: center; font-size: 12px; color: var(--muted); margin: 12px 0;
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 9px; }
+  /* auth gate cards */
+  .gatecard { text-align: center; padding: 34px 20px; }
+  .gatecard .big { font-size: 40px; margin-bottom: 10px; display: block; }
+  .gatecard h3 { font-size: 18px; margin-bottom: 8px; }
+  .gatecard p { font-size: 14px; color: var(--muted); margin-bottom: 16px; }
+  .gatecard .rowb { display: flex; gap: 10px; justify-content: center; }
+  .gatecard button { font-size: 15px; font-weight: 700; border-radius: 14px; padding: 12px 22px; cursor: pointer; border: none; }
+  .gatecard .primary { background: #fff; color: #000; }
+  body.light .gatecard .primary { background: #111; color: #fff; }
+  .gatecard .ghostb { background: var(--card2); color: var(--text); border: 1px solid var(--border); }
+  /* ---------- drawer ---------- */
+  #drawerOverlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 90; }
+  #drawerOverlay.show { display: block; }
+  #drawer {
+    position: fixed; top: 0; left: 0; bottom: 0; width: 284px; z-index: 95;
+    background: var(--bg2); border-right: 1px solid var(--border);
+    transform: translateX(-105%); transition: transform .25s ease;
+    display: flex; flex-direction: column; padding: 18px 0;
+  }
+  #drawer.open { transform: translateX(0); }
+  #drawer .dhead { padding: 0 20px 14px; border-bottom: 1px solid var(--border); }
+  #drawer .dhead .t { font-size: 17px; font-weight: 800; }
+  #drawer .dhead .s { font-size: 12px; color: var(--faint); margin-top: 4px; overflow: hidden; text-overflow: ellipsis; }
+  #drawer nav { flex: 1; overflow-y: auto; padding: 10px 0; }
+  #drawer nav button {
+    display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+    background: none; border: none; color: var(--text); font-size: 15px;
+    padding: 12px 20px; cursor: pointer;
+  }
+  #drawer nav button:active { background: var(--card2); }
+  #drawer nav button .ic { width: 24px; text-align: center; }
+  #drawer .dfoot { padding: 12px 20px 0; border-top: 1px solid var(--border); font-size: 11px; color: var(--faint); }
+  /* ---------- modals ---------- */
+  .infomodal, .authmodal, .admodal {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75);
+    z-index: 100; align-items: center; justify-content: center; padding: 20px;
+  }
+  .infomodal.show, .authmodal.show, .admodal.show { display: flex; }
+  .infocard, .authcard, .adbox {
+    background: var(--card); border: 1px solid var(--border); border-radius: 20px;
+    padding: 22px; max-width: 420px; width: 100%; max-height: 84vh; overflow-y: auto;
+    position: relative; color: var(--text);
+  }
+  .infocard h2, .authcard h2 { font-size: 19px; margin-bottom: 6px; }
+  .infocard .sub, .authcard .sub { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+  .infocard p, .infocard li { font-size: 14px; line-height: 1.65; color: var(--text); }
+  .infocard ul { padding-left: 18px; margin: 8px 0; }
+  .infocard h3 { font-size: 15px; margin: 14px 0 6px; }
+  .xbtn { position: absolute; top: 12px; right: 12px; background: none; border: none;
+    color: var(--faint); font-size: 18px; cursor: pointer; padding: 6px; }
+  .authcard input { width: 100%; font-size: 16px; border-radius: 12px; padding: 12px; margin-bottom: 10px;
+    border: 1px solid var(--border); background: var(--bg2); color: var(--text); }
+  .authcard input:focus { outline: none; border-color: var(--blue); }
+  .authcard .err { color: #f87171; font-size: 13px; min-height: 18px; margin-bottom: 8px; text-align: center; }
+  .authcard .ok, .fpok { color: var(--green); font-size: 13px; min-height: 18px; margin-bottom: 8px; text-align: center; }
+  .authcard .primary { width: 100%; background: #fff; color: #000; font-weight: 700; font-size: 16px;
+    border-radius: 14px; padding: 13px; border: none; cursor: pointer; }
+  body.light .authcard .primary { background: #111; color: #fff; }
+  .authcard .primary:disabled { opacity: .5; }
+  .authcard .switch { text-align: center; font-size: 13px; color: var(--muted); margin-top: 12px; }
+  .authcard .switch a { color: var(--blue); cursor: pointer; }
+  .authcard .flink { text-align: center; margin-top: 8px; }
+  .authcard .flink a { font-size: 13px; color: var(--blue); cursor: pointer; }
+  .capbrand { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--faint);
+    text-align: center; margin: 12px 0 6px; }
+  .caprow { display: flex; gap: 8px; align-items: center; }
+  .caprow .cq { flex: 1; font-size: 15px; font-weight: 700; text-align: center;
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 11px; }
+  .caprow button { flex-shrink: 0; width: 44px; height: 44px; border-radius: 12px; font-size: 18px;
+    background: var(--card2); border: 1px solid var(--border); color: var(--text); cursor: pointer; }
+  /* settings */
+  .setrow { margin-bottom: 16px; }
+  .setrow .lbl { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+  .setrow input { width: 100%; font-size: 15px; border-radius: 12px; padding: 11px; margin-bottom: 8px;
+    border: 1px solid var(--border); background: var(--bg2); color: var(--text); }
+  .setrow .err { color: #f87171; font-size: 13px; min-height: 18px; }
+  .setrow .ok { color: var(--green); font-size: 13px; min-height: 18px; }
+  .btnrow { display: flex; gap: 8px; }
+  .btnrow button { flex: 1; font-size: 14px; font-weight: 700; border-radius: 12px; padding: 11px; cursor: pointer; border: none; }
+  .btnrow .primary { background: #fff; color: #000; }
+  body.light .btnrow .primary { background: #111; color: #fff; }
+  .btnrow .ghost { background: var(--card2); color: var(--text); border: 1px solid var(--border); }
+  .btnrow .danger { background: #3f1d1d; color: #f87171; border: 1px solid #7f2d2d; }
+  /* feedback stars */
+  .stars { display: flex; gap: 6px; justify-content: center; margin: 12px 0; }
+  .stars button { background: none; border: none; font-size: 30px; cursor: pointer; opacity: .35; }
+  .stars button.on { opacity: 1; }
+  .fbtextarea { width: 100%; min-height: 90px; border-radius: 12px; border: 1px solid var(--border);
+    background: var(--bg2); color: var(--text); padding: 12px; font-size: 15px; resize: vertical; }
+  /* creations */
+  .cregrid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 12px; }
+  .crecard { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; padding: 12px; }
+  .crecard .ctop { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .crecard .badge { font-size: 11px; font-weight: 700; background: var(--card2); border-radius: 8px; padding: 3px 8px; }
+  .crecard .cdate { font-size: 11px; color: var(--faint); }
+  .crecard .cprompt { font-size: 13px; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 6px; }
+  .crecard .cmeta { font-size: 11px; color: var(--faint); margin-bottom: 8px; }
+  .crecard button { font-size: 13px; font-weight: 700; border-radius: 10px; padding: 9px 14px;
+    background: var(--card2); border: 1px solid var(--border); color: var(--text); cursor: pointer; }
+  .creempty { text-align: center; color: var(--faint); padding: 30px 10px; font-size: 14px; }
+  .creempty .big { font-size: 40px; display: block; margin-bottom: 8px; }
+  /* rewarded ad button */
+  .adbtn { width: 100%; margin-top: 12px; padding: 14px; font-size: 15px; font-weight: 700;
+    border-radius: 14px; border: none; cursor: pointer; color: #fff;
     background: linear-gradient(90deg, #15803d, #22c55e); animation: pulse 2s infinite; }
   .adbtn:disabled { animation: none; opacity: .5; }
   @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.02); } }
   .adhint { text-align: center; font-size: 13px; margin-top: 10px;
     background: rgba(34,197,94,.12); border: 1px solid rgba(34,197,94,.4);
-    border-radius: 10px; padding: 10px; }
-  .admodal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.88);
-    z-index: 100; align-items: center; justify-content: center; padding: 20px; }
-  .admodal.show { display: flex; }
-  .adbox { background: #1a1a2e; border-radius: 16px; padding: 24px; text-align: center;
-    max-width: 400px; width: 100%; border: 1px solid rgba(255,255,255,.15); }
-  .adfake { font-size: 20px; padding: 44px 20px; background: rgba(255,255,255,.05);
-    border-radius: 12px; margin-bottom: 16px; }
-  .adcount { font-size: 40px; font-weight: 700; color: #22c55e; }
-  .adbar { height: 8px; background: rgba(255,255,255,.1); border-radius: 4px;
-    margin: 12px 0; overflow: hidden; }
-  #adBarFill { height: 100%; width: 0%; background: linear-gradient(90deg, #15803d, #22c55e);
-    transition: width 1s linear; }
-  .adnote { font-size: 12px; opacity: .6; }
-  #toast { position: fixed; bottom: 24px; left: 50%; z-index: 200; max-width: 92%;
+    border-radius: 12px; padding: 10px; }
+  .adfake { font-size: 19px; padding: 40px 20px; background: var(--bg2);
+    border-radius: 14px; margin-bottom: 16px; text-align: center; }
+  .adcount { font-size: 38px; font-weight: 700; color: var(--green); text-align: center; }
+  .adbar { height: 8px; background: var(--border); border-radius: 4px; margin: 12px 0; overflow: hidden; }
+  #adBarFill { height: 100%; width: 0%; background: linear-gradient(90deg, #15803d, #22c55e); transition: width 1s linear; }
+  .adnote { font-size: 12px; color: var(--muted); text-align: center; }
+  /* toast */
+  #toast { position: fixed; bottom: 90px; left: 50%; z-index: 200; max-width: 92%;
     transform: translateX(-50%) translateY(120px); background: #222; color: #fff;
-    padding: 14px 22px; border-radius: 12px; font-size: 15px; text-align: center;
+    padding: 13px 22px; border-radius: 14px; font-size: 14px; text-align: center;
     border: 1px solid rgba(255,255,255,.25); opacity: 0; transition: all .3s; }
   #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-  footer { text-align: center; margin-top: 28px; font-size: 12px; opacity: .5; }
-  /* ---- auth ---- */
-  .authbox { text-align: center; }
-  .authbox .who { font-size: 14px; opacity: .85; margin-bottom: 10px; overflow: hidden; text-overflow: ellipsis; }
-  .authrow { display: flex; gap: 8px; }
-  .authrow button { flex: 1; font-size: 14px; padding: 10px; }
-  .authrow button.ghost { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); }
-  .authmodal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.88);
-    z-index: 100; align-items: center; justify-content: center; padding: 20px; }
-  .authmodal.show { display: flex; }
-  .authcard { background: #1a1a2e; border-radius: 16px; padding: 24px;
-    max-width: 380px; width: 100%; border: 1px solid rgba(255,255,255,.15); }
-  .authcard h2 { font-size: 20px; margin-bottom: 4px; text-align: center; }
-  .authcard .sub { font-size: 13px; opacity: .65; text-align: center; margin-bottom: 16px; }
-  .authcard input { width: 100%; font-size: 16px; border-radius: 12px; padding: 12px; margin-bottom: 10px;
-    border: 1px solid rgba(255,255,255,.2); background: rgba(0,0,0,.3); color: #fff; }
-  .authcard input:focus { outline: none; border-color: #5b8cff; }
-  .authcard .err { color: #f87171; font-size: 13px; min-height: 18px; margin-bottom: 8px; text-align: center; }
-  .authcard .row { margin-top: 0; }
-  .authcard .switch { text-align: center; font-size: 13px; margin-top: 12px; opacity: .8; }
-  .authcard .switch a { color: #7aa5ff; cursor: pointer; }
-  .locked { text-align: center; padding: 28px 16px; font-size: 15px; opacity: .85; }
-  .locked button { margin-top: 14px; font-size: 15px; padding: 12px 28px; }
-  /* ---- captcha ---- */
-  .crow { display: flex; gap: 8px; margin-bottom: 10px; }
-  .crow .cq { flex: 2; display: flex; align-items: center; justify-content: center;
-    font-size: 19px; font-weight: 700; letter-spacing: 2px; user-select: none;
-    background: rgba(0,0,0,.35); border: 1px dashed rgba(255,255,255,.25);
-    border-radius: 12px; padding: 10px; color: #9ec2ff; }
-  .crow button { flex: none; width: 52px; font-size: 20px; padding: 0; }
-  /* ---- captcha branding ---- */
-  .capbrand { text-align: center; font-size: 11px; letter-spacing: 1px; opacity: .55;
-    margin-bottom: 8px; text-transform: uppercase; }
-  .capbrand b { color: #9ec2ff; font-weight: 700; }
-  /* ---- notification bar ---- */
-  #noticeBar { display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 140;
-    background: linear-gradient(90deg, #1e3a8a, #2563eb);
-    border-bottom: 1px solid rgba(255,255,255,.15);
-    color: #fff; font-size: 14px; padding: 12px 52px 12px 16px; text-align: center;
-    box-shadow: 0 4px 16px rgba(0,0,0,.35); }
-  #noticeBar.show { display: block; }
-  #noticeClose { position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
-    background: transparent; border: none; color: #fff; font-size: 16px; cursor: pointer;
-    padding: 6px 10px; opacity: .8; flex: none; }
-  #noticeClose:hover { opacity: 1; }
-  body.has-notice { padding-top: 58px; }
-  body.has-notice #menuBtn { top: 62px; }
-  /* ---- voice input ---- */
-  .promptrow { display: flex; gap: 8px; align-items: stretch; }
-  .promptrow textarea { flex: 1; }
-  .micbtn { flex: none; width: 52px; font-size: 22px; padding: 0; cursor: pointer;
-    background: linear-gradient(90deg, #2563eb, #3b82f6); }
-  .micbtn.listening { background: linear-gradient(90deg, #dc2626, #ef4444);
-    animation: pulse 1.2s infinite; }
-  /* ---- hamburger menu + drawer ---- */
-  #menuBtn { position: fixed; top: 14px; left: 14px; z-index: 150; width: 44px; height: 44px;
-    border-radius: 12px; font-size: 22px; line-height: 1; padding: 0; flex: none;
-    background: rgba(10,14,20,.85); border: 1px solid rgba(255,255,255,.18);
-    backdrop-filter: blur(8px); color: #e8ecf1; }
-  #menuBtn:hover { border-color: #5b8cff; }
-  #drawerOverlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6);
-    z-index: 160; }
-  #drawerOverlay.show { display: block; }
-  #drawer { position: fixed; top: 0; left: 0; bottom: 0; width: 280px; z-index: 170;
-    background: #10161f; border-right: 1px solid rgba(255,255,255,.12);
-    transform: translateX(-105%); transition: transform .28s ease;
-    display: flex; flex-direction: column; padding: 20px 0 16px; }
-  #drawer.open { transform: translateX(0); }
-  #drawer .dhead { padding: 0 20px 14px; border-bottom: 1px solid rgba(255,255,255,.1); }
-  #drawer .dhead .t { font-size: 18px; font-weight: 700; }
-  #drawer .dhead .s { font-size: 12px; opacity: .55; margin-top: 2px;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  #drawer nav { flex: 1; overflow-y: auto; padding: 10px 8px; }
-  #drawer nav button { display: flex; align-items: center; gap: 12px; width: 100%;
-    background: none; border: none; color: #e8ecf1; font-size: 15px; font-weight: 500;
-    padding: 12px 14px; border-radius: 10px; text-align: left; cursor: pointer; flex: none; }
-  #drawer nav button:hover { background: rgba(91,140,255,.14); }
-  #drawer nav button .ic { font-size: 18px; width: 26px; text-align: center; }
-  #drawer nav button.danger { color: #f87171; }
-  #drawer .dfoot { padding: 12px 20px 0; font-size: 11px; opacity: .45;
-    border-top: 1px solid rgba(255,255,255,.1); }
-  /* ---- info modals (privacy / terms / help / about / contact / settings) ---- */
-  .infomodal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.88);
-    z-index: 180; align-items: center; justify-content: center; padding: 16px; }
-  .infomodal.show { display: flex; }
-  .infocard { background: #141a26; border-radius: 16px; padding: 0;
-    max-width: 480px; width: 100%; max-height: 82vh; display: flex; flex-direction: column;
-    border: 1px solid rgba(255,255,255,.15); }
-  .infocard .ihead { display: flex; align-items: center; justify-content: space-between;
-    padding: 18px 20px 12px; border-bottom: 1px solid rgba(255,255,255,.1); }
-  .infocard .ihead h2 { font-size: 18px; }
-  .infocard .ihead button { flex: none; width: 36px; height: 36px; padding: 0;
-    font-size: 18px; background: rgba(255,255,255,.08); border-radius: 10px; }
-  .infocard .ibody { padding: 18px 20px; overflow-y: auto; font-size: 14px; line-height: 1.65; }
-  .infocard .ibody h3 { font-size: 15px; margin: 16px 0 6px; color: #9ec2ff; }
-  .infocard .ibody h3:first-child { margin-top: 0; }
-  .infocard .ibody p, .infocard .ibody li { opacity: .85; margin-bottom: 8px; }
-  .infocard .ibody ul { padding-left: 20px; }
-  .infocard .ibody .faq-q { font-weight: 700; margin: 14px 0 4px; color: #e8ecf1; }
-  .infocard .ibody .faq-a { opacity: .8; margin-bottom: 6px; }
-  .infocard .iform input { width: 100%; font-size: 15px; border-radius: 10px; padding: 11px;
-    border: 1px solid rgba(255,255,255,.2); background: rgba(0,0,0,.3); color: #fff;
-    margin-bottom: 10px; }
-  .infocard .iform input:focus { outline: none; border-color: #5b8cff; }
-  .infocard .iform .err { color: #f87171; font-size: 13px; min-height: 18px; margin-bottom: 6px; }
-  .infocard .iform .ok { color: #4ade80; font-size: 13px; min-height: 18px; margin-bottom: 6px; }
-  .infocard .iform label { display: block; font-size: 13px; opacity: .7; margin: 8px 0 4px; }
-  .infocard .danger-zone { margin-top: 18px; border: 1px solid rgba(248,113,113,.4);
-    background: rgba(248,113,113,.07); border-radius: 12px; padding: 14px; }
-  .infocard .danger-zone h3 { color: #f87171; margin-top: 0; }
-  .infocard .danger-zone button { background: linear-gradient(90deg, #b91c1c, #ef4444); flex: 1; }
-  .contact-row { display: flex; align-items: center; gap: 10px; background: rgba(91,140,255,.1);
-    border: 1px solid rgba(91,140,255,.35); border-radius: 10px; padding: 12px; margin-top: 10px; }
-  .contact-row .ic { font-size: 20px; }
-  .contact-row a { color: #7aa5ff; }
-  /* ---- feedback (star rating) ---- */
-  .stars { display: flex; gap: 6px; justify-content: center; margin: 6px 0 14px; }
-  .stars button { flex: none; width: 46px; height: 46px; font-size: 26px; padding: 0;
-    background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.15);
-    border-radius: 12px; color: #5b6472; cursor: pointer; }
-  .stars button.on { color: #fbbf24; border-color: rgba(251,191,36,.5);
-    background: rgba(251,191,36,.1); }
-  .fbtextarea { width: 100%; min-height: 110px; }
-  /* ---- my creations (notebook) ---- */
-  .cregrid { display: grid; grid-template-columns: 1fr; gap: 10px; }
-  .crecard { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12);
-    border-radius: 12px; padding: 12px; }
-  .crecard .ctop { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-  .crecard .badge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px;
-    background: rgba(91,140,255,.15); border: 1px solid rgba(91,140,255,.4); color: #9ec2ff; }
-  .crecard .badge.video { background: rgba(34,197,94,.12); border-color: rgba(34,197,94,.4);
-    color: #86efac; }
-  .crecard .cdate { font-size: 11px; opacity: .55; margin-left: auto; }
-  .crecard .cprompt { font-size: 13px; line-height: 1.5; opacity: .9;
-    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-  .crecard .cmeta { font-size: 11px; opacity: .55; margin-top: 6px; }
-  .crecard button { margin-top: 10px; width: 100%; font-size: 14px; padding: 10px; flex: none; }
-  .creempty { text-align: center; padding: 28px 12px; opacity: .7; font-size: 14px; }
-  .creempty .big { font-size: 40px; display: block; margin-bottom: 10px; }
+  /* cookie */
+  #cookieBar { display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 80;
+    background: var(--card); border-top: 1px solid var(--border); padding: 14px 16px; font-size: 13px; }
+  #cookieBar.show { display: block; }
+  #cookieBar p { margin-bottom: 10px; color: var(--muted); line-height: 1.5; }
+  #cookieBar a { color: var(--blue); cursor: pointer; }
+  #cookieBar .row { display: flex; gap: 8px; }
+  #cookieBar button { flex: 1; font-size: 14px; font-weight: 700; border-radius: 12px; padding: 11px; cursor: pointer; border: none; }
+  #cookieBar button:first-child { background: var(--card2); color: var(--text); border: 1px solid var(--border); }
+  #cookieBar button:last-child { background: #fff; color: #000; }
+  body.light #cookieBar button:last-child { background: #111; color: #fff; }
+  footer { border-top: 1px solid var(--border); padding: 20px 14px 30px; text-align: center;
+    font-size: 12px; color: var(--faint); }
+  .flinkbar { display: flex; flex-wrap: wrap; gap: 4px 14px; justify-content: center; margin: 12px 0; }
+  .flinkbar a { color: var(--muted); cursor: pointer; font-size: 12px; }
+  .newsform { max-width: 380px; margin: 14px auto 0; }
+  .newsform .nt { font-size: 13px; font-weight: 700; color: var(--text); }
+  .newsform .ns { font-size: 12px; margin: 4px 0 10px; }
+  .newsform .nrow { display: flex; gap: 8px; }
+  .newsform input { flex: 1; font-size: 14px; border-radius: 12px; padding: 11px;
+    border: 1px solid var(--border); background: var(--bg2); color: var(--text); min-width: 0; }
+  .newsform button { font-size: 14px; font-weight: 700; border-radius: 12px; padding: 11px 16px;
+    background: #fff; color: #000; border: none; cursor: pointer; }
+  body.light .newsform button { background: #111; color: #fff; }
+  .fcopy { margin-top: 14px; }
+  /* ---------- referral ---------- */
+  .reflink {
+    display: flex; gap: 8px; align-items: center; background: var(--bg2);
+    border: 1px solid var(--border); border-radius: 12px; padding: 8px 8px 8px 12px; margin: 12px 0;
+  }
+  .reflink span { flex: 1; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--blue); }
+  .reflink button { flex-shrink: 0; font-size: 13px; font-weight: 700; border-radius: 10px; padding: 9px 14px;
+    background: #fff; color: #000; border: none; cursor: pointer; }
+  body.light .reflink button { background: #111; color: #fff; }
+  .refstats { display: flex; gap: 8px; margin: 12px 0; }
+  .refstats div { flex: 1; text-align: center; background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 10px 6px; }
+  .refstats b { display: block; font-size: 20px; }
+  .refstats span { font-size: 11px; color: var(--faint); }
+  .refshare { display: flex; gap: 8px; justify-content: center; margin-top: 12px; flex-wrap: wrap; }
+  /* ---------- password toggle ---------- */
+  .pwrow { display: flex; gap: 8px; align-items: stretch; margin-bottom: 10px; }
+  .pwrow input { flex: 1; margin-bottom: 0 !important; }
+  .pwtoggle {
+    flex-shrink: 0; width: 48px; border-radius: 12px; font-size: 19px; cursor: pointer;
+    background: var(--card2); border: 1px solid var(--border); color: var(--text);
+  }
+  .pwtoggle:active { background: var(--border); }
 </style>
 </head>
 <body>
-<!-- Notification bar (announcements; message set in NOTICE_MSG below) -->
 <div id="noticeBar"><span id="noticeText"></span><button id="noticeClose" onclick="dismissNotice()" aria-label="Dismiss">✕</button></div>
-<!-- Hamburger button -->
-<button id="menuBtn" onclick="toggleDrawer(true)" aria-label="Menu">☰</button>
 
-<!-- Slide-out drawer -->
+<!-- ══════════ TOP BAR : Grok style ══════════ -->
+<header id="topbar">
+  <button id="menuBtn" onclick="toggleDrawer(true)" aria-label="Menu">☰</button>
+  <nav id="mainTabs">
+    <button id="tabAsk" class="active" onclick="switchMainTab('ask')">Ask</button>
+    <button id="tabImagine" onclick="switchMainTab('imagine')">Imagine</button>
+  </nav>
+  <div class="topactions">
+    <button id="newChatBtn" onclick="clearChat()" title="New chat" aria-label="New chat">✎</button>
+    <button id="themeBtn" onclick="toggleTheme()" title="Toggle theme" aria-label="Toggle theme">☀️</button>
+  </div>
+</header>
+
+<div id="creditsStrip"></div>
+
 <div id="drawerOverlay" onclick="toggleDrawer(false)"></div>
 <aside id="drawer">
   <div class="dhead">
@@ -236,340 +429,424 @@
   </div>
   <nav>
     <button onclick="drawerGo('home')"><span class="ic">🏠</span>Home</button>
+    <button onclick="drawerGo('creations')"><span class="ic">📓</span>My Creations</button>
+    <button onclick="openRefer()"><span class="ic">🎁</span>Refer & Earn</button>
+    <button onclick="drawerGo('feedback')"><span class="ic">💬</span>Feedback</button>
+    <button onclick="drawerGo('pricing')"><span class="ic">💎</span>Pricing</button>
+    <button onclick="drawerGo('apidocs')"><span class="ic">🧩</span>API Docs</button>
     <button onclick="drawerGo('settings')"><span class="ic">⚙️</span>Settings</button>
     <button onclick="drawerGo('privacy')"><span class="ic">📄</span>Privacy Policy</button>
     <button onclick="drawerGo('terms')"><span class="ic">📋</span>Terms of Service</button>
     <button onclick="drawerGo('help')"><span class="ic">❓</span>Help / FAQ</button>
-    <button onclick="drawerGo('feedback')"><span class="ic">💬</span>Feedback</button>
-    <button onclick="drawerGo('creations')"><span class="ic">📓</span>My Creations</button>
     <button onclick="drawerGo('contact')"><span class="ic">📞</span>Contact Us</button>
     <button onclick="drawerGo('about')"><span class="ic">ℹ️</span>About</button>
   </nav>
-  <div class="dfoot">Ayaz AI Studio • v1.0</div>
+  <div class="dfoot">© 2026 Ayaz AI Studio<br>v2.0 — Ask & Imagine</div>
 </aside>
 
-<!-- SETTINGS MODAL -->
+<!-- ══════════ ASK VIEW ══════════ -->
+<main id="askView" class="mainview active">
+  <div id="studyBar">
+    <button id="studyToggle" onclick="toggleStudy()">📚 Study Mode</button>
+    <button class="qpill" onclick="quickStudy('Explain this concept: ')">💡 Explain a concept</button>
+    <button class="qpill" onclick="quickStudy('Solve this problem step by step: ')">🧮 Solve a problem</button>
+    <button class="qpill" onclick="quickStudy('Summarize this topic: ')">📝 Summarize a topic</button>
+  </div>
+  <div id="chatList"></div>
+  <div id="attachPreview"><span class="prev"><img id="attachImg" alt="attached"><span id="attachName"></span><button onclick="clearAttach()" aria-label="Remove">✕</button></span></div>
+  <div id="chatBarWrap">
+    <div id="chatBar">
+      <button class="cbtn" id="attachBtn" onclick="document.getElementById('chatFile').click()" title="Attach image" aria-label="Attach image">📎</button>
+      <input id="chatInput" placeholder="Ask anything..." autocomplete="off" maxlength="2000">
+      <button class="cbtn" id="chatMic" onclick="startVoiceChat()" title="Voice input" aria-label="Voice input">🎤</button>
+      <button class="cbtn" id="chatSend" onclick="sendChat()" title="Send" aria-label="Send">➤</button>
+    </div>
+  </div>
+  <input type="file" id="chatFile" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+</main>
+
+<!-- ══════════ IMAGINE VIEW ══════════ -->
+<main id="imagineView" class="mainview">
+  <div id="imagineInner">
+    <div id="imagineGate"></div>
+    <div id="imagineMain" style="display:none">
+      <div class="secttl">✨ Trending styles</div>
+      <div id="stylesRow"></div>
+
+      <div class="secttl">🖼️ Reference photo <span style="font-weight:400;color:var(--faint);font-size:12px">(optional — describe how to transform it)</span></div>
+      <div class="refbox" id="refBox" onclick="document.getElementById('refFile').click()">
+        <span id="refLabel">📤 Upload a photo to edit / restyle it</span>
+      </div>
+      <input type="file" id="refFile" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+
+      <div class="imtabs">
+        <button id="tabImg" class="active" onclick="switchTab('img')">🖼️ Image</button>
+        <button id="tabVid" onclick="switchTab('vid')">🎬 Video</button>
+      </div>
+
+      <div id="panelImg" class="panel active">
+        <div class="card">
+          <div class="promptrow">
+            <textarea id="prompt" placeholder="Describe your image..."></textarea>
+            <button type="button" class="micbtn" id="micImg" onclick="startVoice('prompt','micImg')" title="Voice input" aria-label="Voice input">🎤</button>
+          </div>
+          <div class="row">
+            <select id="size">
+              <option value="512x512">Square 512</option>
+              <option value="768x768">Square 768</option>
+              <option value="512x768">Portrait</option>
+              <option value="768x512">Landscape</option>
+            </select>
+            <button class="genbtn" id="go" onclick="generate()">✨ Generate</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="panelVid" class="panel">
+        <div class="card">
+          <div class="promptrow">
+            <textarea id="vprompt" placeholder="Describe your video..."></textarea>
+            <button type="button" class="micbtn" id="micVid" onclick="startVoice('vprompt','micVid')" title="Voice input" aria-label="Voice input">🎤</button>
+          </div>
+          <div class="row">
+            <select id="vdur">
+              <option value="3">3 sec</option>
+              <option value="5" selected>5 sec</option>
+              <option value="8">8 sec</option>
+            </select>
+            <select id="vmotion">
+              <option value="zoomin" selected>Zoom in</option>
+              <option value="zoomout">Zoom out</option>
+              <option value="panleft">Pan left</option>
+              <option value="panright">Pan right</option>
+            </select>
+          </div>
+          <div class="row">
+            <button class="genbtn" id="vgo" onclick="generateVideo()">🎬 Generate Video</button>
+          </div>
+          <div class="note">Free mode: AI still + cinematic motion (3–8s). True AI video needs paid APIs.</div>
+        </div>
+      </div>
+
+      <div id="status"></div>
+      <div class="spinner" id="spin"><div></div></div>
+      <div id="result">
+        <img id="img" alt="Generated image" style="display:none">
+        <video id="vid" controls playsinline style="display:none"></video>
+        <br><a id="dl" class="dl" href="#" download="ayaz-ai-studio">⬇ Download</a>
+        <div class="sharerow" id="shareRow" style="display:none">
+          <button type="button" class="sharebtn" onclick="shareTo('twitter')">𝕏 Post</button>
+          <button type="button" class="sharebtn" onclick="shareTo('facebook')">Facebook</button>
+          <button type="button" class="sharebtn" onclick="shareTo('whatsapp')">WhatsApp</button>
+          <button type="button" class="sharebtn" onclick="copyPromptLink()">🔗 Copy</button>
+          <button type="button" class="sharebtn" id="nativeShareBtn" onclick="nativeShare()">📤 Share</button>
+        </div>
+      </div>
+
+      <div class="limits-strip">🎁 <b>100% FREE</b> — 6 images + 3 videos daily • 📺 Watch ads for extra credits</div>
+      <button id="adBtn" class="adbtn" style="display:none" onclick="watchAd()">📺 Watch Ad, Get +2 Credits</button>
+      <div id="adHint" class="adhint" style="display:none">⚡ Limit reached? <b>Watch an ad</b> for extra credits — free!</div>
+    </div>
+  </div>
+  <footer>
+    <div>🎨 Ayaz AI Studio • Powered by free AI models</div>
+    <div class="flinkbar">
+      <a onclick="drawerGo('pricing')">Pricing</a>
+      <a onclick="drawerGo('apidocs')">API Docs</a>
+      <a onclick="drawerGo('privacy')">Privacy Policy</a>
+      <a onclick="drawerGo('terms')">Terms of Service</a>
+      <a onclick="drawerGo('help')">Help / FAQ</a>
+      <a onclick="drawerGo('contact')">Contact Us</a>
+      <a onclick="drawerGo('about')">About</a>
+      <a onclick="drawerGo('feedback')">Feedback</a>
+    </div>
+    <div class="newsform">
+      <div class="nt">📬 Stay updated</div>
+      <div class="ns">New features and the Pro launch — straight to your inbox.</div>
+      <div class="nrow">
+        <input id="nlEmail" type="email" placeholder="Your email address" autocomplete="email">
+        <button onclick="subscribeNewsletter()">Subscribe</button>
+      </div>
+    </div>
+    <div class="fcopy">© 2026 Ayaz AI Studio. All rights reserved.</div>
+  </footer>
+</main>
+
+<!-- ══════════ MODALS ══════════ -->
 <div id="mSettings" class="infomodal">
   <div class="infocard">
-    <div class="ihead"><h2>⚙️ Settings</h2><button onclick="closeInfo('mSettings')">✕</button></div>
-    <div class="ibody iform">
-      <h3>Account</h3>
-      <p id="settingsEmail">Not signed in</p>
-      <h3>Change password</h3>
-      <label>Current password</label>
-      <input id="pwCur" type="password" placeholder="Current password" autocomplete="current-password">
-      <label>New password (min 6 characters)</label>
-      <input id="pwNew" type="password" placeholder="New password" autocomplete="new-password">
-      <label>Confirm new password</label>
-      <input id="pwNew2" type="password" placeholder="Confirm new password" autocomplete="new-password">
+    <button class="xbtn" onclick="closeInfo('mSettings')">✕</button>
+    <h2>⚙️ Settings</h2>
+    <div class="sub">Manage your account</div>
+    <p id="settingsEmail" style="margin-bottom:14px">Not signed in</p>
+    <div class="setrow">
+      <div class="lbl">Change password</div>
+      <div class="pwrow">
+        <input id="pwCur" type="password" placeholder="Current password" autocomplete="current-password">
+        <button type="button" class="pwtoggle" onclick="togglePw('pwCur', this)" aria-label="Show password">👁️</button>
+      </div>
+      <div class="pwrow">
+        <input id="pwNew" type="password" placeholder="New password" autocomplete="new-password">
+        <button type="button" class="pwtoggle" onclick="togglePw('pwNew', this)" aria-label="Show password">👁️</button>
+      </div>
+      <div class="pwrow">
+        <input id="pwNew2" type="password" placeholder="Confirm new password" autocomplete="new-password">
+        <button type="button" class="pwtoggle" onclick="togglePw('pwNew2', this)" aria-label="Show password">👁️</button>
+      </div>
       <div class="err" id="pwErr"></div>
       <div class="ok" id="pwOk"></div>
-      <div class="row"><button onclick="changePassword()">Update Password</button></div>
-      <div class="danger-zone">
-        <h3>Delete account</h3>
-        <p>Permanently delete your account and all its data. This cannot be undone.</p>
-        <label>Enter your password to confirm</label>
+      <div class="btnrow"><button class="primary" onclick="changePassword()">Change Password</button></div>
+    </div>
+    <div class="setrow">
+      <div class="lbl" style="color:#f87171">Danger zone</div>
+      <div class="pwrow">
         <input id="delPw" type="password" placeholder="Your password" autocomplete="current-password">
-        <div class="err" id="delErr"></div>
-        <div class="row"><button onclick="deleteAccount()">Delete My Account</button></div>
+        <button type="button" class="pwtoggle" onclick="togglePw('delPw', this)" aria-label="Show password">👁️</button>
       </div>
+      <div class="err" id="delErr"></div>
+      <div class="btnrow"><button class="danger" onclick="deleteAccount()">Delete My Account</button></div>
     </div>
   </div>
 </div>
 
-<!-- PRIVACY POLICY MODAL -->
 <div id="mPrivacy" class="infomodal">
   <div class="infocard">
-    <div class="ihead"><h2>📄 Privacy Policy</h2><button onclick="closeInfo('mPrivacy')">✕</button></div>
-    <div class="ibody">
-      <p><i>Last updated: October 2026</i></p>
-      <h3>1. Information we collect</h3>
-      <p>When you create an account, we collect your email address and a securely hashed password. We also store the text prompts you submit for generation and your daily usage counts (images, videos, ad watches) to enforce free-tier limits.</p>
-      <h3>2. How we use your information</h3>
-      <ul>
-        <li>To operate your account and provide image/video generation.</li>
-        <li>To enforce daily limits and award ad-earned credits.</li>
-        <li>To improve the service and prevent abuse.</li>
-      </ul>
-      <h3>3. What we never do</h3>
-      <p>We never sell your personal data. We never store your password in plain text — passwords are hashed with PBKDF2 (SHA-512, 120,000 iterations).</p>
-      <h3>4. Third-party generation providers</h3>
-      <p>Your prompts are sent to third-party AI providers to generate images and videos. Those providers process the prompt text under their own privacy policies.</p>
-      <h3>5. Data retention &amp; deletion</h3>
-      <p>You can permanently delete your account (and all associated data) at any time from Settings → Delete account.</p>
-      <h3>6. Contact</h3>
-      <p>Questions about this policy: <a href="mailto:support@ayaz-ai-studio.com" style="color:#7aa5ff">support@ayaz-ai-studio.com</a></p>
-    </div>
+    <button class="xbtn" onclick="closeInfo('mPrivacy')">✕</button>
+    <h2>📄 Privacy Policy</h2>
+    <div class="sub">Last updated: October 2026</div>
+    <h3>What we collect</h3>
+    <ul>
+      <li><b>Account data:</b> your email address and a securely hashed password.</li>
+      <li><b>Content you create:</b> prompts you submit and generation history (your "My Creations" notebook).</li>
+      <li><b>Usage data:</b> counts of images, videos, chats and ad views per day (to enforce free limits).</li>
+      <li><b>Preferences:</b> theme choice, dismissed notices and cookie consent (stored in your browser).</li>
+    </ul>
+    <h3>What we don't do</h3>
+    <ul>
+      <li>We never sell your data or share it with advertisers.</li>
+      <li>We never store your password in readable form (PBKDF2 hashing).</li>
+      <li>Uploaded images are kept temporarily (24h max) and never used for training.</li>
+    </ul>
+    <h3>Your rights</h3>
+    <p>You can download your data, or permanently delete your account (and everything tied to it) anytime from Settings.</p>
+    <h3>Contact</h3>
+    <p>Questions? Email <b>support@ayaz-ai-studio.com</b>.</p>
   </div>
 </div>
 
-<!-- TERMS OF SERVICE MODAL -->
 <div id="mTerms" class="infomodal">
   <div class="infocard">
-    <div class="ihead"><h2>📋 Terms of Service</h2><button onclick="closeInfo('mTerms')">✕</button></div>
-    <div class="ibody">
-      <p><i>Last updated: October 2026</i></p>
-      <h3>1. The service</h3>
-      <p>Ayaz AI Studio provides AI-powered image and video generation. A free tier is offered with daily limits; additional credits can be earned by watching rewarded ads.</p>
-      <h3>2. Acceptable use</h3>
-      <ul>
-        <li>You must be at least 13 years old.</li>
-        <li>Do not generate content that is illegal, hateful, sexually explicit involving minors, or that infringes others' rights.</li>
-        <li>Do not attempt to abuse, overload, or circumvent the service's limits.</li>
-      </ul>
-      <h3>3. Your content</h3>
-      <p>You retain rights to the images and videos you generate, subject to the terms of the underlying AI providers. You are responsible for how you use generated content.</p>
-      <h3>4. Availability</h3>
-      <p>The service is provided "as is" with no guarantee of uninterrupted availability. We may change limits or features at any time.</p>
-      <h3>5. Account termination</h3>
-      <p>We may suspend accounts that violate these terms. You may delete your account at any time from Settings.</p>
-      <h3>6. Contact</h3>
-      <p><a href="mailto:support@ayaz-ai-studio.com" style="color:#7aa5ff">support@ayaz-ai-studio.com</a></p>
-    </div>
+    <button class="xbtn" onclick="closeInfo('mTerms')">✕</button>
+    <h2>📋 Terms of Service</h2>
+    <div class="sub">Last updated: October 2026</div>
+    <h3>1. The service</h3>
+    <p>Ayaz AI Studio provides AI chat, image and video generation on a free plan with daily limits (6 images, 3 videos, 50 chats). Limits reset daily.</p>
+    <h3>2. Acceptable use</h3>
+    <ul>
+      <li>No illegal, hateful, or sexually explicit content.</li>
+      <li>No attempts to abuse, overload, or circumvent limits and security (including CAPTCHA).</li>
+      <li>You own the rights to content you generate, subject to the AI providers' terms.</li>
+    </ul>
+    <h3>3. Free plan & ads</h3>
+    <p>Watching rewarded ads grants bonus credits. Abusing the ad system may lead to account suspension.</p>
+    <h3>4. Availability</h3>
+    <p>The service is provided "as is". Free hosting may cause occasional downtime or data resets.</p>
+    <h3>5. Termination</h3>
+    <p>We may suspend accounts that violate these terms. You may delete your account anytime.</p>
   </div>
 </div>
 
-<!-- HELP / FAQ MODAL -->
 <div id="mHelp" class="infomodal">
   <div class="infocard">
-    <div class="ihead"><h2>❓ Help / FAQ</h2><button onclick="closeInfo('mHelp')">✕</button></div>
-    <div class="ibody">
-      <div class="faq-q">How do I generate an image?</div>
-      <div class="faq-a">Sign in, type a description in the Image tab, choose a size, and tap Generate. Images usually take 10–30 seconds.</div>
-      <div class="faq-q">How do I generate a video?</div>
-      <div class="faq-a">Switch to the Video tab, describe your scene, pick a duration and motion style, then tap Generate Video. Free-mode videos are AI stills with cinematic motion (3–8 seconds).</div>
-      <div class="faq-q">What are the daily limits?</div>
-      <div class="faq-a">Free accounts get 6 images and 3 videos per day. Limits reset every day.</div>
-      <div class="faq-q">How do I earn extra credits?</div>
-      <div class="faq-a">Tap "Watch Ad" and watch the full 30-second ad. Each completed ad gives +2 images and +1 video (up to 5 ads per day).</div>
-      <div class="faq-q">I forgot my password. What can I do?</div>
-      <div class="faq-a">If you can still sign in, change it from the menu → Settings. If you are locked out, contact support@ayaz-ai-studio.com.</div>
-      <div class="faq-q">How do I delete my account?</div>
-      <div class="faq-a">Open the menu → Settings → Delete account, enter your password, and confirm. This permanently removes your account and data.</div>
-      <div class="faq-q">Is my password safe?</div>
-      <div class="faq-a">Yes. Passwords are never stored in plain text — they are hashed with PBKDF2 (SHA-512, 120,000 iterations) with a unique salt per user.</div>
-    </div>
+    <button class="xbtn" onclick="closeInfo('mHelp')">✕</button>
+    <h2>❓ Help / FAQ</h2>
+    <div class="sub">Quick answers</div>
+    <h3>What is the Ask tab?</h3>
+    <p>Chat with an AI assistant — ask questions, get explanations, or turn on <b>📚 Study Mode</b> for detailed tutoring with step-by-step answers.</p>
+    <h3>What is the Imagine tab?</h3>
+    <p>Generate AI images and short videos from text prompts. Pick a trending style or upload a reference photo.</p>
+    <h3>What are the free limits?</h3>
+    <p>6 images, 3 videos and 50 chats per day. Watch ads for bonus credits.</p>
+    <h3>Why did generation fail?</h3>
+    <p>Free AI providers can be busy. Wait a moment and retry — failed attempts never consume credits.</p>
+    <h3>Is my data safe?</h3>
+    <p>Passwords are hashed, uploads auto-delete within 24 hours, and you can delete your account anytime.</p>
+    <h3>How do I delete my account?</h3>
+    <p>Menu → Settings → Danger zone → Delete My Account.</p>
   </div>
 </div>
 
-<!-- CONTACT MODAL -->
 <div id="mContact" class="infomodal">
   <div class="infocard">
-    <div class="ihead"><h2>📞 Contact Us</h2><button onclick="closeInfo('mContact')">✕</button></div>
-    <div class="ibody">
-      <p>Have a question, found a bug, or want to suggest a feature? We'd love to hear from you.</p>
-      <div class="contact-row">
-        <span class="ic">✉️</span>
-        <div><b>Email</b><br><a href="mailto:support@ayaz-ai-studio.com">support@ayaz-ai-studio.com</a></div>
-      </div>
-      <p style="margin-top:14px">We aim to reply within 2 business days.</p>
-    </div>
+    <button class="xbtn" onclick="closeInfo('mContact')">✕</button>
+    <h2>📞 Contact Us</h2>
+    <div class="sub">We'd love to hear from you</div>
+    <p>📧 Email: <b>support@ayaz-ai-studio.com</b></p>
+    <p style="margin-top:10px">🐞 Found a bug? Have a feature idea? Send it via Menu → Feedback, or email us directly.</p>
+    <p style="margin-top:10px">⏱️ We usually reply within 1–2 business days.</p>
   </div>
 </div>
 
-<!-- ABOUT MODAL -->
 <div id="mAbout" class="infomodal">
   <div class="infocard">
-    <div class="ihead"><h2>ℹ️ About</h2><button onclick="closeInfo('mAbout')">✕</button></div>
-    <div class="ibody">
-      <h3>🎨 Ayaz AI Studio</h3>
-      <p>Ayaz AI Studio is a free AI creation platform. Describe anything you imagine — our AI turns your words into images and short videos in seconds.</p>
-      <h3>What you get, free</h3>
-      <ul>
-        <li>6 AI images every day</li>
-        <li>3 AI videos every day</li>
-        <li>Extra credits by watching short ads</li>
-      </ul>
-      <h3>Our promise</h3>
-      <p>No hidden charges, no surprise bills. Free means free — the daily limits reset every day, and you can always earn more with ads.</p>
-      <p style="opacity:.6">Version 1.0 • Made with care</p>
-    </div>
+    <button class="xbtn" onclick="closeInfo('mAbout')">✕</button>
+    <h2>ℹ️ About</h2>
+    <div class="sub">Ayaz AI Studio v2.0</div>
+    <p><b>Ayaz AI Studio</b> is a free AI creative platform: chat with an AI assistant (<b>Ask</b>), get step-by-step tutoring (<b>📚 Study Mode</b>), and generate images and videos (<b>Imagine</b>).</p>
+    <p style="margin-top:10px">Built with free and open AI models so creativity stays accessible to everyone. No credit card, no catch — just create.</p>
+    <p style="margin-top:10px">© 2026 Ayaz AI Studio. All rights reserved.</p>
   </div>
 </div>
 
-<!-- FEEDBACK MODAL -->
+<div id="mPricing" class="infomodal">
+  <div class="infocard">
+    <button class="xbtn" onclick="closeInfo('mPricing')">✕</button>
+    <h2>💎 Pricing</h2>
+    <div class="sub">Simple and honest</div>
+    <h3>Free — $0 forever</h3>
+    <ul>
+      <li>6 AI images / day</li>
+      <li>3 AI videos / day</li>
+      <li>50 AI chats / day</li>
+      <li>Bonus credits by watching ads</li>
+    </ul>
+    <h3>Pro — coming soon</h3>
+    <ul>
+      <li>Higher daily limits</li>
+      <li>Priority generation queue</li>
+      <li>HD quality outputs</li>
+      <li>No ads</li>
+    </ul>
+    <p style="margin-top:10px">Join the newsletter (below) to get notified at launch.</p>
+  </div>
+</div>
+
+<div id="mApiDocs" class="infomodal">
+  <div class="infocard">
+    <button class="xbtn" onclick="closeInfo('mApiDocs')">✕</button>
+    <h2>🧩 API Docs</h2>
+    <div class="sub">For developers (all require sign-in except where noted)</div>
+    <h3>Chat</h3>
+    <p><b>POST /api/chat</b> — { message, imageId?, study? } → { reply }</p>
+    <p><b>GET /api/chat/history</b> — your chat history</p>
+    <p><b>DELETE /api/chat/history</b> — clear history</p>
+    <h3>Generation</h3>
+    <p><b>GET /api/generate-image</b> — ?prompt=&width=&height=&seed=</p>
+    <p><b>GET /api/generate-video</b> — ?prompt=&duration=&motion=&seed=</p>
+    <p><b>POST /api/upload</b> — { image: dataURL } → { id, url }</p>
+    <h3>Account</h3>
+    <p><b>POST /api/register</b>, <b>/api/login</b>, <b>/api/logout</b>, <b>GET /api/me</b></p>
+    <p><b>POST /api/watch-ad-complete</b> — earn bonus credits</p>
+    <p><b>GET /api/my-creations</b> — generation history</p>
+    <p>Auth: <b>Authorization: Bearer &lt;token&gt;</b> header.</p>
+  </div>
+</div>
+
+<div id="mRefer" class="infomodal">
+  <div class="infocard">
+    <button class="xbtn" onclick="closeInfo('mRefer')">✕</button>
+    <h2>🎁 Refer & Earn</h2>
+    <div class="sub">Invite friends, earn bonus credits</div>
+    <div id="refBody"><p style="text-align:center;color:var(--muted)">Loading...</p></div>
+  </div>
+</div>
+
 <div id="mFeedback" class="infomodal">
   <div class="infocard">
-    <div class="ihead"><h2>💬 Feedback</h2><button onclick="closeInfo('mFeedback')">✕</button></div>
-    <div class="ibody iform">
-      <h3>How was your experience?</h3>
-      <p style="font-size:13px">Tap the stars to rate us, then tell us what you think.</p>
-      <div class="stars" id="fbStars">
-        <button type="button" data-star="1" onclick="setStars(1)" aria-label="1 star">★</button>
-        <button type="button" data-star="2" onclick="setStars(2)" aria-label="2 stars">★</button>
-        <button type="button" data-star="3" onclick="setStars(3)" aria-label="3 stars">★</button>
-        <button type="button" data-star="4" onclick="setStars(4)" aria-label="4 stars">★</button>
-        <button type="button" data-star="5" onclick="setStars(5)" aria-label="5 stars">★</button>
-      </div>
-      <label>Your feedback</label>
-      <textarea id="fbText" class="fbtextarea" placeholder="What do you love? What should we improve?" maxlength="1000"></textarea>
-      <div class="err" id="fbErr"></div>
-      <div class="row"><button onclick="submitFeedback()">Send Feedback</button></div>
+    <button class="xbtn" onclick="closeInfo('mFeedback')">✕</button>
+    <h2>💬 Feedback</h2>
+    <div class="sub">Help us improve Ayaz AI Studio</div>
+    <div class="stars" id="fbStars">
+      <button data-star="1" onclick="setStars(1)">⭐</button>
+      <button data-star="2" onclick="setStars(2)">⭐</button>
+      <button data-star="3" onclick="setStars(3)">⭐</button>
+      <button data-star="4" onclick="setStars(4)">⭐</button>
+      <button data-star="5" onclick="setStars(5)">⭐</button>
     </div>
+    <textarea id="fbText" class="fbtextarea" placeholder="What do you love? What should we improve?" maxlength="1000"></textarea>
+    <div class="err" id="fbErr" style="color:#f87171;font-size:13px;min-height:18px;margin:8px 0"></div>
+    <div class="btnrow"><button class="primary" onclick="submitFeedback()">Send Feedback</button></div>
   </div>
 </div>
 
-<!-- MY CREATIONS (NOTEBOOK) MODAL -->
 <div id="mCreations" class="infomodal">
   <div class="infocard">
-    <div class="ihead"><h2>📓 My Creations</h2><button onclick="closeInfo('mCreations')">✕</button></div>
-    <div class="ibody">
-      <p style="font-size:13px">Your generation history. Files are not stored, but you can re-run any prompt with one tap.</p>
-      <div class="cregrid" id="creationsList"></div>
-    </div>
+    <button class="xbtn" onclick="closeInfo('mCreations')">✕</button>
+    <h2>📓 My Creations</h2>
+    <div class="sub">Your generation history</div>
+    <div class="cregrid" id="creationsList"></div>
   </div>
 </div>
 
-<div class="wrap">
-  <header>
-    <h1>🎨 Ayaz AI Studio</h1>
-    <p>Free AI image + video generation — sign up and start creating</p>
-  </header>
-
-  <div class="userbar" id="userbar">
-    <!-- filled by JS: auth prompt or logged-in state -->
-  </div>
-
-  <div class="credits" id="creditsBar" style="display:none">
-    <div>🖼️ Images<b id="cImg">–</b><span>daily limit 6</span></div>
-    <div>🎬 Videos<b id="cVid">–</b><span>daily limit 3</span></div>
-    <div>📺 Ads<b id="cAds">–</b><span>watched today</span></div>
-  </div>
-  <button id="adBtn" class="adbtn" style="display:none" onclick="watchAd()">📺 Watch Ad, Get +2 Credits</button>
-
-  <div id="adHint" class="adhint" style="display:none">
-    ⚡ Limit reached? <b>📺 Watch an ad</b> and earn extra credits — completely free!
-  </div>
-
-  <div class="limits-strip">
-    🎁 <b>100% FREE</b> — 6 images + 3 videos daily • 📺 Watch ads to earn extra credits • limits reset every day
-  </div>
-
-  <div id="appLocked" class="card locked">
-    <div>🔒 <b>Sign in to start creating.</b><br>It takes less than a minute — your limits and credits are saved to your account.</div>
-    <button onclick="openAuth('login')">Sign In / Create Account</button>
-  </div>
-
-  <div id="appMain" style="display:none">
-    <div class="tabs">
-      <button id="tabImg" class="active" onclick="switchTab('img')">🖼️ Image</button>
-      <button id="tabVid" onclick="switchTab('vid')">🎬 Video</button>
-    </div>
-
-    <!-- IMAGE PANEL -->
-    <div id="panelImg" class="panel active">
-    <div class="card">
-      <div class="promptrow">
-        <textarea id="prompt" placeholder="Describe your image... (e.g. a beautiful Pakistani village at sunset, photorealistic)"></textarea>
-        <button type="button" class="micbtn" id="micImg" onclick="startVoice('prompt','micImg')" title="Voice input" aria-label="Voice input">🎤</button>
-      </div>
-      <div class="row">
-        <select id="size">
-          <option value="512x512">Square 512</option>
-          <option value="768x768">Square 768</option>
-          <option value="512x768">Portrait</option>
-          <option value="768x512">Landscape</option>
-        </select>
-        <button id="go" onclick="generate()">✨ Generate</button>
-      </div>
-      <div class="samples">
-        <button onclick="setPrompt('a majestic lion in a Pakistani haveli courtyard, cinematic')">🦁 Lion</button>
-        <button onclick="setPrompt('a beautiful Pakistani village at sunset, photorealistic')">🏡 Village</button>
-        <button onclick="setPrompt('a cute goat wearing sunglasses, funny, digital art')">🐐 Goat</button>
-      </div>
-    </div>
-    </div>
-
-    <!-- VIDEO PANEL -->
-    <div id="panelVid" class="panel">
-    <div class="card">
-      <div class="promptrow">
-        <textarea id="vprompt" placeholder="Describe your video... (e.g. a lion walking in a haveli courtyard, cinematic)"></textarea>
-        <button type="button" class="micbtn" id="micVid" onclick="startVoice('vprompt','micVid')" title="Voice input" aria-label="Voice input">🎤</button>
-      </div>
-      <div class="row">
-        <select id="vdur">
-          <option value="3">3 sec</option>
-          <option value="5" selected>5 sec</option>
-          <option value="8">8 sec</option>
-        </select>
-        <select id="vmotion">
-          <option value="zoomin" selected>Zoom in</option>
-          <option value="zoomout">Zoom out</option>
-          <option value="panleft">Pan left</option>
-          <option value="panright">Pan right</option>
-        </select>
-      </div>
-      <div class="row">
-        <button id="vgo" onclick="generateVideo()">🎬 Generate Video</button>
-      </div>
-      <div class="samples">
-        <button onclick="setVPrompt('a majestic lion walking slowly, cinematic')">🦁 Lion</button>
-        <button onclick="setVPrompt('ocean waves at sunset, peaceful')">🌊 Ocean</button>
-        <button onclick="setVPrompt('a cute goat in a green meadow, funny')">🐐 Goat</button>
-      </div>
-      <div class="note">Free mode: AI still + cinematic motion (3–8s). True AI video needs paid APIs.</div>
-    </div>
-    </div>
-  </div>
-
-  <div id="status"></div>
-  <div class="spinner" id="spin"><div></div></div>
-  <div id="result">
-    <img id="img" alt="Generated image" style="display:none">
-    <video id="vid" controls playsinline style="display:none"></video>
-    <br><a id="dl" href="#" download="ayaz-ai-studio">⬇ Download</a>
-  </div>
-
-  <!-- AUTH MODAL -->
-  <div id="authModal" class="authmodal">
-    <div class="authcard">
-      <h2 id="authTitle">Welcome back</h2>
-      <div class="sub" id="authSub">Sign in to your Ayaz AI Studio account</div>
-      <div class="err" id="authErr"></div>
-      <input id="authEmail" type="email" placeholder="Email address" autocomplete="email">
+<!-- AUTH -->
+<div id="authModal" class="authmodal">
+  <div class="authcard">
+    <button class="xbtn" onclick="closeAuth()">✕</button>
+    <h2 id="authTitle">Welcome back</h2>
+    <div class="sub" id="authSub">Sign in to your Ayaz AI Studio account</div>
+    <div class="err" id="authErr"></div>
+    <input id="authEmail" type="email" placeholder="Email address" autocomplete="email">
+    <div class="pwrow">
       <input id="authPass" type="password" placeholder="Password (min 6 characters)" autocomplete="current-password">
-      <div class="capbrand">🔒 Secured by <b>Ayaz AI Studio</b></div>
-      <div class="crow">
-        <span class="cq" id="capQ">…</span>
-        <button type="button" onclick="loadCaptcha()" title="New question" aria-label="New question">↻</button>
-      </div>
-      <input id="capAns" type="text" inputmode="numeric" placeholder="Answer the math question above" autocomplete="off">
-      <div class="row">
-        <button id="authGo" onclick="submitAuth()">Sign In</button>
-      </div>
-      <div class="switch" id="authSwitch">New here? <a onclick="openAuth('register')">Create an account</a></div>
-      <div class="row" style="margin-top:10px">
-        <button class="ghost" style="background:rgba(255,255,255,.1);flex:1" onclick="closeAuth()">Cancel</button>
-      </div>
+      <button type="button" class="pwtoggle" onclick="togglePw('authPass', this)" aria-label="Show password">👁️</button>
     </div>
-  </div>
-
-  <!-- REWARDED AD MODAL (simulated 30s countdown) -->
-  <div id="adModal" class="admodal">
-    <div class="adbox">
-      <!-- ═══════════════════════════════════════════════════════════════
-           ADSTERRA_PLACEHOLDER: when AD_PROVIDER="adsterra", load the
-           Adsterra rewarded-ad script/unit here (their supplied code).
-           Call POST /api/watch-ad-complete ONLY after the ad view
-           COMPLETES — verified via the provider's server-side postback,
-           to prevent fraud from fake views.
-           ═══════════════════════════════════════════════════════════════ -->
-      <div class="adfake">📺 Sponsored Ad<br><small style="font-size:13px;opacity:.6">(simulated — real ads coming soon)</small></div>
-      <div class="adcount"><span id="adTimer">30</span><span style="font-size:16px"> sec</span></div>
-      <div class="adbar"><div id="adBarFill"></div></div>
-      <div class="adnote">Please wait until the ad ends, then your credits will be added...</div>
+    <div class="capbrand">🔒 Secured by Ayaz AI Studio</div>
+    <div class="caprow">
+      <span class="cq" id="capQ">…</span>
+      <button type="button" onclick="loadCaptcha()" title="New question" aria-label="New question">↻</button>
     </div>
+    <input id="capAns" type="text" inputmode="numeric" placeholder="Answer the math question above" autocomplete="off" style="margin-top:10px">
+    <button class="primary" id="authGo" onclick="submitAuth()">Sign In</button>
+    <div class="flink"><a onclick="openForgot()">Forgot password?</a></div>
+    <div class="switch" id="authSwitch">New here? <a onclick="openAuth('register')">Create an account</a></div>
   </div>
-
-  <div id="toast"></div>
-
-  <footer>
-    🎨 Ayaz AI Studio • Powered by free AI models<br>
-    <span style="opacity:.7">Video: AI still + cinematic motion (true AI video coming soon)</span><br>
-    <span style="opacity:.7">Enjoying it? <a onclick="drawerGo('feedback')" style="color:#7aa5ff;cursor:pointer">Send us feedback</a></span>
-  </footer>
 </div>
+
+<div id="forgotModal" class="authmodal">
+  <div class="authcard">
+    <button class="xbtn" onclick="closeForgot()">✕</button>
+    <h2>Reset password</h2>
+    <div class="sub">We'll create a reset token for your account</div>
+    <div class="err" id="fpErr"></div>
+    <div class="fpok" id="fpOk"></div>
+    <input id="fpEmail" type="email" placeholder="Email address" autocomplete="email">
+    <button class="primary" id="fpGo" onclick="requestReset()">Send Reset Token</button>
+    <div id="fpStep2" style="display:none;margin-top:14px">
+      <input id="fpToken" type="text" placeholder="Paste your reset token" autocomplete="off">
+      <div class="pwrow">
+        <input id="fpNew" type="password" placeholder="New password (min 6 characters)" autocomplete="new-password">
+        <button type="button" class="pwtoggle" onclick="togglePw('fpNew', this)" aria-label="Show password">👁️</button>
+      </div>
+      <button class="primary" onclick="doReset()">Set New Password</button>
+    </div>
+  </div>
+</div>
+
+<!-- REWARDED AD -->
+<div id="adModal" class="admodal">
+  <div class="adbox">
+    <!-- ═══════════════════════════════════════════════════════════════
+         ADSTERRA_PLACEHOLDER: when AD_PROVIDER="adsterra", load the
+         Adsterra rewarded-ad script/unit here. Call
+         POST /api/watch-ad-complete ONLY after the provider's
+         server-side postback verifies the completed view (anti-fraud).
+         ═══════════════════════════════════════════════════════════════ -->
+    <div class="adfake">📺 Sponsored Ad<br><small style="font-size:13px;opacity:.6">(simulated — real ads coming soon)</small></div>
+    <div class="adcount"><span id="adTimer">30</span><span style="font-size:16px"> sec</span></div>
+    <div class="adbar"><div id="adBarFill"></div></div>
+    <div class="adnote">Please wait until the ad finishes to earn credits...</div>
+  </div>
+</div>
+
+<div id="cookieBar">
+  <p>🍪 We use cookies to keep you signed in and remember your preferences (theme, dismissed notices). No tracking, no ad profiling. See our <a onclick="drawerGo('privacy')">Privacy Policy</a>.</p>
+  <div class="row">
+    <button onclick="setCookieConsent('declined')">Decline</button>
+    <button onclick="setCookieConsent('accepted')">Accept</button>
+  </div>
+</div>
+
+<div id="toast"></div>
 
 <script>
 /* ═══════════════════════════════════════════════════════════════
@@ -578,64 +855,313 @@
    the old one (dismissal is keyed to the message itself).
    Set to '' to hide the bar entirely.
    ═══════════════════════════════════════════════════════════════ */
-const NOTICE_MSG = "🎉 New: Watch ads for extra credits!";
+const NOTICE_MSG = "🎉 New: Ask tab with AI chat + 📚 Study Mode is live!";
 function showNotice(){
   if(!NOTICE_MSG) return;
   if(localStorage.getItem('aas_notice_dismissed') === NOTICE_MSG) return;
   document.getElementById('noticeText').textContent = NOTICE_MSG;
   document.getElementById('noticeBar').classList.add('show');
-  document.body.classList.add('has-notice');
 }
 function dismissNotice(){
   localStorage.setItem('aas_notice_dismissed', NOTICE_MSG);
   document.getElementById('noticeBar').classList.remove('show');
-  document.body.classList.remove('has-notice');
 }
 
-/* ---------- voice input (Web Speech API) ---------- */
-const _placeholders = {};
-function voiceSupported(){
-  return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
-}
-function initVoiceButtons(){
-  if(voiceSupported()) return;
-  // Graceful fallback: hide mic buttons where speech recognition is unavailable
-  ['micImg','micVid'].forEach(function(id){
-    const b = document.getElementById(id);
-    if(b) b.style.display = 'none';
+function escapeHtml(s){
+  return (s || '').replace(/[&<>"']/g, function(c){
+    return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
   });
 }
-function startVoice(targetId, btnId){
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!SR){
-    showToast('🎤 Voice input is not supported in this browser.');
-    return;
-  }
-  const ta = document.getElementById(targetId);
-  const btn = document.getElementById(btnId);
-  if(!(targetId in _placeholders)) _placeholders[targetId] = ta.placeholder;
-  const rec = new SR();
-  rec.lang = 'en-US';
-  rec.interimResults = false;
-  rec.maxAlternatives = 1;
-  btn.classList.add('listening');
-  btn.textContent = '🔴';
-  ta.placeholder = 'Listening... speak now';
-  rec.onresult = function(e){
-    const t = e.results[0][0].transcript;
-    ta.value = (ta.value ? ta.value.replace(/\s+$/,'') + ' ' : '') + t;
-  };
-  rec.onerror = function(){
-    showToast('🎤 Could not hear you clearly. Please try again.');
-  };
-  rec.onend = function(){
-    btn.classList.remove('listening');
-    btn.textContent = '🎤';
-    ta.placeholder = _placeholders[targetId] || '';
-  };
-  try { rec.start(); }
-  catch(err){ showToast('🎤 Voice input failed to start.'); rec.onend(); }
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._h);
+  t._h = setTimeout(() => t.classList.remove('show'), 4000);
 }
+
+/* ---------- main tabs : Ask / Imagine ---------- */
+function switchMainTab(which){
+  const isAsk = which === 'ask';
+  document.getElementById('tabAsk').classList.toggle('active', isAsk);
+  document.getElementById('tabImagine').classList.toggle('active', !isAsk);
+  document.getElementById('askView').classList.toggle('active', isAsk);
+  document.getElementById('imagineView').classList.toggle('active', !isAsk);
+  document.getElementById('studyBar').classList.toggle('show', isAsk && !!getToken());
+  if(isAsk){ scrollChatToBottom(); }
+}
+
+/* ---------- trending styles ---------- */
+const TRENDING_STYLES = [
+  { name: 'Chibi', sub: 'cute 3D cartoon', prompt: ', chibi style, cute 3D cartoon, big expressive eyes, soft lighting', bg: 'linear-gradient(135deg,#f9a8d4,#c084fc)' },
+  { name: 'Photoreal', sub: 'ultra realistic', prompt: ', ultra photorealistic, 8k, sharp focus, natural lighting, high detail', bg: 'linear-gradient(135deg,#334155,#0f172a)' },
+  { name: 'Anime', sub: 'japanese anime', prompt: ', anime style, studio ghibli inspired, vibrant colors, detailed', bg: 'linear-gradient(135deg,#f472b6,#8b5cf6)' },
+  { name: 'Cyberpunk', sub: 'neon future', prompt: ', cyberpunk style, neon lights, futuristic city, dramatic glow', bg: 'linear-gradient(135deg,#06b6d4,#3b82f6)' },
+  { name: 'Oil Paint', sub: 'classical art', prompt: ', classical oil painting, visible brush strokes, museum quality', bg: 'linear-gradient(135deg,#b45309,#78350f)' },
+  { name: 'Pixel Art', sub: 'retro 16-bit', prompt: ', pixel art, 16-bit retro game style, crisp pixels', bg: 'linear-gradient(135deg,#22c55e,#15803d)' },
+  { name: 'Sketch', sub: 'pencil drawing', prompt: ', detailed pencil sketch, fine linework, shading', bg: 'linear-gradient(135deg,#6b7280,#1f2937)' },
+  { name: 'Fantasy', sub: 'epic magical', prompt: ', epic fantasy art, magical atmosphere, dramatic lighting, intricate details', bg: 'linear-gradient(135deg,#7c3aed,#4c1d95)' },
+];
+let activeStyle = null;
+function renderStyles(){
+  const row = document.getElementById('stylesRow');
+  row.innerHTML = '';
+  const none = document.createElement('div');
+  none.className = 'stylecard';
+  none.style.background = 'var(--card2)';
+  none.innerHTML = '<div>None<span class="sub">plain prompt</span></div>';
+  none.onclick = function(){ activeStyle = null; markStyle(none); };
+  row.appendChild(none);
+  TRENDING_STYLES.forEach(function(s){
+    const c = document.createElement('div');
+    c.className = 'stylecard';
+    c.style.background = s.bg;
+    c.innerHTML = '<div>' + escapeHtml(s.name) + '<span class="sub">' + escapeHtml(s.sub) + '</span></div>';
+    c.onclick = function(){ activeStyle = s; markStyle(c); showToast('✨ Style: ' + s.name + ' — it will be added to your prompt.'); };
+    row.appendChild(c);
+  });
+  markStyle(none);
+}
+function markStyle(el){
+  document.querySelectorAll('#stylesRow .stylecard').forEach(function(c){
+    c.style.outline = 'none';
+  });
+  el.style.outline = '2px solid var(--text)';
+  el.style.outlineOffset = '2px';
+}
+function styledPrompt(base){
+  base = (base || '').trim();
+  if(activeStyle) base += activeStyle.prompt;
+  return base;
+}
+
+/* ---------- reference photo upload (Imagine) ---------- */
+let refImageId = null;
+function initRefUpload(){
+  const f = document.getElementById('refFile');
+  f.addEventListener('change', async function(){
+    const file = f.files[0];
+    if(!file) return;
+    if(file.size > 5 * 1024 * 1024){ showToast('❌ Image too large (max 5MB).'); f.value = ''; return; }
+    showToast('⏳ Uploading reference photo...');
+    try{
+      const dataUrl = await fileToDataUrl(file);
+      const r = await fetch('/api/upload', {
+        method: 'POST',
+        headers: authHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ image: dataUrl, name: file.name }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if(!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+      refImageId = d.id;
+      document.getElementById('refBox').innerHTML =
+        '<img src="' + escapeHtml(d.url) + '" alt="reference"><br>' +
+        '<span style="font-size:12px">✅ Reference attached — describe the transformation in your prompt, then Generate.</span><br>' +
+        '<button type="button" class="sharebtn" style="margin-top:8px" onclick="event.stopPropagation();clearRef()">✕ Remove</button>';
+      showToast('✅ Reference photo attached!');
+    }catch(e){
+      showToast('❌ ' + e.message);
+    }
+    f.value = '';
+  });
+}
+function clearRef(){
+  refImageId = null;
+  document.getElementById('refBox').innerHTML = '<span id="refLabel">📤 Upload a photo to edit / restyle it</span>';
+}
+function fileToDataUrl(file){
+  return new Promise(function(resolve, reject){
+    const r = new FileReader();
+    r.onload = function(){ resolve(r.result); };
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
+
+/* ---------- auth ---------- */
+function getToken(){ return localStorage.getItem('aas_token') || ''; }
+function getEmail(){ return localStorage.getItem('aas_email') || ''; }
+function authHeaders(extra){
+  const h = Object.assign({}, extra || {});
+  const t = getToken();
+  if(t) h['Authorization'] = 'Bearer ' + t;
+  return h;
+}
+let authMode = 'login';
+let captchaId = '';
+async function loadCaptcha(){
+  try{
+    const r = await fetch('/api/captcha');
+    const d = await r.json();
+    captchaId = d.id;
+    document.getElementById('capQ').textContent = d.question + ' = ?';
+    const ans = document.getElementById('capAns');
+    if(ans) ans.value = '';
+  }catch(e){
+    document.getElementById('capQ').textContent = 'Check unavailable';
+  }
+}
+function openAuth(mode){
+  authMode = mode || 'login';
+  document.getElementById('authErr').textContent = '';
+  document.getElementById('authEmail').value = '';
+  document.getElementById('authPass').value = '';
+  const isLogin = authMode === 'login';
+  document.getElementById('authTitle').textContent = isLogin ? 'Welcome back' : 'Create your account';
+  document.getElementById('authSub').textContent = isLogin
+    ? 'Sign in to your Ayaz AI Studio account'
+    : 'Free forever plan — 6 images + 3 videos daily';
+  document.getElementById('authGo').textContent = isLogin ? 'Sign In' : 'Create Account';
+  document.getElementById('authSwitch').innerHTML = isLogin
+    ? 'New here? <a onclick="openAuth(\'register\')">Create an account</a>'
+    : 'Already have an account? <a onclick="openAuth(\'login\')">Sign in</a>';
+  document.getElementById('authModal').classList.add('show');
+  loadCaptcha();
+}
+function closeAuth(){ document.getElementById('authModal').classList.remove('show'); }
+async function submitAuth(){
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPass').value;
+  const captchaAnswer = document.getElementById('capAns').value.trim();
+  const errEl = document.getElementById('authErr');
+  errEl.textContent = '';
+  if(!email || !password){ errEl.textContent = 'Please enter your email and password.'; return; }
+  if(!captchaAnswer){ errEl.textContent = 'Please answer the security question.'; return; }
+  const btn = document.getElementById('authGo');
+  btn.disabled = true;
+  try{
+    const body = { email, password, captchaId, captchaAnswer };
+    if(authMode === 'register'){
+      const pendingRef = getPendingReferral();
+      if(pendingRef) body.referralCode = pendingRef;
+    }
+    const r = await fetch('/api/' + authMode, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const d = await r.json().catch(() => ({}));
+    if(!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+    localStorage.setItem('aas_token', d.token);
+    localStorage.setItem('aas_email', d.email);
+    if(authMode === 'register'){
+      if(d.credits && d.credits.referralApplied){
+        showToast('🎁 Referral bonus applied! +5 images, +3 videos for you and your friend!');
+      }
+      clearPendingReferral();
+    }
+    closeAuth();
+    renderAuthState();
+    showToast(authMode === 'login' ? '✅ Welcome back, ' + d.email + '!' : '🎉 Account created — welcome aboard!');
+    refreshCredits();
+    loadChatHistory();
+  }catch(e){
+    errEl.textContent = e.message;
+    loadCaptcha();
+  }
+  btn.disabled = false;
+}
+function logout(){
+  fetch('/api/logout', { method: 'POST', headers: authHeaders() }).catch(()=>{});
+  localStorage.removeItem('aas_token');
+  localStorage.removeItem('aas_email');
+  renderAuthState();
+  document.getElementById('chatList').innerHTML = '';
+  renderChatEmpty();
+  showToast('You have been signed out. See you soon!');
+}
+function renderAuthState(){
+  const email = getEmail();
+  const loggedIn = !!getToken();
+  document.getElementById('drawerEmail').textContent = loggedIn ? email : 'Not signed in';
+  document.getElementById('studyBar').classList.toggle('show', loggedIn && document.getElementById('tabAsk').classList.contains('active'));
+  // Imagine gate
+  const gate = document.getElementById('imagineGate');
+  const main = document.getElementById('imagineMain');
+  if(loggedIn){
+    gate.innerHTML = '';
+    main.style.display = 'block';
+  } else {
+    main.style.display = 'none';
+    gate.innerHTML =
+      '<div class="card gatecard"><span class="big">🎨</span><h3>Sign in to start creating</h3>' +
+      '<p>Free forever — 6 images + 3 videos daily.<br>Chat, Study Mode and Imagine are all free.</p>' +
+      '<div class="rowb"><button class="primary" onclick="openAuth(\'login\')">Sign In</button>' +
+      '<button class="ghostb" onclick="openAuth(\'register\')">Create Account</button></div></div>';
+  }
+  renderCreditsStrip();
+}
+function needAuth(){
+  if(!getToken()){
+    openAuth('login');
+    return true;
+  }
+  return false;
+}
+
+/* ---------- forgot password ---------- */
+function openForgot(){
+  closeAuth();
+  document.getElementById('fpErr').textContent = '';
+  document.getElementById('fpOk').textContent = '';
+  document.getElementById('fpEmail').value = '';
+  document.getElementById('fpToken').value = '';
+  document.getElementById('fpNew').value = '';
+  document.getElementById('fpStep2').style.display = 'none';
+  document.getElementById('forgotModal').classList.add('show');
+}
+function closeForgot(){ document.getElementById('forgotModal').classList.remove('show'); }
+async function requestReset(){
+  const email = document.getElementById('fpEmail').value.trim();
+  const errEl = document.getElementById('fpErr');
+  const okEl = document.getElementById('fpOk');
+  errEl.textContent = ''; okEl.textContent = '';
+  if(!email){ errEl.textContent = 'Please enter your email address.'; return; }
+  const btn = document.getElementById('fpGo');
+  btn.disabled = true;
+  try{
+    const r = await fetch('/api/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if(!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+    okEl.textContent = '✅ ' + (d.message || 'Reset token created.');
+    if(d.demoToken){
+      okEl.textContent += ' Demo token: ' + d.demoToken;
+      document.getElementById('fpToken').value = d.demoToken;
+    }
+    document.getElementById('fpStep2').style.display = 'block';
+  }catch(e){
+    errEl.textContent = '❌ ' + e.message;
+  }
+  btn.disabled = false;
+}
+async function doReset(){
+  const token = document.getElementById('fpToken').value.trim();
+  const np = document.getElementById('fpNew').value;
+  const errEl = document.getElementById('fpErr');
+  const okEl = document.getElementById('fpOk');
+  errEl.textContent = ''; okEl.textContent = '';
+  if(!token){ errEl.textContent = 'Please paste your reset token.'; return; }
+  if(np.length < 6){ errEl.textContent = 'New password must be at least 6 characters.'; return; }
+  try{
+    const r = await fetch('/api/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, newPassword: np }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if(!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+    closeForgot();
+    showToast('✅ ' + (d.message || 'Password reset. Please sign in.'));
+    openAuth('login');
+  }catch(e){
+    errEl.textContent = '❌ ' + e.message;
+  }
+}
+
 /* ---------- hamburger drawer + info modals ---------- */
 function toggleDrawer(open){
   document.getElementById('drawer').classList.toggle('open', open);
@@ -644,14 +1170,13 @@ function toggleDrawer(open){
 function drawerGo(which){
   toggleDrawer(false);
   if(which === 'home'){
+    switchMainTab('ask');
     window.scrollTo({ top: 0, behavior: 'smooth' });
     return;
   }
-  if(which === 'settings'){
-    openSettings();
-    return;
-  }
-  const map = { privacy: 'mPrivacy', terms: 'mTerms', help: 'mHelp', contact: 'mContact', about: 'mAbout' };
+  if(which === 'settings'){ openSettings(); return; }
+  const map = { privacy: 'mPrivacy', terms: 'mTerms', help: 'mHelp', contact: 'mContact',
+    about: 'mAbout', pricing: 'mPricing', apidocs: 'mApiDocs' };
   if(map[which]) openInfo(map[which]);
   if(which === 'feedback'){ openFeedback(); return; }
   if(which === 'creations'){ openCreations(); return; }
@@ -718,13 +1243,131 @@ async function deleteAccount(){
     errEl.textContent = '❌ ' + e.message;
   }
 }
-// Close modals/drawer with the Escape key
 document.addEventListener('keydown', function(e){
   if(e.key === 'Escape'){
     toggleDrawer(false);
-    ['mSettings','mPrivacy','mTerms','mHelp','mContact','mAbout','mFeedback','mCreations'].forEach(closeInfo);
+    ['mSettings','mPrivacy','mTerms','mHelp','mContact','mAbout','mFeedback','mCreations','mPricing','mApiDocs','mRefer'].forEach(closeInfo);
+    closeAuth();
+    closeForgot();
+  }
+  if(e.key === 'Enter' && document.activeElement === document.getElementById('chatInput') && !e.shiftKey){
+    e.preventDefault();
+    sendChat();
   }
 });
+
+/* ---------- theme ---------- */
+function initTheme(){
+  const t = localStorage.getItem('aas_theme') || 'dark';
+  document.body.classList.toggle('light', t === 'light');
+  const b = document.getElementById('themeBtn');
+  if(b) b.textContent = t === 'light' ? '🌙' : '☀️';
+}
+function toggleTheme(){
+  const light = !document.body.classList.contains('light');
+  document.body.classList.toggle('light', light);
+  localStorage.setItem('aas_theme', light ? 'light' : 'dark');
+  const b = document.getElementById('themeBtn');
+  if(b) b.textContent = light ? '🌙' : '☀️';
+}
+
+/* ---------- cookie consent ---------- */
+function checkCookies(){
+  if(localStorage.getItem('aas_cookie_consent')) return;
+  document.getElementById('cookieBar').classList.add('show');
+}
+function setCookieConsent(v){
+  localStorage.setItem('aas_cookie_consent', v);
+  document.getElementById('cookieBar').classList.remove('show');
+}
+
+/* ---------- credits ---------- */
+async function refreshCredits(){
+  if(!getToken()) return;
+  try{
+    const r = await fetch('/api/me', { headers: authHeaders() });
+    if(r.status === 401){ logout(); return; }
+    const d = await r.json();
+    renderCreditsStrip(d);
+    const adBtn = document.getElementById('adBtn');
+    if(adBtn){
+      if(d.ads.watched >= d.ads.max){
+        adBtn.disabled = true;
+        adBtn.textContent = '📺 Daily ad limit reached (try tomorrow)';
+      } else {
+        adBtn.disabled = false;
+        adBtn.textContent = '📺 Watch Ad, Get +' + d.ads.rewardImages + ' Images +' + d.ads.rewardVideos + ' Video';
+      }
+    }
+    updateButtonStates(d.remaining.images, d.remaining.videos);
+  }catch(e){ /* silent */ }
+}
+function renderCreditsStrip(d){
+  const el = document.getElementById('creditsStrip');
+  if(!getToken()){ el.classList.remove('show'); el.innerHTML = ''; return; }
+  el.classList.add('show');
+  if(d){
+    el.innerHTML =
+      '<span class="pill">🖼️ <b>' + d.remaining.images + '/' + d.totals.images + '</b> images</span>' +
+      '<span class="pill">🎬 <b>' + d.remaining.videos + '/' + d.totals.videos + '</b> videos</span>' +
+      '<span class="pill">💬 <b>' + (d.chatsLeft !== undefined ? d.chatsLeft : '–') + '</b> chats</span>' +
+      '<span class="pill">📺 <b>' + d.ads.watched + '/' + d.ads.max + '</b> ads</span>';
+  } else {
+    el.innerHTML = '<span class="pill">Loading credits…</span>';
+  }
+}
+function updateButtonStates(iLeft, vLeft){
+  const go = document.getElementById('go');
+  const vgo = document.getElementById('vgo');
+  if(go) go.disabled = iLeft <= 0;
+  if(vgo) vgo.disabled = vLeft <= 0;
+  const hint = document.getElementById('adHint');
+  if(hint) hint.style.display = (iLeft <= 0 || vLeft <= 0) ? 'block' : 'none';
+}
+function updateCreditsFromHeaders(r){
+  const i = r.headers.get('X-Images-Left'), v = r.headers.get('X-Videos-Left');
+  if(i !== null || v !== null) refreshCredits();
+}
+
+/* ---------- rewarded ads ---------- */
+let adCountdown = null;
+function watchAd(){
+  if(needAuth()) return;
+  const btn = document.getElementById('adBtn');
+  if(btn.disabled) return;
+  document.getElementById('adModal').classList.add('show');
+  let t = 30;
+  const timerEl = document.getElementById('adTimer');
+  const fill = document.getElementById('adBarFill');
+  timerEl.textContent = t;
+  fill.style.width = '0%';
+  clearInterval(adCountdown);
+  adCountdown = setInterval(() => {
+    t--;
+    timerEl.textContent = t;
+    fill.style.width = ((30 - t) / 30 * 100) + '%';
+    if(t <= 0){
+      clearInterval(adCountdown);
+      document.getElementById('adModal').classList.remove('show');
+      completeAdWatch();
+    }
+  }, 1000);
+}
+async function completeAdWatch(){
+  try{
+    const r = await fetch('/api/watch-ad-complete', {
+      method: 'POST',
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+    });
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+    showToast('🎉 ' + d.message);
+    refreshCredits();
+  }catch(e){
+    showToast('❌ ' + e.message);
+    refreshCredits();
+  }
+}
 
 /* ---------- feedback ---------- */
 let fbRating = 0;
@@ -766,7 +1409,7 @@ async function submitFeedback(){
   }
 }
 
-/* ---------- my creations (notebook) ---------- */
+/* ---------- my creations ---------- */
 function fmtDate(iso){
   try{
     const d = new Date(iso);
@@ -810,14 +1453,13 @@ function renderCreations(items){
     return;
   }
   listEl.innerHTML = '';
-  items.forEach(function(c, i){
+  items.forEach(function(c){
     const card = document.createElement('div');
     card.className = 'crecard';
-    const badgeCls = c.type === 'video' ? 'badge video' : 'badge';
     const icon = c.type === 'video' ? '🎬' : '🖼️';
     const meta = creParamsLabel(c);
     card.innerHTML =
-      '<div class="ctop"><span class="' + badgeCls + '">' + icon + ' ' + c.type.toUpperCase() + '</span>' +
+      '<div class="ctop"><span class="badge">' + icon + ' ' + escapeHtml((c.type || '').toUpperCase()) + '</span>' +
       '<span class="cdate">' + escapeHtml(fmtDate(c.createdAt)) + '</span></div>' +
       '<div class="cprompt">' + escapeHtml(c.prompt || '') + '</div>' +
       (meta ? '<div class="cmeta">' + escapeHtml(meta) + '</div>' : '');
@@ -831,6 +1473,7 @@ function renderCreations(items){
 }
 function regenerateCreation(type, prompt){
   closeInfo('mCreations');
+  switchMainTab('imagine');
   switchTab(type === 'video' ? 'vid' : 'img');
   if(type === 'video'){
     document.getElementById('vprompt').value = prompt || '';
@@ -839,219 +1482,273 @@ function regenerateCreation(type, prompt){
     document.getElementById('prompt').value = prompt || '';
     document.getElementById('prompt').focus();
   }
-  window.scrollTo({ top: 0, behavior: 'smooth' });
   showToast('✏️ Prompt loaded — tap Generate to re-run it.');
 }
 
-/* ---------- auth ---------- */
-function getToken(){ return localStorage.getItem('aas_token') || ''; }
-function getEmail(){ return localStorage.getItem('aas_email') || ''; }
-function authHeaders(extra){
-  const h = Object.assign({}, extra || {});
-  const t = getToken();
-  if(t) h['Authorization'] = 'Bearer ' + t;
-  return h;
-}
-let authMode = 'login';
-let captchaId = '';
-async function loadCaptcha(){
+/* ---------- newsletter ---------- */
+async function subscribeNewsletter(){
+  const email = document.getElementById('nlEmail').value.trim();
+  if(!email){ showToast('⚠️ Please enter your email address.'); return; }
   try{
-    const r = await fetch('/api/captcha');
-    const d = await r.json();
-    captchaId = d.id;
-    document.getElementById('capQ').textContent = d.question + ' = ?';
-    const ans = document.getElementById('capAns');
-    if(ans) ans.value = '';
-  }catch(e){
-    document.getElementById('capQ').textContent = 'Check unavailable';
-  }
-}
-function openAuth(mode){
-  authMode = mode || 'login';
-  document.getElementById('authErr').textContent = '';
-  document.getElementById('authEmail').value = '';
-  document.getElementById('authPass').value = '';
-  const isLogin = authMode === 'login';
-  document.getElementById('authTitle').textContent = isLogin ? 'Welcome back' : 'Create your account';
-  document.getElementById('authSub').textContent = isLogin
-    ? 'Sign in to your Ayaz AI Studio account'
-    : 'Free forever plan — 6 images + 3 videos daily';
-  document.getElementById('authGo').textContent = isLogin ? 'Sign In' : 'Create Account';
-  document.getElementById('authSwitch').innerHTML = isLogin
-    ? 'New here? <a onclick="openAuth(\'register\')">Create an account</a>'
-    : 'Already have an account? <a onclick="openAuth(\'login\')">Sign in</a>';
-  document.getElementById('authModal').classList.add('show');
-  loadCaptcha();
-}
-function closeAuth(){ document.getElementById('authModal').classList.remove('show'); }
-async function submitAuth(){
-  const email = document.getElementById('authEmail').value.trim();
-  const password = document.getElementById('authPass').value;
-  const captchaAnswer = document.getElementById('capAns').value.trim();
-  const errEl = document.getElementById('authErr');
-  errEl.textContent = '';
-  if(!email || !password){ errEl.textContent = 'Please enter your email and password.'; return; }
-  if(!captchaAnswer){ errEl.textContent = 'Please answer the security question.'; return; }
-  const btn = document.getElementById('authGo');
-  btn.disabled = true;
-  try{
-    const r = await fetch('/api/' + authMode, {
+    const r = await fetch('/api/newsletter', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, captchaId, captchaAnswer }),
+      body: JSON.stringify({ email }),
     });
     const d = await r.json().catch(() => ({}));
     if(!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
-    localStorage.setItem('aas_token', d.token);
-    localStorage.setItem('aas_email', d.email);
-    closeAuth();
-    renderAuthState();
-    showToast(authMode === 'login' ? '✅ Welcome back, ' + d.email + '!' : '🎉 Account created — welcome aboard!');
-    refreshCredits();
-  }catch(e){
-    errEl.textContent = e.message;
-    loadCaptcha(); // refresh the security question after any failure
-  }
-  btn.disabled = false;
-}
-function logout(){
-  const t = getToken();
-  fetch('/api/logout', { method: 'POST', headers: authHeaders() }).catch(()=>{});
-  localStorage.removeItem('aas_token');
-  localStorage.removeItem('aas_email');
-  renderAuthState();
-  document.getElementById('status').textContent = 'You have been signed out. See you soon!';
-}
-function renderAuthState(){
-  const email = getEmail();
-  const bar = document.getElementById('userbar');
-  const loggedIn = !!getToken();
-  document.getElementById('drawerEmail').textContent = loggedIn ? email : 'Not signed in';
-  if(loggedIn){
-    bar.innerHTML =
-      '<div class="authbox"><div class="who">👤 ' + escapeHtml(email) + '</div>' +
-      '<div class="authrow"><button class="ghost" onclick="logout()">Sign Out</button></div></div>';
-    document.getElementById('appLocked').style.display = 'none';
-    document.getElementById('appMain').style.display = 'block';
-    document.getElementById('creditsBar').style.display = 'flex';
-    document.getElementById('adBtn').style.display = 'block';
-  } else {
-    bar.innerHTML =
-      '<div class="authbox"><div class="who">You are not signed in</div>' +
-      '<div class="authrow"><button onclick="openAuth(\'login\')">Sign In</button>' +
-      '<button class="ghost" onclick="openAuth(\'register\')">Create Account</button></div></div>';
-    document.getElementById('appLocked').style.display = 'block';
-    document.getElementById('appMain').style.display = 'none';
-    document.getElementById('creditsBar').style.display = 'none';
-    document.getElementById('adBtn').style.display = 'none';
-    document.getElementById('adHint').style.display = 'none';
-  }
-}
-function escapeHtml(s){
-  return (s || '').replace(/[&<>"']/g, function(c){
-    return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
-  });
-}
-function needAuth(){
-  if(!getToken()){
-    document.getElementById('status').textContent = '⚠️ Please sign in first!';
-    openAuth('login');
-    return true;
-  }
-  return false;
-}
-
-/* ---------- credits ---------- */
-async function refreshCredits(){
-  if(!getToken()) return;
-  try{
-    const r = await fetch('/api/me', { headers: authHeaders() });
-    if(r.status === 401){ logout(); return; }
-    const d = await r.json();
-    document.getElementById('cImg').textContent = d.remaining.images + '/' + d.totals.images;
-    document.getElementById('cVid').textContent = d.remaining.videos + '/' + d.totals.videos;
-    document.getElementById('cAds').textContent = d.ads.watched + '/' + d.ads.max;
-    const adBtn = document.getElementById('adBtn');
-    if(d.ads.watched >= d.ads.max){
-      adBtn.disabled = true;
-      adBtn.textContent = '📺 Daily ad limit reached (try tomorrow)';
-    } else {
-      adBtn.disabled = false;
-      adBtn.textContent = '📺 Watch Ad, Get +' + d.ads.rewardImages + ' Images +' + d.ads.rewardVideos + ' Video';
-    }
-    updateButtonStates(d.remaining.images, d.remaining.videos);
-  }catch(e){ /* silent */ }
-}
-/* Disable generate buttons when credits are exhausted; show ad hint */
-function updateButtonStates(iLeft, vLeft){
-  document.getElementById('go').disabled = iLeft <= 0;
-  document.getElementById('vgo').disabled = vLeft <= 0;
-  document.getElementById('adHint').style.display = (iLeft <= 0 || vLeft <= 0) ? 'block' : 'none';
-}
-
-/* ---------- rewarded ads ---------- */
-let adCountdown = null;
-function watchAd(){
-  if(needAuth()) return;
-  const btn = document.getElementById('adBtn');
-  if(btn.disabled) return;
-  /* ADSTERRA: when AD_PROVIDER="adsterra", load/show the Adsterra
-     rewarded ad unit here. The simulated 30s timer below only runs
-     when the provider is "simulated". */
-  document.getElementById('adModal').classList.add('show');
-  let t = 30;
-  const timerEl = document.getElementById('adTimer');
-  const fill = document.getElementById('adBarFill');
-  timerEl.textContent = t;
-  fill.style.width = '0%';
-  clearInterval(adCountdown);
-  adCountdown = setInterval(() => {
-    t--;
-    timerEl.textContent = t;
-    fill.style.width = ((30 - t) / 30 * 100) + '%';
-    if(t <= 0){
-      clearInterval(adCountdown);
-      document.getElementById('adModal').classList.remove('show');
-      completeAdWatch();
-    }
-  }, 1000);
-}
-async function completeAdWatch(){
-  try{
-    const r = await fetch('/api/watch-ad-complete', {
-      method: 'POST',
-      headers: authHeaders({ 'Content-Type': 'application/json' }),
-    });
-    const d = await r.json();
-    if(!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
-    showToast('🎉 ' + d.message);
-    refreshCredits();
+    document.getElementById('nlEmail').value = '';
+    showToast('📬 ' + (d.message || 'Subscribed!'));
   }catch(e){
     showToast('❌ ' + e.message);
-    refreshCredits();
   }
 }
-function showToast(msg){
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(t._h);
-  t._h = setTimeout(() => t.classList.remove('show'), 4000);
+
+/* ---------- voice input (Web Speech API) ---------- */
+const _placeholders = {};
+function voiceSupported(){
+  return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
 }
-window.addEventListener('DOMContentLoaded', () => {
-  renderAuthState();
-  if(getToken()) refreshCredits();
-  showNotice();
-  initVoiceButtons();
-});
-function updateCreditsFromHeaders(r){
-  const i = r.headers.get('X-Images-Left'), v = r.headers.get('X-Videos-Left');
-  const ti = r.headers.get('X-Images-Total'), tv = r.headers.get('X-Videos-Total');
-  if(i !== null) document.getElementById('cImg').textContent = i + '/' + (ti || '6');
-  if(v !== null) document.getElementById('cVid').textContent = v + '/' + (tv || '3');
-  updateButtonStates(parseInt(i || '0', 10), parseInt(v || '0', 10));
+function initVoiceButtons(){
+  if(voiceSupported()) return;
+  ['micImg','micVid','chatMic'].forEach(function(id){
+    const b = document.getElementById(id);
+    if(b) b.style.display = 'none';
+  });
 }
-/* ---------- tabs / results ---------- */
+function startVoice(targetId, btnId){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ showToast('🎤 Voice input is not supported in this browser.'); return; }
+  const ta = document.getElementById(targetId);
+  const btn = document.getElementById(btnId);
+  if(!(targetId in _placeholders)) _placeholders[targetId] = ta.placeholder;
+  const rec = new SR();
+  rec.lang = 'en-US';
+  rec.interimResults = false;
+  rec.maxAlternatives = 1;
+  btn.classList.add('listening');
+  btn.textContent = '🔴';
+  ta.placeholder = 'Listening... speak now';
+  rec.onresult = function(e){
+    const t = e.results[0][0].transcript;
+    ta.value = (ta.value ? ta.value.replace(/\s+$/,'') + ' ' : '') + t;
+  };
+  rec.onerror = function(){ showToast('🎤 Could not hear you clearly. Please try again.'); };
+  rec.onend = function(){
+    btn.classList.remove('listening');
+    btn.textContent = '🎤';
+    ta.placeholder = _placeholders[targetId] || '';
+  };
+  try { rec.start(); }
+  catch(err){ showToast('🎤 Voice input failed to start.'); rec.onend(); }
+}
+/* ---------- ASK : chat ---------- */
+let studyMode = false;
+let chatAttached = null; // { id, url, name }
+let chatSending = false;
+
+function toggleStudy(){
+  studyMode = !studyMode;
+  const b = document.getElementById('studyToggle');
+  b.classList.toggle('on', studyMode);
+  showToast(studyMode ? '📚 Study Mode ON — detailed step-by-step explanations!' : '📚 Study Mode OFF');
+  if(studyMode && getToken() && !document.querySelector('#chatList .msg')){
+    addAiMessage('📚 <b>Study Mode is on!</b> Ask me anything — math problems, science concepts, history, or upload a photo of a diagram or problem and I\'ll walk you through it step by step.');
+  }
+}
+function quickStudy(prefix){
+  if(needAuth()) return;
+  if(!studyMode) toggleStudy();
+  const inp = document.getElementById('chatInput');
+  inp.value = prefix;
+  inp.focus();
+}
+function renderChatEmpty(){
+  const list = document.getElementById('chatList');
+  if(list.querySelector('.msg')) return;
+  list.innerHTML =
+    '<div class="chatempty"><span class="big">✨</span>' +
+    '<h2>What can I help with?</h2>' +
+    '<p>Ask anything, or turn on <b>📚 Study Mode</b> for<br>detailed step-by-step tutoring.</p></div>';
+}
+function scrollChatToBottom(){
+  const list = document.getElementById('chatList');
+  list.scrollTop = list.scrollHeight;
+}
+function addUserMessage(text, imageUrl){
+  const list = document.getElementById('chatList');
+  const empty = list.querySelector('.chatempty');
+  if(empty) empty.remove();
+  const div = document.createElement('div');
+  div.className = 'msg msg-user';
+  let html = '<div class="bubble">';
+  if(imageUrl) html += '<img class="chatimg" src="' + escapeHtml(imageUrl) + '" alt="attached image">';
+  html += escapeHtml(text) + '</div>';
+  div.innerHTML = html;
+  list.appendChild(div);
+  scrollChatToBottom();
+}
+function addAiMessage(html, opts){
+  opts = opts || {};
+  const list = document.getElementById('chatList');
+  const empty = list.querySelector('.chatempty');
+  if(empty) empty.remove();
+  const div = document.createElement('div');
+  div.className = 'msg msg-ai';
+  div.innerHTML =
+    '<div class="who">✨ Ayaz AI' + (opts.study ? ' <span class="studybadge">📚 STUDY</span>' : '') + '</div>' +
+    '<div class="bubble">' + html + '</div>';
+  list.appendChild(div);
+  scrollChatToBottom();
+  return div;
+}
+function addTyping(){
+  const div = document.createElement('div');
+  div.className = 'msg msg-ai';
+  div.id = 'typingRow';
+  div.innerHTML = '<div class="who">✨ Ayaz AI</div><div class="typing"><span></span><span></span><span></span></div>';
+  const list = document.getElementById('chatList');
+  const empty = list.querySelector('.chatempty');
+  if(empty) empty.remove();
+  list.appendChild(div);
+  scrollChatToBottom();
+}
+function removeTyping(){
+  const t = document.getElementById('typingRow');
+  if(t) t.remove();
+}
+function formatAiText(text){
+  // Minimal safe formatting: escape HTML, then bold **x** and line breaks
+  let h = escapeHtml(text);
+  h = h.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+  h = h.replace(/\n/g, '<br>');
+  return h;
+}
+async function loadChatHistory(){
+  if(!getToken()){ renderChatEmpty(); return; }
+  try{
+    const r = await fetch('/api/chat/history', { headers: authHeaders() });
+    if(r.status === 401){ logout(); return; }
+    const d = await r.json().catch(() => ({}));
+    const msgs = d.messages || [];
+    const list = document.getElementById('chatList');
+    list.innerHTML = '';
+    if(!msgs.length){ renderChatEmpty(); return; }
+    msgs.forEach(function(m){
+      if(m.role === 'user'){
+        addUserMessage(m.content || '', m.imageUrl);
+      } else {
+        const isStudy = (m.content || '').indexOf('📚') === 0;
+        addAiMessage(formatAiText(m.content || ''), { study: isStudy });
+      }
+    });
+  }catch(e){ renderChatEmpty(); }
+}
+async function clearChat(){
+  if(!getToken()){ showToast('⚠️ Please sign in first!'); openAuth('login'); return; }
+  if(!confirm('Clear your chat history?')) return;
+  try{
+    await fetch('/api/chat/history', { method: 'DELETE', headers: authHeaders() });
+  }catch(e){}
+  document.getElementById('chatList').innerHTML = '';
+  renderChatEmpty();
+  showToast('🗑️ Chat cleared — fresh start!');
+}
+async function sendChat(){
+  if(chatSending) return;
+  if(needAuth()) return;
+  const inp = document.getElementById('chatInput');
+  const text = inp.value.trim();
+  if(!text && !chatAttached){ return; }
+  chatSending = true;
+  document.getElementById('chatSend').disabled = true;
+  const useStudy = studyMode;
+  const att = chatAttached;
+  addUserMessage((useStudy ? '📚 ' : '') + (text || '(image attached)'), att ? att.url : null);
+  inp.value = '';
+  clearAttach();
+  addTyping();
+  try{
+    const r = await fetch('/api/chat', {
+      method: 'POST',
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ message: text, imageId: att ? att.id : null, study: useStudy }),
+    });
+    const d = await r.json().catch(() => ({}));
+    removeTyping();
+    if(r.status === 401){ logout(); throw new Error('Session expired — please sign in again.'); }
+    if(!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+    addAiMessage(formatAiText(d.reply || ''), { study: d.studyMode });
+    if(d.visionUsed) showToast('👁️ Image analyzed!');
+  }catch(e){
+    removeTyping();
+    addAiMessage('⚠️ ' + escapeHtml(e.message));
+  }
+  chatSending = false;
+  document.getElementById('chatSend').disabled = false;
+  refreshCredits();
+}
+/* chat image attach */
+function initChatAttach(){
+  const f = document.getElementById('chatFile');
+  f.addEventListener('change', async function(){
+    const file = f.files[0];
+    if(!file) return;
+    if(needAuth()){ f.value = ''; return; }
+    if(file.size > 5 * 1024 * 1024){ showToast('❌ Image too large (max 5MB).'); f.value = ''; return; }
+    showToast('⏳ Uploading image...');
+    try{
+      const dataUrl = await fileToDataUrl(file);
+      const r = await fetch('/api/upload', {
+        method: 'POST',
+        headers: authHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ image: dataUrl, name: file.name }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if(!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+      chatAttached = { id: d.id, url: d.url, name: file.name };
+      document.getElementById('attachImg').src = d.url;
+      document.getElementById('attachName').textContent = file.name.length > 22 ? file.name.slice(0, 22) + '…' : file.name;
+      document.getElementById('attachPreview').classList.add('show');
+      document.getElementById('chatInput').focus();
+    }catch(e){
+      showToast('❌ ' + e.message);
+    }
+    f.value = '';
+  });
+}
+function clearAttach(){
+  chatAttached = null;
+  document.getElementById('attachPreview').classList.remove('show');
+}
+/* chat voice input */
+function startVoiceChat(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ showToast('🎤 Voice input is not supported in this browser.'); return; }
+  if(needAuth()) return;
+  const inp = document.getElementById('chatInput');
+  const btn = document.getElementById('chatMic');
+  const rec = new SR();
+  rec.lang = 'en-US';
+  rec.interimResults = false;
+  rec.maxAlternatives = 1;
+  btn.classList.add('listening');
+  const oldPh = inp.placeholder;
+  inp.placeholder = 'Listening... speak now';
+  rec.onresult = function(e){
+    const t = e.results[0][0].transcript;
+    inp.value = (inp.value ? inp.value.replace(/\s+$/,'') + ' ' : '') + t;
+  };
+  rec.onerror = function(){ showToast('🎤 Could not hear you clearly. Please try again.'); };
+  rec.onend = function(){
+    btn.classList.remove('listening');
+    inp.placeholder = oldPh;
+  };
+  try { rec.start(); }
+  catch(err){ showToast('🎤 Voice input failed to start.'); rec.onend(); }
+}
+
+/* ---------- IMAGINE : generation ---------- */
 function switchTab(which){
   const isImg = which === 'img';
   document.getElementById('tabImg').classList.toggle('active', isImg);
@@ -1080,64 +1777,199 @@ function showResult(kind, objUrl, filename){
   document.getElementById('dl').href = objUrl;
   document.getElementById('dl').textContent = kind === 'video' ? '⬇ Download video' : '⬇ Download image';
   document.getElementById('result').style.display = 'block';
+  document.getElementById('shareRow').style.display = 'flex';
 }
+let lastGen = { kind: null, prompt: '', blobUrl: '' };
 async function generate(){
-  const prompt = document.getElementById('prompt').value.trim();
-  if(!prompt){ document.getElementById('status').textContent = 'Please enter a prompt first!'; return; }
+  const raw = document.getElementById('prompt').value.trim();
+  if(!raw){ document.getElementById('status').textContent = 'Please describe your image first!'; return; }
   if(needAuth()) return;
+  let prompt = styledPrompt(raw);
+  if(refImageId) prompt += '. Transform the attached reference photo accordingly, keeping the subject recognizable.';
   const [w,h] = document.getElementById('size').value.split('x');
   const btn = document.getElementById('go');
   btn.disabled = true;
   document.getElementById('spin').classList.add('show');
   document.getElementById('result').style.display = 'none';
-  document.getElementById('status').textContent = 'Generating your image... (may take 10–30 seconds)';
+  document.getElementById('status').textContent = 'Creating your image... (10-30 seconds)';
   try{
     const url = `/api/generate-image?prompt=${encodeURIComponent(prompt)}&width=${w}&height=${h}&seed=${Math.floor(Math.random()*999999)}`;
     const r = await fetch(url, { headers: authHeaders() });
-    if(r.status === 401){ logout(); throw new Error('Session expired — please sign in again.'); }
     if(!r.ok){ const e = await r.json().catch(()=>({})); throw new Error(e.error || ('HTTP '+r.status)); }
     const blob = await r.blob();
     updateCreditsFromHeaders(r);
-    showResult('image', URL.createObjectURL(blob), 'ayaz-ai-studio');
+    const objUrl = URL.createObjectURL(blob);
+    lastGen = { kind: 'image', prompt: raw, blobUrl: objUrl };
+    showResult('image', objUrl, 'ayaz-ai-studio');
     document.getElementById('status').textContent = '✅ Done!';
   }catch(e){
     document.getElementById('status').textContent = '❌ ' + e.message;
-    if(/limit/i.test(e.message)) showToast('⚡ Limit reached! Watch an ad to earn extra credits.');
+    if(/limit/i.test(e.message)) showToast('⚡ Limit reached! Watch an ad for extra credits.');
     refreshCredits();
   }
   refreshCredits();
   document.getElementById('spin').classList.remove('show');
 }
 async function generateVideo(){
-  const prompt = document.getElementById('vprompt').value.trim();
-  if(!prompt){ document.getElementById('status').textContent = 'Please enter a prompt first!'; return; }
+  const raw = document.getElementById('vprompt').value.trim();
+  if(!raw){ document.getElementById('status').textContent = 'Please describe your video first!'; return; }
   if(needAuth()) return;
+  let prompt = styledPrompt(raw);
+  if(refImageId) prompt += '. Transform the attached reference photo accordingly, keeping the subject recognizable.';
   const duration = document.getElementById('vdur').value;
   const motion = document.getElementById('vmotion').value;
   const btn = document.getElementById('vgo');
   btn.disabled = true;
   document.getElementById('spin').classList.add('show');
   document.getElementById('result').style.display = 'none';
-  document.getElementById('status').textContent = 'Generating your video... (may take 30–90 seconds, please be patient)';
+  document.getElementById('status').textContent = 'Creating your video... (30-90 seconds, please wait)';
   try{
     const url = `/api/generate-video?prompt=${encodeURIComponent(prompt)}&duration=${duration}&motion=${motion}&seed=${Math.floor(Math.random()*999999)}`;
     const r = await fetch(url, { headers: authHeaders() });
-    if(r.status === 401){ logout(); throw new Error('Session expired — please sign in again.'); }
     if(!r.ok){ const e = await r.json().catch(()=>({})); throw new Error(e.error || ('HTTP '+r.status)); }
     const blob = await r.blob();
-    if(!blob.type.startsWith('video')) throw new Error('The server did not return a video.');
+    if(!blob.type.startsWith('video')) throw new Error('Server did not return a video');
     updateCreditsFromHeaders(r);
-    showResult('video', URL.createObjectURL(blob), 'ayaz-ai-studio');
+    const objUrl = URL.createObjectURL(blob);
+    lastGen = { kind: 'video', prompt: raw, blobUrl: objUrl };
+    showResult('video', objUrl, 'ayaz-ai-studio');
     const src = r.headers.get('X-Video-Source');
     document.getElementById('status').textContent = src === 'huggingface' ? '✅ Done! (AI video)' : '✅ Done! (cinematic motion)';
   }catch(e){
     document.getElementById('status').textContent = '❌ ' + e.message;
-    if(/limit/i.test(e.message)) showToast('⚡ Limit reached! Watch an ad to earn extra credits.');
+    if(/limit/i.test(e.message)) showToast('⚡ Limit reached! Watch an ad for extra credits.');
     refreshCredits();
   }
   refreshCredits();
   document.getElementById('spin').classList.remove('show');
 }
+
+/* ---------- share ---------- */
+function shareTo(net){
+  const text = 'Made with Ayaz AI Studio 🎨';
+  const url = location.origin + location.pathname;
+  let shareUrl = '';
+  if(net === 'twitter') shareUrl = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(text) + '&url=' + encodeURIComponent(url);
+  else if(net === 'facebook') shareUrl = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url);
+  else if(net === 'whatsapp') shareUrl = 'https://wa.me/?text=' + encodeURIComponent(text + ' ' + url);
+  if(shareUrl) window.open(shareUrl, '_blank', 'noopener');
+}
+function copyPromptLink(){
+  const t = (lastGen.prompt || 'Ayaz AI Studio') + ' — made with Ayaz AI Studio 🎨 ' + location.origin + location.pathname;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(t).then(
+      function(){ showToast('🔗 Copied to clipboard!'); },
+      function(){ showToast('❌ Copy failed.'); }
+    );
+  } else {
+    showToast('❌ Clipboard not available.');
+  }
+}
+function nativeShare(){
+  const data = { title: 'Ayaz AI Studio', text: 'Made with Ayaz AI Studio 🎨', url: location.origin + location.pathname };
+  if(navigator.share){
+    navigator.share(data).catch(()=>{});
+  } else {
+    copyPromptLink();
+  }
+}
+
+/* ---------- referral program ---------- */
+function captureReferral(){
+  try{
+    const q = new URLSearchParams(location.search);
+    const ref = (q.get('ref') || '').trim().toUpperCase();
+    if(ref) localStorage.setItem('aas_pending_ref', ref);
+  }catch(e){}
+}
+function getPendingReferral(){ return localStorage.getItem('aas_pending_ref') || ''; }
+function clearPendingReferral(){ localStorage.removeItem('aas_pending_ref'); }
+function openRefer(){
+  if(needAuth()) return;
+  openInfo('mRefer');
+  loadReferrals();
+}
+async function loadReferrals(){
+  const box = document.getElementById('refBody');
+  box.innerHTML = '<p style="text-align:center;color:var(--muted)">Loading...</p>';
+  try{
+    const r = await fetch('/api/referrals', { headers: authHeaders() });
+    const d = await r.json().catch(() => ({}));
+    if(r.status === 401){ logout(); throw new Error('Session expired — please sign in again.'); }
+    if(!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+    const ce = d.creditsEarned || { images: 0, videos: 0 };
+    box.innerHTML =
+      '<p style="font-size:13px;color:var(--muted);margin-bottom:10px">Share your link — you <b>and</b> your friend each get ' +
+      '<b>+' + d.bonus.images + ' images</b> and <b>+' + d.bonus.videos + ' videos</b> when they sign up!</p>' +
+      '<div class="reflink"><span id="refLinkText">' + escapeHtml(d.link) + '</span>' +
+      '<button onclick="copyReferral()">📋 Copy</button></div>' +
+      '<div class="refstats">' +
+      '<div><b>' + d.totalReferrals + '</b><span>referrals</span></div>' +
+      '<div><b>+' + ce.images + '</b><span>images earned</span></div>' +
+      '<div><b>+' + ce.videos + '</b><span>videos earned</span></div>' +
+      '</div>' +
+      '<div class="refshare">' +
+      '<button class="sharebtn" onclick="shareReferral(\'twitter\')">𝕏 Post</button>' +
+      '<button class="sharebtn" onclick="shareReferral(\'facebook\')">Facebook</button>' +
+      '<button class="sharebtn" onclick="shareReferral(\'whatsapp\')">WhatsApp</button>' +
+      '</div>';
+  }catch(e){
+    box.innerHTML = '<p style="color:#f87171">❌ ' + escapeHtml(e.message) + '</p>';
+  }
+}
+function copyReferral(){
+  const t = document.getElementById('refLinkText');
+  if(!t) return;
+  const link = t.textContent;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(link).then(
+      function(){ showToast('🔗 Referral link copied!'); },
+      function(){ showToast('❌ Copy failed.'); }
+    );
+  } else {
+    showToast('❌ Clipboard not available.');
+  }
+}
+function shareReferral(net){
+  const t = document.getElementById('refLinkText');
+  if(!t) return;
+  const link = t.textContent;
+  const text = 'Join me on Ayaz AI Studio — free AI chat, images & videos! We both get bonus credits 🎁';
+  let shareUrl = '';
+  if(net === 'twitter') shareUrl = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(text) + '&url=' + encodeURIComponent(link);
+  else if(net === 'facebook') shareUrl = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(link);
+  else if(net === 'whatsapp') shareUrl = 'https://wa.me/?text=' + encodeURIComponent(text + ' ' + link);
+  if(shareUrl) window.open(shareUrl, '_blank', 'noopener');
+}
+
+/* ---------- show/hide password ---------- */
+function togglePw(inputId, btn){
+  const inp = document.getElementById(inputId);
+  if(!inp) return;
+  const show = inp.type === 'password';
+  inp.type = show ? 'text' : 'password';
+  btn.textContent = show ? '🙈' : '👁️';
+  btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+}
+
+/* ---------- init ---------- */
+window.addEventListener('DOMContentLoaded', () => {
+  captureReferral();
+  initTheme();
+  renderAuthState();
+  renderStyles();
+  initRefUpload();
+  initChatAttach();
+  if(getToken()){
+    refreshCredits();
+    loadChatHistory();
+  } else {
+    renderChatEmpty();
+  }
+  showNotice();
+  checkCookies();
+  initVoiceButtons();
+});
 </script>
 </body>
 </html>
