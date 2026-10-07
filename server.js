@@ -1107,7 +1107,7 @@ app.post('/api/watch-ad-complete', requireAuth, (req, res) => {
  * Primary: Pollinations.ai (free, no key required)
  * Fallback: Hugging Face Inference router (needs HF_TOKEN)
  */
-app.get('/api/generate-image', requireAuth, (req, res) => {
+app.get('/api/generate-image', requireAuth, async (req, res) => {
   const prompt = (req.query.prompt || '').toString().slice(0, 500);
   if (!prompt) return res.status(400).json({ error: 'prompt required' });
 
@@ -1118,6 +1118,25 @@ app.get('/api/generate-image', requireAuth, (req, res) => {
   const width = Math.min(parseInt(req.query.width) || 512, 1024);
   const height = Math.min(parseInt(req.query.height) || 512, 1024);
   const seed = parseInt(req.query.seed) || Math.floor(Math.random() * 999999);
+
+  // PRIORITY 1: Google Gemini image generation (user's paid Pro key)
+  try {
+    const geminiImg = await tryGeminiImage(prompt);
+    if (geminiImg && geminiImg.length > 5000) {
+      const left = recordUsage(req.authEmail, 'image');
+      recordCreation(req.authEmail, 'image', prompt, { width, height, seed, source: 'gemini-image' });
+      res.setHeader('X-Images-Left', left.images);
+      res.setHeader('X-Videos-Left', left.videos);
+      res.setHeader('X-Images-Total', left.totalImages);
+      res.setHeader('X-Videos-Total', left.totalVideos);
+      res.setHeader('X-Image-Source', 'gemini-image');
+      res.setHeader('Content-Type', 'image/png');
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      return res.send(geminiImg);
+    }
+  } catch (e) { /* fall through to Pollinations */ }
+
+  // PRIORITY 2: Pollinations.ai (free, no key required)
 
   const url =
     `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}` +
@@ -1144,6 +1163,44 @@ app.get('/api/generate-image', requireAuth, (req, res) => {
     res.status(502).json({ error: 'image provider unreachable: ' + e.message });
   });
 });
+
+/** Generate image via Google Gemini (gemini-2.0-flash-exp-image-generation).
+ *  Uses the existing GEMINI_API_KEY. Returns Buffer or null. */
+function tryGeminiImage(prompt) {
+  return new Promise((resolve) => {
+    if (!GEMINI_API_KEY) return resolve(null);
+    const body = JSON.stringify({
+      contents: [{ parts: [{ text: 'Generate a photorealistic image: ' + prompt }] }],
+      generationConfig: { responseModalities: ['IMAGE'] },
+    });
+    const req = https.request({
+      hostname: 'generativelanguage.googleapis.com',
+      path: '/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=' + encodeURIComponent(GEMINI_API_KEY),
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
+      timeout: 60000,
+    }, (res) => {
+      let data = '';
+      res.on('data', (c) => data += c);
+      res.on('end', () => {
+        try {
+          const parsed = JSON.parse(data);
+          const parts = parsed.candidates?.[0]?.content?.parts || [];
+          for (const p of parts) {
+            if (p.inlineData && p.inlineData.data) {
+              return resolve(Buffer.from(p.inlineData.data, 'base64'));
+            }
+          }
+        } catch (e) {}
+        resolve(null);
+      });
+    });
+    req.on('timeout', () => { req.destroy(); resolve(null); });
+    req.on('error', () => resolve(null));
+    req.write(body);
+    req.end();
+  });
+}
 
 /** Fallback: Hugging Face Inference router (SDXL). Needs HF_TOKEN env var. */
 function generateViaHF(prompt, res, email) {
