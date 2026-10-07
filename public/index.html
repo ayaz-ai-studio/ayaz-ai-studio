@@ -58,6 +58,32 @@
     background: rgba(255,255,255,.04); border-radius: 10px; padding: 8px; }
   .samples { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
   .samples button { flex: 1 1 30%; font-size: 12px; padding: 8px; background: rgba(255,255,255,.1); }
+  /* ---- rewarded ads ---- */
+  .adbtn { width: 100%; margin-top: 12px; padding: 14px; font-size: 16px;
+    background: linear-gradient(90deg, #f093fb, #f5576c); animation: pulse 2s infinite; }
+  .adbtn:disabled { animation: none; opacity: .5; }
+  @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+  .adhint { text-align: center; font-size: 13px; margin-top: 10px;
+    background: rgba(245,87,108,.15); border: 1px solid rgba(245,87,108,.4);
+    border-radius: 10px; padding: 10px; }
+  .admodal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.88);
+    z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+  .admodal.show { display: flex; }
+  .adbox { background: #1a1a2e; border-radius: 16px; padding: 24px; text-align: center;
+    max-width: 400px; width: 100%; border: 1px solid rgba(255,255,255,.15); }
+  .adfake { font-size: 20px; padding: 44px 20px; background: rgba(255,255,255,.05);
+    border-radius: 12px; margin-bottom: 16px; }
+  .adcount { font-size: 40px; font-weight: 700; color: #f5576c; }
+  .adbar { height: 8px; background: rgba(255,255,255,.1); border-radius: 4px;
+    margin: 12px 0; overflow: hidden; }
+  #adBarFill { height: 100%; width: 0%; background: linear-gradient(90deg, #f093fb, #f5576c);
+    transition: width 1s linear; }
+  .adnote { font-size: 12px; opacity: .6; }
+  #toast { position: fixed; bottom: 24px; left: 50%; z-index: 200; max-width: 92%;
+    transform: translateX(-50%) translateY(120px); background: #222; color: #fff;
+    padding: 14px 22px; border-radius: 12px; font-size: 15px; text-align: center;
+    border: 1px solid rgba(255,255,255,.25); opacity: 0; transition: all .3s; }
+  #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
   footer { text-align: center; margin-top: 28px; font-size: 12px; opacity: .5; }
 </style>
 </head>
@@ -76,11 +102,17 @@
     <div class="credits">
       <div>🖼️ Images<b id="cImg">–</b><span>roz ki limit 6</span></div>
       <div>🎬 Videos<b id="cVid">–</b><span>roz ki limit 3</span></div>
+      <div>📺 Ads<b id="cAds">–</b><span>aaj dekhe</span></div>
     </div>
+    <button id="adBtn" class="adbtn" onclick="watchAd()">📺 Ad Dekho, +2 Credits Pao</button>
+  </div>
+
+  <div id="adHint" class="adhint" style="display:none">
+    ⚡ Limit khatam? <b>📺 Ad dekho</b> aur extra credits pao — bilkul free!
   </div>
 
   <div class="limits-strip">
-    🎁 <b>100% FREE</b> — roz 6 pictures + 3 videos • limit har roz reset hoti hai
+    🎁 <b>100% FREE</b> — roz 6 pictures + 3 videos • 📺 Ad dekh kar extra credits pao • limit har roz reset hoti hai
   </div>
 
   <div class="tabs">
@@ -146,6 +178,25 @@
     <br><a id="dl" href="#" download="ayaz-ai-studio">⬇ Download</a>
   </div>
 
+  <!-- REWARDED AD MODAL (simulated 30s countdown) -->
+  <div id="adModal" class="admodal">
+    <div class="adbox">
+      <!-- ═══════════════════════════════════════════════════════════════
+           ADSTERRA_PLACEHOLDER: jab AD_PROVIDER="adsterra" ho, yahan
+           Adsterra ka rewarded-ad script/unit load karein (ad network ka
+           diya hua code). View COMPLETE hone par hi
+           POST /api/watch-ad-complete call karein — server-side postback
+           se verify karke, taake fake views se fraud na ho.
+           ═══════════════════════════════════════════════════════════════ -->
+      <div class="adfake">📺 Sponsored Ad<br><small style="font-size:13px;opacity:.6">(simulated — asli ad jald aayega)</small></div>
+      <div class="adcount"><span id="adTimer">30</span><span style="font-size:16px"> sec</span></div>
+      <div class="adbar"><div id="adBarFill"></div></div>
+      <div class="adnote">Ad khatam hone tak wait karein, phir credits milenge...</div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
   <footer>
     🎨 Ayaz AI Studio • Free AI models se powered<br>
     <span style="opacity:.7">Video: AI tasveer + cinematic motion (asli AI video jald aa rahi hai)</span>
@@ -164,13 +215,80 @@ function saveUser(){
 }
 async function refreshCredits(){
   const u = getUser();
-  if(!u){ document.getElementById('cImg').textContent = '–'; document.getElementById('cVid').textContent = '–'; return; }
+  if(!u){ document.getElementById('cImg').textContent = '–'; document.getElementById('cVid').textContent = '–'; document.getElementById('cAds').textContent = '–'; return; }
   try{
     const r = await fetch('/api/me?username=' + encodeURIComponent(u));
     const d = await r.json();
-    document.getElementById('cImg').textContent = d.remaining.images + '/' + d.limits.images;
-    document.getElementById('cVid').textContent = d.remaining.videos + '/' + d.limits.videos;
+    document.getElementById('cImg').textContent = d.remaining.images + '/' + d.totals.images;
+    document.getElementById('cVid').textContent = d.remaining.videos + '/' + d.totals.videos;
+    document.getElementById('cAds').textContent = d.ads.watched + '/' + d.ads.max;
+    const adBtn = document.getElementById('adBtn');
+    if(d.ads.watched >= d.ads.max){
+      adBtn.disabled = true;
+      adBtn.textContent = '📺 Aaj ke ads khatam (kal phir)';
+    } else {
+      adBtn.disabled = false;
+      adBtn.innerHTML = '📺 Ad Dekho, +' + d.ads.rewardImages + ' Images +' + d.ads.rewardVideos + ' Video Pao';
+    }
+    updateButtonStates(d.remaining.images, d.remaining.videos);
   }catch(e){ /* silent */ }
+}
+/* Disable generate buttons when credits are exhausted; show ad hint */
+function updateButtonStates(iLeft, vLeft){
+  document.getElementById('go').disabled = iLeft <= 0;
+  document.getElementById('vgo').disabled = vLeft <= 0;
+  document.getElementById('adHint').style.display = (iLeft <= 0 || vLeft <= 0) ? 'block' : 'none';
+}
+/* ---------- rewarded ads ---------- */
+let adCountdown = null;
+function watchAd(){
+  if(needUser()) return;
+  const btn = document.getElementById('adBtn');
+  if(btn.disabled) return;
+  /* ADSTERRA: jab AD_PROVIDER="adsterra" ho, yahan Adsterra ka rewarded
+     ad unit load/show karein. Neeche wala simulated 30s timer sirf tab
+     chalta hai jab provider "simulated" ho. */
+  document.getElementById('adModal').classList.add('show');
+  let t = 30;
+  const timerEl = document.getElementById('adTimer');
+  const fill = document.getElementById('adBarFill');
+  timerEl.textContent = t;
+  fill.style.width = '0%';
+  clearInterval(adCountdown);
+  adCountdown = setInterval(() => {
+    t--;
+    timerEl.textContent = t;
+    fill.style.width = ((30 - t) / 30 * 100) + '%';
+    if(t <= 0){
+      clearInterval(adCountdown);
+      document.getElementById('adModal').classList.remove('show');
+      completeAdWatch();
+    }
+  }, 1000);
+}
+async function completeAdWatch(){
+  const u = getUser();
+  try{
+    const r = await fetch('/api/watch-ad-complete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: u }),
+    });
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+    showToast('🎉 ' + d.message);
+    refreshCredits();
+  }catch(e){
+    showToast('❌ ' + e.message);
+    refreshCredits();
+  }
+}
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._h);
+  t._h = setTimeout(() => t.classList.remove('show'), 4000);
 }
 function needUser(){
   if(!getUser()){
@@ -186,8 +304,10 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 function updateCreditsFromHeaders(r){
   const i = r.headers.get('X-Images-Left'), v = r.headers.get('X-Videos-Left');
-  if(i !== null) document.getElementById('cImg').textContent = i + '/6';
-  if(v !== null) document.getElementById('cVid').textContent = v + '/3';
+  const ti = r.headers.get('X-Images-Total'), tv = r.headers.get('X-Videos-Total');
+  if(i !== null) document.getElementById('cImg').textContent = i + '/' + (ti || '6');
+  if(v !== null) document.getElementById('cVid').textContent = v + '/' + (tv || '3');
+  updateButtonStates(parseInt(i || '0', 10), parseInt(v || '0', 10));
 }
 /* ---------- tabs / results ---------- */
 function switchTab(which){
@@ -239,9 +359,10 @@ async function generate(){
     document.getElementById('status').textContent = '✅ Ho gaya!';
   }catch(e){
     document.getElementById('status').textContent = '❌ ' + e.message;
+    if(/limit/i.test(e.message)) showToast('⚡ Limit khatam! 📺 Ad dekho aur extra credits pao!');
     refreshCredits();
   }
-  btn.disabled = false;
+  refreshCredits();
   document.getElementById('spin').classList.remove('show');
 }
 async function generateVideo(){
@@ -267,9 +388,10 @@ async function generateVideo(){
     document.getElementById('status').textContent = src === 'huggingface' ? '✅ Ho gaya! (AI video)' : '✅ Ho gaya! (cinematic motion)';
   }catch(e){
     document.getElementById('status').textContent = '❌ ' + e.message;
+    if(/limit/i.test(e.message)) showToast('⚡ Limit khatam! 📺 Ad dekho aur extra credits pao!');
     refreshCredits();
   }
-  btn.disabled = false;
+  refreshCredits();
   document.getElementById('spin').classList.remove('show');
 }
 </script>
