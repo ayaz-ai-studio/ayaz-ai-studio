@@ -1198,16 +1198,50 @@ app.get('/api/health', (req, res) => res.json({
 }));
 
 /* ------------------------------------------------------------------ */
-/* FREE Text-to-Speech (Google Translate TTS, no key needed)            */
+/* FREE Text-to-Speech (Edge-TTS neural voices, Google fallback)       */
 /*                                                                     */
 /* GET /api/tts?text=...&lang=ur — returns MP3 audio.                   */
 /* Supports: ur (Urdu), en (English), hi (Hindi), ar (Arabic), etc.     */
+/* Primary: Edge-TTS (ur-PK-AsadNeural for Urdu - natural quality)      */
+/* Fallback: Google Translate TTS                                      */
 /* ------------------------------------------------------------------ */
+const TTS_VOICES = {
+  ur: 'ur-PK-AsadNeural',
+  hi: 'hi-IN-MadhurNeural',
+  ar: 'ar-SA-HamedNeural',
+  en: 'en-US-GuyNeural',
+};
+
 app.get('/api/tts', requireAuth, async (req, res) => {
   const text = (req.query.text || '').toString().slice(0, 500);
   if (!text) return res.status(400).json({ error: 'text required' });
   const lang = (req.query.lang || 'ur').toString().slice(0, 5).replace(/[^a-z-]/gi, '');
+  const voice = TTS_VOICES[lang] || TTS_VOICES['ur'];
 
+  // Try Edge-TTS first (better quality)
+  const tmpFile = tmpName('tts', 'mp3');
+  const edgeProc = spawn('python3', ['-m', 'edge_tts', '--voice', voice, '--text', text, '--write-media', tmpFile], { timeout: 20000 });
+
+  let edgeFailed = false;
+  edgeProc.on('error', () => { edgeFailed = true; });
+  edgeProc.on('close', (code) => {
+    if (code === 0 && !edgeFailed && fs.existsSync(tmpFile)) {
+      const stat = fs.statSync(tmpFile);
+      if (stat.size > 1000) {
+        res.setHeader('Content-Type', 'audio/mpeg');
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+        res.setHeader('X-TTS-Engine', 'edge-tts');
+        fs.createReadStream(tmpFile).pipe(res).on('close', () => safeUnlink(tmpFile));
+        return;
+      }
+    }
+    // Fallback to Google TTS
+    safeUnlink(tmpFile);
+    googleTTS(text, lang, res);
+  });
+});
+
+function googleTTS(text, lang, res) {
   const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${lang}&client=tw-ob&q=${encodeURIComponent(text)}`;
   https.get(ttsUrl, {
     headers: { 'User-Agent': 'Mozilla/5.0' },
@@ -1220,10 +1254,11 @@ app.get('/api/tts', requireAuth, async (req, res) => {
     }
     res.setHeader('Content-Type', 'audio/mpeg');
     res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.setHeader('X-TTS-Engine', 'google');
     ttsRes.pipe(res);
   }).on('timeout', function() { this.destroy(); if (!res.headersSent) res.status(504).json({ error: 'TTS timeout' }); })
     .on('error', () => { if (!res.headersSent) res.status(502).json({ error: 'TTS error' }); });
-});
+}
 
 /* ------------------------------------------------------------------ */
 /* FREE video generation                                                */
