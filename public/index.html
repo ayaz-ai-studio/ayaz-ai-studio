@@ -79,29 +79,125 @@
   .toplogo { height: 32px; width: 32px; border-radius: 9px; object-fit: cover; flex-shrink: 0; }
   .drawerlogo { height: 30px; width: 30px; border-radius: 8px; object-fit: cover; vertical-align: -8px; margin-right: 9px; }
   .footlogo { height: 22px; width: 22px; border-radius: 6px; object-fit: cover; vertical-align: -5px; margin-right: 6px; }
-  /* ---------- Grok-style full-screen login ---------- */
-  #loginScreen { display: none; position: fixed; inset: 0; background: #000; z-index: 96;
-    flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
-  #loginScreen.show { display: flex; }
-  .ls-inner { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 420px; }
-  .ls-logo { width: 100px; height: 100px; border-radius: 26px; object-fit: cover; margin-bottom: 28px;
-    box-shadow: 0 8px 44px rgba(59,130,246,.30); }
-  .ls-title { font-size: 54px; font-weight: 800; color: #fff; letter-spacing: -1.5px;
-    margin-bottom: 16px; text-align: center; line-height: 1.05; }
-  .ls-tag { font-size: 20px; color: #d4d4d4; min-height: 30px; margin-bottom: 64px;
-    font-family: 'SF Mono', Menlo, Consolas, monospace; letter-spacing: .5px; }
-  .ls-cursor { animation: lsblink 1.05s steps(1) infinite; color: #d4d4d4; }
+  /* ══════════ PREMIUM LANDING / LOGIN ══════════ */
+  #loginScreen { display: none; position: fixed; inset: 0; background: #050508; z-index: 96;
+    overflow-y: auto; overflow-x: hidden; }
+  #loginScreen.show { display: block; }
+  .ls-bg { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+  .ls-orb { position: absolute; border-radius: 50%; filter: blur(100px); opacity: .5;
+    animation: lsfloat 16s ease-in-out infinite; will-change: transform; }
+  .orb1 { width: 520px; height: 520px; top: -180px; left: -140px;
+    background: radial-gradient(circle, rgba(37,99,235,.85), transparent 70%); }
+  .orb2 { width: 460px; height: 460px; top: 18%; right: -160px;
+    background: radial-gradient(circle, rgba(124,58,237,.75), transparent 70%); animation-delay: -5s; }
+  .orb3 { width: 420px; height: 420px; bottom: -160px; left: 28%;
+    background: radial-gradient(circle, rgba(6,182,212,.55), transparent 70%); animation-delay: -10s; }
+  @keyframes lsfloat {
+    0%, 100% { transform: translate(0,0) scale(1); }
+    50% { transform: translate(46px,-34px) scale(1.1); }
+  }
+  .ls-grid { position: absolute; inset: 0;
+    background-image: linear-gradient(rgba(255,255,255,.032) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.032) 1px, transparent 1px);
+    background-size: 58px 58px;
+    -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 28%, #000 25%, transparent 78%);
+    mask-image: radial-gradient(ellipse 90% 70% at 50% 28%, #000 25%, transparent 78%); }
+  .ls-scroll { position: relative; z-index: 1; min-height: 100%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 60px 22px 120px; }
+  .ls-inner { display: flex; flex-direction: column; align-items: center; width: 100%;
+    max-width: 600px; text-align: center; }
+  .ls-anim { opacity: 0; animation: lsfadeup .9s cubic-bezier(.22,.8,.32,1) forwards; }
+  .ls-d1 { animation-delay: .05s; } .ls-d2 { animation-delay: .16s; }
+  .ls-d3 { animation-delay: .28s; } .ls-d4 { animation-delay: .40s; }
+  .ls-d5 { animation-delay: .52s; } .ls-d6 { animation-delay: .64s; }
+  .ls-d7 { animation-delay: .78s; }
+  @keyframes lsfadeup {
+    from { opacity: 0; transform: translateY(26px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .ls-badge { display: inline-flex; align-items: center; gap: 8px;
+    font-size: 12.5px; font-weight: 600; letter-spacing: .4px; color: #c7d2fe;
+    background: rgba(99,102,241,.10); border: 1px solid rgba(129,140,248,.28);
+    padding: 8px 16px; border-radius: 999px; margin-bottom: 26px;
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+  .ls-dot { width: 8px; height: 8px; border-radius: 50%; background: #34d399;
+    box-shadow: 0 0 10px #34d399; animation: lspulse 2s ease-in-out infinite; }
+  @keyframes lspulse { 50% { opacity: .45; } }
+  .ls-logo { width: 108px; height: 108px; border-radius: 30px; object-fit: cover; margin-bottom: 26px;
+    box-shadow: 0 0 0 1px rgba(255,255,255,.12), 0 12px 60px rgba(59,130,246,.45), 0 4px 24px rgba(124,58,237,.35);
+    animation: lsfloaty 5s ease-in-out infinite; }
+  @keyframes lsfloaty { 50% { transform: translateY(-9px); } }
+  .ls-title { font-size: clamp(42px, 9vw, 72px); font-weight: 800; color: #fff;
+    letter-spacing: -2.5px; margin-bottom: 14px; line-height: 1.02; }
+  .ls-grad { background: linear-gradient(90deg, #60a5fa, #a78bfa, #22d3ee, #60a5fa);
+    background-size: 220% auto; -webkit-background-clip: text; background-clip: text;
+    color: transparent; animation: lsgrad 7s linear infinite; }
+  @keyframes lsgrad { to { background-position: 220% center; } }
+  .ls-hero { font-size: clamp(16px, 3.6vw, 20px); color: #b6b6c0; line-height: 1.55;
+    max-width: 480px; margin-bottom: 10px; font-weight: 400; }
+  .ls-hero b { color: #fff; font-weight: 700; }
+  .ls-tag { font-size: 15px; color: #81818e; min-height: 26px; margin-bottom: 30px;
+    font-family: 'SF Mono', ui-monospace, Menlo, Consolas, monospace; letter-spacing: .5px; }
+  .ls-cursor { animation: lsblink 1.05s steps(1) infinite; color: #a78bfa; font-weight: 700; }
   @keyframes lsblink { 50% { opacity: 0; } }
-  .ls-btns { display: flex; flex-direction: column; gap: 14px; width: 100%; }
-  .ls-btn { display: flex; align-items: center; justify-content: center; gap: 10px;
-    background: #2b2b2e; color: #fff; border: none; border-radius: 999px;
-    font-size: 17px; font-weight: 600; padding: 16px; cursor: pointer; width: 100%;
-    font-family: inherit; }
-  .ls-btn:active { background: #3d3d42; }
-  .ls-ic { font-weight: 800; width: 26px; text-align: center; font-size: 18px; }
-  .ls-legal { position: absolute; bottom: 36px; left: 0; right: 0; font-size: 14px;
-    color: #8e8e93; text-align: center; padding: 0 24px; }
-  .ls-legal a { color: #b0b0b5; font-weight: 600; cursor: pointer; text-decoration: none; }
+  .ls-feats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+    width: 100%; margin-bottom: 32px; }
+  .ls-feat { background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.10);
+    border-radius: 20px; padding: 18px 10px 16px; backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px); transition: transform .25s ease, border-color .25s ease, background .25s ease; }
+  .ls-feat:hover { transform: translateY(-5px); border-color: rgba(129,140,248,.45);
+    background: rgba(255,255,255,.07); }
+  .ls-fic { font-size: 30px; margin-bottom: 8px; filter: drop-shadow(0 4px 12px rgba(96,165,250,.4)); }
+  .ls-fname { font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 4px; letter-spacing: .2px; }
+  .ls-fdesc { font-size: 12px; color: #8e8e99; line-height: 1.4; }
+  .ls-btns { display: flex; flex-direction: column; gap: 13px; width: 100%; max-width: 400px; margin-bottom: 34px; }
+  .ls-btn { display: flex; align-items: center; justify-content: center; gap: 11px;
+    border-radius: 999px; font-size: 16.5px; font-weight: 700; padding: 16px 20px;
+    cursor: pointer; width: 100%; font-family: inherit; border: none;
+    transition: transform .2s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease; }
+  .ls-btn:hover { transform: translateY(-2px); }
+  .ls-btn:active { transform: translateY(0) scale(.985); }
+  .ls-google { background: #fff; color: #0f0f12;
+    box-shadow: 0 8px 30px rgba(255,255,255,.14); }
+  .ls-google:hover { box-shadow: 0 12px 40px rgba(255,255,255,.22); }
+  .ls-x { background: rgba(255,255,255,.06); color: #fff;
+    border: 1px solid rgba(255,255,255,.16); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+  .ls-x:hover { background: rgba(255,255,255,.10); border-color: rgba(255,255,255,.28); }
+  .ls-email { background: transparent; color: #d4d4dc;
+    border: 1px solid rgba(255,255,255,.14); }
+  .ls-email:hover { border-color: rgba(129,140,248,.55); color: #fff;
+    background: rgba(99,102,241,.08); }
+  .ls-g { width: 24px; height: 24px; border-radius: 50%; background: #fff;
+    color: #4285f4; font-weight: 800; font-size: 15px; display: inline-flex;
+    align-items: center; justify-content: center; border: 1px solid #e5e5e5; }
+  .ls-google .ls-g { border: none; }
+  .ls-ic { font-weight: 800; width: 24px; text-align: center; font-size: 17px; }
+  .ls-stats { display: flex; align-items: stretch; justify-content: center; gap: 0;
+    width: 100%; max-width: 440px; }
+  .ls-stat { flex: 1; display: flex; flex-direction: column; gap: 3px; padding: 4px 8px; }
+  .ls-stat + .ls-stat { border-left: 1px solid rgba(255,255,255,.10); }
+  .ls-stat b { font-size: 26px; font-weight: 800; color: #fff; letter-spacing: -.5px;
+    background: linear-gradient(180deg, #fff, #a5b4fc); -webkit-background-clip: text;
+    background-clip: text; color: transparent; }
+  .ls-stat span { font-size: 11.5px; color: #8e8e99; letter-spacing: .2px; }
+  .ls-legal { position: fixed; bottom: 0; left: 0; right: 0; z-index: 2; font-size: 13px;
+    color: #71717c; text-align: center; padding: 18px 24px 22px;
+    background: linear-gradient(transparent, rgba(5,5,8,.92) 45%); }
+  .ls-legal a { color: #a5b4fc; font-weight: 600; cursor: pointer; text-decoration: none; }
+  .ls-legal a:hover { text-decoration: underline; }
+  @media (max-width: 480px) {
+    .ls-feats { gap: 9px; }
+    .ls-feat { padding: 14px 6px 12px; border-radius: 16px; }
+    .ls-fic { font-size: 25px; }
+    .ls-fname { font-size: 13.5px; }
+    .ls-fdesc { font-size: 10.5px; }
+    .ls-scroll { padding: 48px 18px 110px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ls-orb, .ls-logo, .ls-grad, .ls-anim, .ls-dot, .ls-cursor { animation: none !important; }
+    .ls-anim { opacity: 1; }
+  }
   /* ---------- credits strip ---------- */
   #creditsStrip {
     display: none; gap: 8px; justify-content: center; align-items: center;
@@ -757,19 +853,51 @@
 <body>
 <div id="noticeBar"><span id="noticeText"></span><button id="noticeClose" onclick="dismissNotice()" aria-label="Dismiss">✕</button></div>
 
-<!-- ══════════ GROK-STYLE LOGIN SCREEN ══════════ -->
+<!-- ══════════ PREMIUM LANDING / LOGIN ══════════ -->
 <div id="loginScreen">
-  <div class="ls-inner">
-    <img src="logo-icon.webp" class="ls-logo" alt="Ayaz AI Studio logo">
-    <h1 class="ls-title">Ayaz AI Studio</h1>
-    <div class="ls-tag"><span id="lsType"></span><span class="ls-cursor">_</span></div>
-    <div class="ls-btns">
-      <button class="ls-btn" onclick="loginGoogle()"><span class="ls-ic">G</span>Continue with Google</button>
-      <button class="ls-btn" onclick="openAuth('login')"><span class="ls-ic">@</span>Continue with Email</button>
-      <button class="ls-btn" onclick="loginX()"><span class="ls-ic">𝕏</span>Continue with X</button>
+  <div class="ls-bg" aria-hidden="true">
+    <div class="ls-orb orb1"></div>
+    <div class="ls-orb orb2"></div>
+    <div class="ls-orb orb3"></div>
+    <div class="ls-grid"></div>
+  </div>
+  <div class="ls-scroll">
+    <div class="ls-inner">
+      <div class="ls-badge ls-anim ls-d1"><span class="ls-dot"></span>Free forever plan &nbsp;·&nbsp; No credit card</div>
+      <img src="logo-icon.webp" class="ls-logo ls-anim ls-d2" alt="Ayaz AI Studio logo">
+      <h1 class="ls-title ls-anim ls-d2">Ayaz <span class="ls-grad">AI Studio</span></h1>
+      <p class="ls-hero ls-anim ls-d3">Chat, create stunning images &amp; videos, and build apps — <b>all with AI, all in one place.</b></p>
+      <div class="ls-tag ls-anim ls-d3"><span id="lsType"></span><span class="ls-cursor">▌</span></div>
+      <div class="ls-feats ls-anim ls-d4">
+        <div class="ls-feat">
+          <div class="ls-fic">💬</div>
+          <div class="ls-fname">Ask</div>
+          <div class="ls-fdesc">Chat &amp; study with an AI tutor</div>
+        </div>
+        <div class="ls-feat">
+          <div class="ls-fic">🎨</div>
+          <div class="ls-fname">Imagine</div>
+          <div class="ls-fdesc">Images &amp; videos from text</div>
+        </div>
+        <div class="ls-feat">
+          <div class="ls-fic">⚡</div>
+          <div class="ls-fname">Build</div>
+          <div class="ls-fdesc">Apps &amp; sites in seconds</div>
+        </div>
+      </div>
+      <div class="ls-btns ls-anim ls-d5">
+        <button class="ls-btn ls-google" onclick="loginGoogle()"><span class="ls-g">G</span>Continue with Google</button>
+        <button class="ls-btn ls-x" onclick="loginX()"><span class="ls-ic">𝕏</span>Continue with X</button>
+        <button class="ls-btn ls-email" onclick="openAuth('login')"><span class="ls-ic">✉</span>Continue with Email</button>
+      </div>
+      <div class="ls-stats ls-anim ls-d6">
+        <div class="ls-stat"><b>6</b><span>free images / day</span></div>
+        <div class="ls-stat"><b>3</b><span>free videos / day</span></div>
+        <div class="ls-stat"><b>50</b><span>free chats / day</span></div>
+      </div>
     </div>
   </div>
-  <div class="ls-legal">By continuing you agree to <a onclick="openInfo('mTerms')">Terms</a> and <a onclick="openInfo('mPrivacy')">Privacy Policy</a></div>
+  <div class="ls-legal ls-anim ls-d7">By continuing you agree to <a onclick="openInfo('mTerms')">Terms</a> and <a onclick="openInfo('mPrivacy')">Privacy Policy</a></div>
 </div>
 
 <!-- ══════════ TOP BAR : Grok style ══════════ -->
@@ -2046,11 +2174,19 @@ let lsTyped = false;
 function typeTagline(){
   if(lsTyped) return; lsTyped = true;
   const el = document.getElementById('lsType');
-  const txt = 'Create anything';
-  let i = 0;
-  const iv = setInterval(() => {
-    el.textContent = txt.slice(0, ++i);
-    if(i >= txt.length) clearInterval(iv);
+  const phrases = ['Create anything', 'Chat with AI', 'Imagine images & videos', 'Build apps in seconds'];
+  let p = 0, i = 0, mode = 'type', wait = 0;
+  setInterval(() => {
+    const txt = phrases[p];
+    if(mode === 'type'){
+      el.textContent = txt.slice(0, ++i);
+      if(i >= txt.length){ mode = 'hold'; wait = 18; } // hold ~1.4s at 75ms ticks
+    } else if(mode === 'hold'){
+      if(--wait <= 0) mode = 'del';
+    } else {
+      el.textContent = txt.slice(0, --i);
+      if(i <= 0){ mode = 'type'; p = (p + 1) % phrases.length; }
+    }
   }, 75);
 }
 function needAuth(){
