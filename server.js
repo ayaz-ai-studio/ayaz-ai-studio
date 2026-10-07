@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 3000;
 // Optional: Hugging Face token for higher-quality SDXL (free token at huggingface.co/settings/tokens)
 const HF_TOKEN = process.env.HF_TOKEN || '';
 
-app.use(express.json());
+app.use(express.json({ limit: '2mb' })); // 2mb: profile photo uploads go through JSON
 app.use(express.static(path.join(__dirname, 'public')));
 
 /* ------------------------------------------------------------------ */
@@ -516,9 +516,94 @@ app.delete('/api/account', requireAuth, (req, res) => {
   res.json({ ok: true, message: 'Your account has been permanently deleted.' });
 });
 
-/** GET /api/me (Authorization: Bearer <token>) -> { email, limits, used, remaining, ads } */
+/** GET /api/me (Authorization: Bearer <token>) -> { email, limits, used, remaining, ads, profile } */
 app.get('/api/me', requireAuth, (req, res) => {
-  res.json(creditsFor(req.authEmail));
+  const base = creditsFor(req.authEmail);
+  const u = userStore.users[req.authEmail] || {};
+  base.profile = {
+    displayName: u.displayName || u.googleName || null,
+    username: u.username || null,
+    photo: u.photo || u.googlePhoto || null,
+    emailVerified: !!u.emailVerified,
+    // Legacy accounts (field absent) are treated as complete — only brand-new
+    // Google signups get profileComplete:false and see the setup screen.
+    profileComplete: u.profileComplete !== false,
+    authProvider: u.authProvider || 'email',
+  };
+  res.json(base);
+});
+
+/** Case-insensitive username lookup, optionally excluding one email. */
+function findUserByUsername(usernameLower, excludeEmail) {
+  for (const em of Object.keys(userStore.users || {})) {
+    if (excludeEmail && normEmail(em) === normEmail(excludeEmail)) continue;
+    const rec = userStore.users[em];
+    if (rec && rec.usernameLower === usernameLower) return em;
+  }
+  return null;
+}
+
+/**
+ * GET /api/profile/username-available?u=NAME (auth) -> { ok, available }
+ * Live availability check used by the profile setup screen.
+ */
+app.get('/api/profile/username-available', requireAuth, (req, res) => {
+  const username = String(req.query.u || '').trim();
+  if (!/^[A-Za-z0-9_]{3,20}$/.test(username)) {
+    return res.json({ ok: true, available: false, reason: 'format' });
+  }
+  const clash = findUserByUsername(username.toLowerCase(), req.authEmail);
+  res.json({ ok: true, available: !clash });
+});
+
+/**
+ * POST /api/profile/setup (auth) { displayName, username, photo? }
+ * Saves the new user's profile and marks profileComplete. Photo is an
+ * optional data-URL (jpeg/png/webp/gif, ~500KB max after base64).
+ */
+app.post('/api/profile/setup', requireAuth, (req, res) => {
+  const email = req.authEmail;
+  const u = userStore.users[email];
+  if (!u) return res.status(401).json({ error: 'Please sign in first.', code: 'auth_required' });
+  const body = req.body || {};
+  const displayName = String(body.displayName || '').trim().slice(0, 40);
+  const username = String(body.username || '').trim();
+  if (!displayName) return res.status(400).json({ error: 'Please enter your display name.' });
+  if (!/^[A-Za-z0-9_]{3,20}$/.test(username)) {
+    return res.status(400).json({ error: 'Username must be 3-20 characters (letters, numbers, _).' });
+  }
+  const unameLower = username.toLowerCase();
+  if (findUserByUsername(unameLower, email)) {
+    return res.status(409).json({ error: 'That username is taken. Try another one.' });
+  }
+  let photo = null;
+  if (body.photo) {
+    const p = String(body.photo);
+    if (!/^data:image\/(jpeg|png|webp|gif);base64,/.test(p)) {
+      return res.status(400).json({ error: 'Photo must be a JPEG, PNG, WebP or GIF image.' });
+    }
+    if (p.length > 700000) {
+      return res.status(400).json({ error: 'Photo is too large. Please use a smaller image.' });
+    }
+    photo = p;
+  }
+  u.displayName = displayName;
+  u.username = username;
+  u.usernameLower = unameLower;
+  if (photo) u.photo = photo;
+  u.profileComplete = true;
+  saveUsers();
+  res.json({
+    ok: true,
+    profile: {
+      displayName,
+      username,
+      photo: u.photo || u.googlePhoto || null,
+      emailVerified: !!u.emailVerified,
+      profileComplete: true,
+      authProvider: u.authProvider || 'email',
+    },
+  });
 });
 
 /* ------------------------------------------------------------------ */
@@ -707,6 +792,12 @@ app.get('/auth/google/callback', async (req, res) => {
         authProvider: 'google',
         googleId: profile.sub || null,
         googleName: profile.name || null,
+        googlePhoto: profile.picture || null,
+        displayName: null,
+        username: null,
+        usernameLower: null,
+        photo: null,
+        profileComplete: false, // new Google users finish profile setup in-app
         createdAt: new Date().toISOString(),
         tokens: [],
         referralCode: uniqueReferralCode(),
@@ -740,6 +831,8 @@ app.get('/auth/google/callback', async (req, res) => {
       // email verification. A previously set password keeps working.
       u.googleId = u.googleId || profile.sub || null;
       u.authProvider = u.authProvider || 'google';
+      if (!u.googleName) u.googleName = profile.name || null;
+      u.googlePhoto = profile.picture || u.googlePhoto || null;
       if (!u.emailVerified) u.emailVerified = true;
       if (!u.referralCode) u.referralCode = uniqueReferralCode();
       if (!Array.isArray(u.tokens)) u.tokens = [];
@@ -747,7 +840,8 @@ app.get('/auth/google/callback', async (req, res) => {
     const token = newToken();
     u.tokens = (u.tokens || []).concat([{ token, createdAt: Date.now() }]).slice(-5);
     saveUsers();
-    res.redirect('/?token=' + encodeURIComponent(token) + (isNew ? '&welcome=1' : ''));
+    const needSetup = isNew || u.profileComplete === false;
+    res.redirect('/?token=' + encodeURIComponent(token) + (isNew ? '&welcome=1' : '') + (needSetup ? '&setup=1' : ''));
   } catch (e) {
     console.log('Google OAuth callback failed:', e.message);
     fail('Google sign-in failed. Please try again.');
