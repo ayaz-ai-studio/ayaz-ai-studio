@@ -712,6 +712,77 @@
   .sp-verified { display: inline-block; font-size: 12px; font-weight: 700; color: #4ade80;
     background: rgba(74,222,128,.14); border: 1px solid rgba(74,222,128,.35);
     border-radius: 999px; padding: 2px 9px; margin-left: 8px; vertical-align: 2px; white-space: nowrap; }
+  /* ══════════ Settings sub-pages (full-screen) ══════════ */
+  .sset { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 110;
+    overflow-y: auto; overflow-x: hidden; }
+  .sset.show { display: block; }
+  .ss-inner { max-width: 560px; margin: 0 auto; padding: 14px 16px 48px; }
+  .ss-head { display: flex; align-items: center; gap: 14px; padding: 8px 0 18px; }
+  .ss-head .ss-back { background: none; border: none; color: var(--text); font-size: 24px;
+    cursor: pointer; padding: 4px; line-height: 1; font-family: inherit; }
+  .ss-head h2 { font-size: 21px; font-weight: 700; margin: 0; color: var(--text); flex: 1; min-width: 0; }
+  .ss-card { background: var(--card); border-radius: 18px; padding: 6px 16px; margin-bottom: 12px; }
+  .ss-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0; }
+  .ss-row + .ss-row { border-top: 1px solid var(--border); }
+  .ss-lab b { display: block; font-size: 16px; font-weight: 600; color: var(--text); }
+  .ss-lab small { display: block; font-size: 13px; color: var(--muted); margin-top: 3px; line-height: 1.5; }
+  .ss-desc { font-size: 14px; color: var(--muted); line-height: 1.55; margin: 0 0 4px; }
+  .ss-sec { font-size: 15px; color: var(--muted); padding: 14px 6px 8px; }
+  .ss-input, .ss-textarea { width: 100%; background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 12px; color: var(--text); padding: 12px; font-size: 15px; font-family: inherit;
+    box-sizing: border-box; }
+  .ss-textarea { min-height: 130px; resize: vertical; line-height: 1.5; }
+  .ss-input:focus, .ss-textarea:focus { outline: none; border-color: var(--blue); }
+  .ss-btn { width: 100%; background: var(--blue); color: #fff; border: none; border-radius: 14px;
+    padding: 13px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit; margin-top: 10px; }
+  .ss-btn:active { transform: scale(.98); opacity: .9; }
+  .ss-btn.ghost { background: var(--card2); color: var(--text); border: 1px solid var(--border); }
+  .ss-btn.danger { background: rgba(248,113,113,.12); color: #f87171; border: 1px solid rgba(248,113,113,.35); }
+  .ss-opt { display: flex; align-items: center; gap: 12px; width: 100%; background: var(--card);
+    border: 2px solid transparent; border-radius: 16px; padding: 14px 16px; margin-bottom: 8px;
+    cursor: pointer; font-family: inherit; text-align: left; box-sizing: border-box; }
+  .ss-opt .radio { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--muted);
+    flex-shrink: 0; position: relative; }
+  .ss-opt.on { border-color: var(--blue); }
+  .ss-opt.on .radio { border-color: var(--blue); }
+  .ss-opt.on .radio::after { content: ''; position: absolute; inset: 4px; border-radius: 50%; background: var(--blue); }
+  .ss-opt b { display: block; font-size: 16px; color: var(--text); }
+  .ss-opt small { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .ss-conn { display: flex; align-items: center; gap: 14px; padding: 14px 0; }
+  .ss-conn + .ss-conn { border-top: 1px solid var(--border); }
+  .ss-conn .cic { width: 44px; height: 44px; border-radius: 12px; background: var(--card2);
+    display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+  .ss-conn b { display: block; font-size: 16px; color: var(--text); }
+  .ss-conn small { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .ss-badge { margin-left: auto; font-size: 12px; font-weight: 700; padding: 5px 12px;
+    border-radius: 999px; flex-shrink: 0; white-space: nowrap; }
+  .ss-badge.ok { color: #4ade80; background: rgba(74,222,128,.12); border: 1px solid rgba(74,222,128,.35); }
+  .ss-badge.soon { color: var(--muted); background: var(--card2); border: 1px solid var(--border); }
+  .ss-empty { text-align: center; padding: 60px 20px; }
+  .ss-empty .eic { width: 72px; height: 72px; border-radius: 50%; background: var(--card2);
+    display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+  .ss-empty b { display: block; font-size: 18px; color: var(--text); margin-bottom: 8px; }
+  .ss-empty p { font-size: 14px; color: var(--muted); margin: 0; line-height: 1.5; }
+  .ss-voice { display: flex; align-items: center; gap: 12px; padding: 10px 0; }
+  .ss-voice + .ss-voice { border-top: 1px solid var(--border); }
+  .ss-voice .vn { flex: 1; min-width: 0; }
+  .ss-voice .vn b { display: block; font-size: 15px; color: var(--text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ss-voice .vn small { display: block; font-size: 12px; color: var(--muted); }
+  .ss-play { background: var(--card2); border: 1px solid var(--border); color: var(--text);
+    border-radius: 999px; padding: 8px 16px; font-size: 14px; font-weight: 600; cursor: pointer;
+    font-family: inherit; flex-shrink: 0; }
+  .ss-play:active { transform: scale(.95); }
+  .ss-share-item { padding: 14px 0; }
+  .ss-share-item + .ss-share-item { border-top: 1px solid var(--border); }
+  .ss-share-item b { display: block; font-size: 15px; color: var(--text); margin-bottom: 4px; }
+  .ss-share-item small { display: block; font-size: 12px; color: var(--faint); margin-bottom: 8px; }
+  .ss-share-item p { font-size: 14px; color: var(--muted); margin: 0; line-height: 1.5;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .ss-share-btns { display: flex; gap: 8px; margin-top: 10px; }
+  body.light .ss-card, body.light .ss-opt { background: #f0f0f2; }
+  body.light .ss-sec { color: #777; }
+  body.dev .sp-ver::after { content: ' · DEV'; color: #fbbf24; font-weight: 700; }
   /* ══════════ Grok-style Automations pages (full-screen) ══════════ */
   #mAutomations, #mNewAutomation { display: none; position: fixed; inset: 0; background: var(--bg);
     z-index: 100; overflow-y: auto; overflow-x: hidden; }
@@ -1388,6 +1459,7 @@
           </div>
         </div>
         <span class="cb2spacer"></span>
+        <button class="cbtn" id="chatShare" onclick="shareConversation();vibe(10)" title="Share conversation" aria-label="Share conversation"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/><line x1="15.4" y1="6.5" x2="8.6" y2="10.5"/></svg></button>
         <button class="cbtn" id="chatMic" onclick="startVoiceChat()" title="Voice input" aria-label="Voice input"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="19" x2="12" y2="22"/></svg></button>
         <button id="speakBtn" onclick="speakLast()" title="Read last reply aloud" aria-label="Speak"><span id="speakLabel">Speak</span></button>
       </div>
@@ -1652,8 +1724,8 @@
   <div class="ps-inner">
     <h2 style="text-align:center;font-size:24px;font-weight:800;margin:8px 0 6px;color:var(--text)">Set up your profile</h2>
     <p style="text-align:center;color:var(--muted);font-size:14px;margin:0 0 20px">Choose how you&rsquo;ll appear in Ayaz AI Studio.</p>
-    <div class="ps-photo" id="psPhotoPrev" role="button" tabindex="0" aria-label="Choose profile photo">?</div>
-    <input type="file" id="psPhotoInput" accept="image/*" style="display:none">
+    <div class="ps-photo" id="psPhotoPrev" role="button" tabindex="0" aria-label="Choose profile photo" onclick="document.getElementById('psPhotoInput').click()">?</div>
+    <input type="file" id="psPhotoInput" accept="image/*" style="display:none" onchange="psPhotoChosen(this)">
     <p style="text-align:center;color:var(--muted);font-size:13px;margin:0 0 20px">Tap the photo to upload one</p>
     <div class="ps-field">
       <label for="psName">Display name</label>
@@ -1663,11 +1735,11 @@
       <label for="psUsername">Username</label>
       <div class="ps-uname-wrap">
         <span class="at">@</span>
-        <input id="psUsername" maxlength="20" placeholder="username" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+        <input id="psUsername" maxlength="20" placeholder="username" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" oninput="psUsernameInput()">
         <span class="ps-ustatus" id="psUstatus"></span>
       </div>
     </div>
-    <button class="ps-btn" id="psSubmit">Complete Setup</button>
+    <button class="ps-btn" id="psSubmit" onclick="submitProfileSetup()">Complete Setup</button>
     <div class="ps-err" id="psErr"></div>
     <p class="ps-note">Your Google email is already verified &#10003;</p>
   </div>
@@ -1691,32 +1763,32 @@
     <div class="sp-sect">App</div>
     <div class="sp-cards">
       <button class="sp-item" onclick="spToggleTheme()"><span class="sp-ic">◐</span><span class="sp-t"><b>Appearance</b><i id="spThemeSub">Dark</i></span></button>
-      <button class="sp-item" onclick="spSoon('Haptics')"><span class="sp-ic">📳</span><span class="sp-t"><b>Haptics</b></span></button>
-      <button class="sp-item" onclick="spSoon('Widget')"><span class="sp-ic">📱</span><span class="sp-t"><b>Widget</b></span></button>
-      <button class="sp-item" onclick="spSoon('App Language')"><span class="sp-ic">🌐</span><span class="sp-t"><b>App Language</b></span></button>
-      <button class="sp-item" onclick="spSoon('Advanced')"><span class="sp-ic">🔧</span><span class="sp-t"><b>Advanced</b></span></button>
+      <button class="sp-item" onclick="openSset('mSsetHaptics')"><span class="sp-ic">📳</span><span class="sp-t"><b>Haptics</b></span></button>
+      <button class="sp-item" onclick="openSset('mSsetWidget')"><span class="sp-ic">📱</span><span class="sp-t"><b>Widget</b></span></button>
+      <button class="sp-item" onclick="openSset('mSsetLang')"><span class="sp-ic">🌐</span><span class="sp-t"><b>App Language</b></span></button>
+      <button class="sp-item" onclick="openSset('mSsetAdvanced')"><span class="sp-ic">🔧</span><span class="sp-t"><b>Advanced</b></span></button>
     </div>
     <div class="sp-sect">Ayaz</div>
     <div class="sp-cards">
-      <button class="sp-item" onclick="spSoon('Customize Ayaz')"><span class="sp-ic">🎚️</span><span class="sp-t"><b>Customize Ayaz</b></span></button>
-      <button class="sp-item" onclick="spSoon('Connectors')"><span class="sp-ic">🧩</span><span class="sp-t"><b>Connectors</b></span></button>
-      <button class="sp-item" onclick="spSoon('Skills')"><span class="sp-ic">🎯</span><span class="sp-t"><b>Skills</b></span></button>
+      <button class="sp-item" onclick="openSset('mSsetCustomize')"><span class="sp-ic">🎚️</span><span class="sp-t"><b>Customize Ayaz</b></span></button>
+      <button class="sp-item" onclick="openSset('mSsetConnectors')"><span class="sp-ic">🧩</span><span class="sp-t"><b>Connectors</b></span></button>
+      <button class="sp-item" onclick="openSset('mSsetSkills')"><span class="sp-ic">🎯</span><span class="sp-t"><b>Skills</b></span></button>
     </div>
     <div class="sp-sect"></div>
     <div class="sp-cards">
-      <button class="sp-item" onclick="spSoon('Kids Mode')"><span class="sp-ic">⭐</span><span class="sp-t"><b>Kids Mode</b></span></button>
+      <button class="sp-item" onclick="openSset('mSsetKids')"><span class="sp-ic">⭐</span><span class="sp-t"><b>Kids Mode</b></span></button>
     </div>
     <div class="sp-sect"></div>
     <div class="sp-cards">
-      <button class="sp-item" onclick="spSoon('Voice')"><span class="sp-ic">🎙️</span><span class="sp-t"><b>Voice</b><i>Ara</i></span></button>
+      <button class="sp-item" onclick="openSset('mSsetVoice')"><span class="sp-ic">🎙️</span><span class="sp-t"><b>Voice</b><i id="spVoiceSub">Default</i></span></button>
     </div>
     <div class="sp-sect">Bots</div>
     <div class="sp-cards">
-      <button class="sp-item" onclick="spSoon('Bot settings')"><span class="sp-ic">💬</span><span class="sp-t"><b>Bot settings</b></span></button>
+      <button class="sp-item" onclick="openSset('mSsetBot')"><span class="sp-ic">💬</span><span class="sp-t"><b>Bot settings</b></span></button>
     </div>
     <div class="sp-sect">Data &amp; Information</div>
     <div class="sp-cards">
-      <button class="sp-item" onclick="spSoon('Shared Conversations')"><span class="sp-ic">🔗</span><span class="sp-t"><b>Shared Conversations</b></span></button>
+      <button class="sp-item" onclick="openSset('mSsetShared')"><span class="sp-ic">🔗</span><span class="sp-t"><b>Shared Conversations</b></span></button>
       <button class="sp-item" onclick="openDataControls()"><span class="sp-ic">🗄️</span><span class="sp-t"><b>Data Controls</b></span></button>
     </div>
     <div class="sp-sect"></div>
@@ -1731,6 +1803,183 @@
       <button class="sp-item signout" onclick="spSignOut()"><span class="sp-ic">↩️</span><span class="sp-t"><b>Sign out</b></span></button>
     </div>
     <div class="sp-ver"><img src="logo-icon.webp" alt="Ayaz">Ayaz AI Studio · 1.0.0</div>
+  </div>
+</div>
+
+<div id="mSsetHaptics" class="sset">
+  <div class="ss-inner">
+    <div class="ss-head">
+      <button class="ss-back" onclick="closeInfo('mSsetHaptics')" aria-label="Back">&#8592;</button>
+      <h2>Haptics</h2>
+    </div>
+    <p class="ss-desc">Feel a subtle vibration when you tap buttons and send messages.</p>
+    <div class="ss-card">
+      <div class="ss-row">
+        <div class="ss-lab"><b>Vibration</b><small>Short haptic pulse on taps</small></div>
+        <label class="switch"><input type="checkbox" id="ssHapTgl" onchange="saveSsetHaptics()"><span class="sl"></span></label>
+      </div>
+    </div>
+    <button class="ss-btn ghost" onclick="testHaptics()">Test vibration</button>
+  </div>
+</div>
+
+<div id="mSsetWidget" class="sset">
+  <div class="ss-inner">
+    <div class="ss-head">
+      <button class="ss-back" onclick="closeInfo('mSsetWidget')" aria-label="Back">&#8592;</button>
+      <h2>Widget</h2>
+    </div>
+    <p class="ss-desc">Add Ayaz AI Studio to your home screen for one-tap access.</p>
+    <div class="ss-sec">Android (Chrome)</div>
+    <div class="ss-card">
+      <div class="ss-row"><div class="ss-lab"><small>1. Open this site in Chrome<br>2. Tap the &#8942; menu &rarr; &ldquo;Add to Home screen&rdquo;<br>3. Confirm &mdash; the Ayaz icon appears on your home screen</small></div></div>
+    </div>
+    <div class="ss-sec">iPhone (Safari)</div>
+    <div class="ss-card">
+      <div class="ss-row"><div class="ss-lab"><small>1. Open this site in Safari<br>2. Tap Share &rarr; &ldquo;Add to Home Screen&rdquo;<br>3. Tap Add &mdash; the Ayaz icon appears on your home screen</small></div></div>
+    </div>
+  </div>
+</div>
+
+<div id="mSsetLang" class="sset">
+  <div class="ss-inner">
+    <div class="ss-head">
+      <button class="ss-back" onclick="closeInfo('mSsetLang')" aria-label="Back">&#8592;</button>
+      <h2>App Language</h2>
+    </div>
+    <p class="ss-desc">Choose the language for the app interface.</p>
+    <button class="ss-opt" id="ssLangEn" onclick="setSsetLang('en')"><span class="radio"></span><span><b>English</b><small>Default</small></span></button>
+    <button class="ss-opt" id="ssLangUr" onclick="setSsetLang('ur')"><span class="radio"></span><span><b>&#1575;&#1585;&#1583;&#1608;</b><small>Urdu</small></span></button>
+  </div>
+</div>
+
+<div id="mSsetAdvanced" class="sset">
+  <div class="ss-inner">
+    <div class="ss-head">
+      <button class="ss-back" onclick="closeInfo('mSsetAdvanced')" aria-label="Back">&#8592;</button>
+      <h2>Advanced</h2>
+    </div>
+    <div class="ss-card">
+      <div class="ss-row">
+        <div class="ss-lab"><b>Developer mode</b><small>Show extra technical details</small></div>
+        <label class="switch"><input type="checkbox" id="ssDevTgl" onchange="saveSsetAdvanced()"><span class="sl"></span></label>
+      </div>
+      <div class="ss-row">
+        <div class="ss-lab"><b>Debug logs</b><small>Log diagnostics to the console</small></div>
+        <label class="switch"><input type="checkbox" id="ssDbgTgl" onchange="saveSsetAdvanced()"><span class="sl"></span></label>
+      </div>
+    </div>
+    <div class="ss-sec">Storage</div>
+    <div class="ss-card">
+      <div class="ss-row"><div class="ss-lab"><b>Clear cache</b><small>Remove temporary cached data from this device</small></div></div>
+    </div>
+    <button class="ss-btn danger" onclick="clearSsetCache()">Clear cache</button>
+  </div>
+</div>
+
+<div id="mSsetCustomize" class="sset">
+  <div class="ss-inner">
+    <div class="ss-head">
+      <button class="ss-back" onclick="closeInfo('mSsetCustomize')" aria-label="Back">&#8592;</button>
+      <h2>Customize Ayaz</h2>
+    </div>
+    <p class="ss-desc">Tell Ayaz AI how to behave &mdash; tone, style, and things to remember. These instructions are sent with every new chat.</p>
+    <textarea id="ssCustomInstr" class="ss-textarea" maxlength="2000" placeholder="e.g. Always reply in simple English. Call me Boss. Be funny but professional."></textarea>
+    <button class="ss-btn" onclick="saveSsetCustomize()">Save instructions</button>
+  </div>
+</div>
+
+<div id="mSsetConnectors" class="sset">
+  <div class="ss-inner">
+    <div class="ss-head">
+      <button class="ss-back" onclick="closeInfo('mSsetConnectors')" aria-label="Back">&#8592;</button>
+      <h2>Connectors</h2>
+    </div>
+    <p class="ss-desc">Connect your accounts so Ayaz can work with your tools.</p>
+    <div class="ss-card">
+      <div class="ss-conn">
+        <span class="cic">G</span>
+        <div><b>Google</b><small>Sign-in</small></div>
+        <span class="ss-badge ok">&#10003; Connected</span>
+      </div>
+      <div class="ss-conn">
+        <span class="cic">&#120143;</span>
+        <div><b>X</b><small>Post &amp; read</small></div>
+        <span class="ss-badge soon">Coming soon</span>
+      </div>
+    </div>
+    <p class="ss-desc">The X connection is pending account approval and will appear here automatically.</p>
+  </div>
+</div>
+
+<div id="mSsetSkills" class="sset">
+  <div class="ss-inner">
+    <div class="ss-head">
+      <button class="ss-back" onclick="closeInfo('mSsetSkills')" aria-label="Back">&#8592;</button>
+      <h2>Skills</h2>
+    </div>
+    <p class="ss-desc">Turn Ayaz AI capabilities on or off.</p>
+    <div class="ss-card" id="ssSkillsList"></div>
+  </div>
+</div>
+
+<div id="mSsetKids" class="sset">
+  <div class="ss-inner">
+    <div class="ss-head">
+      <button class="ss-back" onclick="closeInfo('mSsetKids')" aria-label="Back">&#8592;</button>
+      <h2>Kids Mode</h2>
+    </div>
+    <p class="ss-desc">A safer, simpler experience for young users &mdash; replies stay family-friendly.</p>
+    <div class="ss-card">
+      <div class="ss-row">
+        <div class="ss-lab"><b>Kids Mode</b><small>Family-friendly replies</small></div>
+        <label class="switch"><input type="checkbox" id="ssKidsTgl" onchange="saveSsetKids()"><span class="sl"></span></label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="mSsetVoice" class="sset">
+  <div class="ss-inner">
+    <div class="ss-head">
+      <button class="ss-back" onclick="closeInfo('mSsetVoice')" aria-label="Back">&#8592;</button>
+      <h2>Voice</h2>
+    </div>
+    <p class="ss-desc">Choose the voice used when Ayaz reads replies aloud. Tap &#9654; to preview.</p>
+    <div class="ss-card" id="ssVoiceList"><div class="ss-row"><div class="ss-lab"><small>Loading voices&hellip;</small></div></div></div>
+  </div>
+</div>
+
+<div id="mSsetBot" class="sset">
+  <div class="ss-inner">
+    <div class="ss-head">
+      <button class="ss-back" onclick="closeInfo('mSsetBot')" aria-label="Back">&#8592;</button>
+      <h2>Bot settings</h2>
+    </div>
+    <div class="ss-sec">Profile</div>
+    <div class="ss-card" style="padding:16px">
+      <div class="ss-lab" style="margin-bottom:8px"><b>Bot name</b></div>
+      <input id="ssBotName" class="ss-input" maxlength="30" placeholder="Ayaz Bot" autocomplete="off">
+      <div class="ss-lab" style="margin:14px 0 8px"><b>Greeting message</b></div>
+      <textarea id="ssBotGreet" class="ss-textarea" style="min-height:90px" maxlength="500" placeholder="Hi! I'm your AI buddy..."></textarea>
+    </div>
+    <div class="ss-card">
+      <div class="ss-row">
+        <div class="ss-lab"><b>Auto-reply</b><small>Bot greets you when opened</small></div>
+        <label class="switch"><input type="checkbox" id="ssBotAutoTgl" onchange="saveSsetBot()"><span class="sl"></span></label>
+      </div>
+    </div>
+    <button class="ss-btn" onclick="saveSsetBot()">Save bot settings</button>
+  </div>
+</div>
+
+<div id="mSsetShared" class="sset">
+  <div class="ss-inner">
+    <div class="ss-head">
+      <button class="ss-back" onclick="closeInfo('mSsetShared')" aria-label="Back">&#8592;</button>
+      <h2>Shared Conversations</h2>
+    </div>
+    <div id="ssSharedList"></div>
   </div>
 </div>
 
@@ -3178,7 +3427,10 @@ function toggleBotPanel(force){
     requestAnimationFrame(function(){ requestAnimationFrame(function(){ p.classList.add('open'); }); });
     if(!botGreeted){
       botGreeted = true;
-      botAddAi('🤖 <b>Hi, I\'m Ayaz Bot!</b> Your quick AI buddy — ask me anything right here. For longer chats tap ⤢ up top, or visit the <b>Imagine</b> tab to create images & videos! ✨');
+      if(localStorage.getItem('aas_botauto') !== '0'){
+        const cg = getBotGreet();
+        botAddAi(cg ? escapeHtml(cg) : '🤖 <b>Hi, I\'m ' + escapeHtml(getBotName()) + '!</b> Your quick AI buddy — ask me anything right here. For longer chats tap ⤢ up top, or visit the <b>Imagine</b> tab to create images & videos! ✨');
+      }
     }
     setTimeout(function(){ document.getElementById('botInput').focus(); }, 280);
   } else {
@@ -3208,7 +3460,7 @@ function botAddAi(html){
   const m = document.getElementById('botMsgs');
   const div = document.createElement('div');
   div.className = 'bmsg bmsg-a';
-  div.innerHTML = '<div class="bwho">🤖 Ayaz Bot</div><div class="bbub">' + html + '</div>';
+  div.innerHTML = '<div class="bwho">🤖 ' + escapeHtml(getBotName()) + '</div><div class="bbub">' + html + '</div>';
   m.appendChild(div);
   botScroll();
   return div;
@@ -3570,6 +3822,265 @@ function spSyncThemeSub(){
 }
 function spToggleTheme(){ toggleTheme(); spSyncThemeSub(); }
 function spSoon(name){ showToast('⏳ ' + name + ' — coming soon!'); }
+/* ══════════ Settings sub-pages ══════════ */
+function openSset(id){
+  openInfo(id);
+  if(id==='mSsetHaptics') initSsetHaptics();
+  if(id==='mSsetLang') initSsetLang();
+  if(id==='mSsetAdvanced') initSsetAdvanced();
+  if(id==='mSsetCustomize') initSsetCustomize();
+  if(id==='mSsetSkills') renderSsetSkills();
+  if(id==='mSsetKids') initSsetKids();
+  if(id==='mSsetVoice') renderSsetVoices();
+  if(id==='mSsetBot') initSsetBot();
+  if(id==='mSsetShared') renderSsetShared();
+}
+/* haptic helper — vibrate only when the setting is on */
+function vibe(ms){
+  try{
+    if(localStorage.getItem('aas_haptics') !== '0' && navigator.vibrate) navigator.vibrate(ms || 12);
+  }catch(e){}
+}
+function dlog(){
+  if(localStorage.getItem('aas_debuglogs') === '1'){
+    try{ console.log.apply(console, ['[Ayaz]'].concat([].slice.call(arguments))); }catch(e){}
+  }
+}
+/* --- Haptics --- */
+function initSsetHaptics(){ document.getElementById('ssHapTgl').checked = localStorage.getItem('aas_haptics') !== '0'; }
+function saveSsetHaptics(){
+  const on = document.getElementById('ssHapTgl').checked;
+  localStorage.setItem('aas_haptics', on ? '1' : '0');
+  showToast(on ? '📳 Haptics on' : '📳 Haptics off');
+}
+function testHaptics(){
+  try{
+    if(navigator.vibrate){ navigator.vibrate(40); showToast('📳 Feel that?'); }
+    else showToast('📳 Vibration is not supported on this device.');
+  }catch(e){ showToast('📳 Vibration is not supported on this device.'); }
+}
+/* --- Language --- */
+function initSsetLang(){
+  const l = localStorage.getItem('aas_lang') || 'en';
+  document.getElementById('ssLangEn').classList.toggle('on', l === 'en');
+  document.getElementById('ssLangUr').classList.toggle('on', l !== 'en');
+}
+function setSsetLang(l){
+  localStorage.setItem('aas_lang', l);
+  initSsetLang();
+  showToast(l === 'ur' ? '🌐 زبان تبدیل ہو گئی' : '🌐 Language changed');
+}
+/* --- Advanced --- */
+function initSsetAdvanced(){
+  document.getElementById('ssDevTgl').checked = localStorage.getItem('aas_devmode') === '1';
+  document.getElementById('ssDbgTgl').checked = localStorage.getItem('aas_debuglogs') === '1';
+}
+function saveSsetAdvanced(){
+  const dev = document.getElementById('ssDevTgl').checked;
+  const dbg = document.getElementById('ssDbgTgl').checked;
+  localStorage.setItem('aas_devmode', dev ? '1' : '0');
+  localStorage.setItem('aas_debuglogs', dbg ? '1' : '0');
+  document.body.classList.toggle('dev', dev);
+  dlog('advanced settings saved', { dev: dev, dbg: dbg });
+  showToast('🔧 Advanced settings saved');
+}
+function applyDevMode(){ document.body.classList.toggle('dev', localStorage.getItem('aas_devmode') === '1'); }
+function clearSsetCache(){
+  try{
+    const drop = [];
+    for(let i = 0; i < localStorage.length; i++){
+      const k = localStorage.key(i);
+      if(k && (k.indexOf('aas_cache') === 0 || k === 'aas_notice_dismissed' || k === 'aas_pending_ref')) drop.push(k);
+    }
+    drop.forEach(function(k){ localStorage.removeItem(k); });
+    sessionStorage.clear();
+  }catch(e){}
+  showToast('🧹 Cache cleared');
+}
+/* --- Customize Ayaz --- */
+function initSsetCustomize(){ document.getElementById('ssCustomInstr').value = localStorage.getItem('aas_custom_instructions') || ''; }
+function saveSsetCustomize(){
+  localStorage.setItem('aas_custom_instructions', document.getElementById('ssCustomInstr').value.trim());
+  showToast('🎚️ Saved — applies to new chats');
+}
+function getCustomInstructions(){ return localStorage.getItem('aas_custom_instructions') || ''; }
+/* --- Skills --- */
+var SSET_SKILLS = [
+  { id: 'image', name: 'Image Generation', desc: 'Create pictures from text', icon: '🖼️' },
+  { id: 'video', name: 'Video Generation', desc: 'Create short videos', icon: '🎬' },
+  { id: 'chat', name: 'Chat', desc: 'Ask & conversation', icon: '💬', locked: true },
+  { id: 'voice', name: 'Voice Output', desc: 'Read replies aloud', icon: '🔊' }
+];
+function getSsetSkills(){
+  const out = {};
+  SSET_SKILLS.forEach(function(k){ out[k.id] = true; });
+  try{
+    const s = JSON.parse(localStorage.getItem('aas_skills') || '{}');
+    SSET_SKILLS.forEach(function(k){ if(!k.locked) out[k.id] = s[k.id] !== false; });
+  }catch(e){}
+  return out;
+}
+function renderSsetSkills(){
+  const st = getSsetSkills();
+  document.getElementById('ssSkillsList').innerHTML = SSET_SKILLS.map(function(k){
+    const note = k.locked ? '<small>Core — always on</small>' : '<small>' + k.desc + '</small>';
+    return '<div class="ss-row"><div style="display:flex;align-items:center;gap:12px;min-width:0">' +
+      '<span style="font-size:22px;flex-shrink:0">' + k.icon + '</span>' +
+      '<div class="ss-lab"><b>' + k.name + '</b>' + note + '</div></div>' +
+      '<label class="switch"><input type="checkbox"' + (st[k.id] ? ' checked' : '') +
+      (k.locked ? ' disabled' : '') + ' onchange="saveSsetSkill(\'' + k.id + '\', this.checked)">' +
+      '<span class="sl"></span></label></div>';
+  }).join('');
+}
+function saveSsetSkill(id, on){
+  const st = getSsetSkills(); st[id] = !!on;
+  try{ localStorage.setItem('aas_skills', JSON.stringify(st)); }catch(e){}
+  showToast(on ? '🎯 Skill enabled' : '🎯 Skill disabled');
+}
+function ssetSkillOn(id){ return getSsetSkills()[id] !== false; }
+/* --- Kids Mode --- */
+function initSsetKids(){ document.getElementById('ssKidsTgl').checked = localStorage.getItem('aas_kids') === '1'; }
+function saveSsetKids(){
+  const on = document.getElementById('ssKidsTgl').checked;
+  localStorage.setItem('aas_kids', on ? '1' : '0');
+  showToast(on ? '⭐ Kids Mode on — family-friendly replies' : '⭐ Kids Mode off');
+}
+function isKidsMode(){ return localStorage.getItem('aas_kids') === '1'; }
+/* --- Voice --- */
+var ssetVoices = [];
+function loadSsetVoices(){
+  try{
+    if('speechSynthesis' in window){
+      const vs = window.speechSynthesis.getVoices();
+      if(vs && vs.length) ssetVoices = vs;
+    }
+  }catch(e){}
+}
+function renderSsetVoices(){
+  loadSsetVoices();
+  const saved = localStorage.getItem('aas_voice') || '';
+  const box = document.getElementById('ssVoiceList');
+  if(!ssetVoices.length){
+    box.innerHTML = '<div class="ss-row"><div class="ss-lab"><small>No voices found yet — they appear after first use.</small></div></div>';
+    return;
+  }
+  box.innerHTML = ssetVoices.slice(0, 24).map(function(v, i){
+    const sel = (saved && v.voiceURI === saved) || (!saved && v.default);
+    return '<div class="ss-voice"><button class="ss-opt' + (sel ? ' on' : '') + '" style="flex:1;margin:0;min-width:0" onclick="setSsetVoice(' + i + ')">' +
+      '<span class="radio"></span><span class="vn"><b>' + escapeHtml(v.name) + '</b><small>' + escapeHtml(v.lang) + '</small></span></button>' +
+      '<button class="ss-play" onclick="previewSsetVoice(' + i + ')">▶ Preview</button></div>';
+  }).join('');
+}
+function setSsetVoice(i){
+  const v = ssetVoices[i]; if(!v) return;
+  try{ localStorage.setItem('aas_voice', v.voiceURI); }catch(e){}
+  renderSsetVoices();
+  const sub = document.getElementById('spVoiceSub');
+  if(sub) sub.textContent = v.name.split(' ').slice(0, 2).join(' ');
+  showToast('🎙️ Voice set: ' + v.name);
+}
+function previewSsetVoice(i){
+  const v = ssetVoices[i];
+  if(!v || !('speechSynthesis' in window)){ showToast('🔊 Preview not available.'); return; }
+  try{
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance('Hi! I am ' + getBotName() + '. This is how I sound.');
+    u.voice = v; u.lang = v.lang;
+    window.speechSynthesis.speak(u);
+  }catch(e){ showToast('🔊 Preview failed.'); }
+}
+function getSsetVoice(){
+  if(!('speechSynthesis' in window)) return null;
+  loadSsetVoices();
+  const saved = localStorage.getItem('aas_voice');
+  if(saved){
+    const f = ssetVoices.filter(function(v){ return v.voiceURI === saved; });
+    if(f.length) return f[0];
+  }
+  return null;
+}
+function initSsetVoiceSub(){
+  const sub = document.getElementById('spVoiceSub');
+  if(!sub) return;
+  const sv = getSsetVoice();
+  sub.textContent = sv ? sv.name.split(' ').slice(0, 2).join(' ') : 'Default';
+}
+/* --- Bot settings --- */
+function getBotName(){ return localStorage.getItem('aas_botname') || 'Ayaz Bot'; }
+function getBotGreet(){ return localStorage.getItem('aas_botgreet') || ''; }
+function initSsetBot(){
+  document.getElementById('ssBotName').value = localStorage.getItem('aas_botname') || '';
+  document.getElementById('ssBotGreet').value = localStorage.getItem('aas_botgreet') || '';
+  document.getElementById('ssBotAutoTgl').checked = localStorage.getItem('aas_botauto') !== '0';
+}
+function saveSsetBot(){
+  const name = document.getElementById('ssBotName').value.trim().slice(0, 30);
+  const greet = document.getElementById('ssBotGreet').value.trim().slice(0, 500);
+  const auto = document.getElementById('ssBotAutoTgl').checked;
+  try{
+    if(name) localStorage.setItem('aas_botname', name); else localStorage.removeItem('aas_botname');
+    if(greet) localStorage.setItem('aas_botgreet', greet); else localStorage.removeItem('aas_botgreet');
+    localStorage.setItem('aas_botauto', auto ? '1' : '0');
+  }catch(e){}
+  applyBotBranding();
+  showToast('💬 Bot settings saved');
+}
+function applyBotBranding(){
+  const name = getBotName();
+  document.querySelectorAll('#botPanel .bt b').forEach(function(b){ b.textContent = name; });
+  const inp = document.getElementById('botInput');
+  if(inp) inp.placeholder = 'Ask ' + name + '...';
+  const panel = document.getElementById('botPanel');
+  if(panel) panel.setAttribute('aria-label', name + ' chat');
+}
+/* --- Shared Conversations --- */
+function getSharedConvs(){
+  try{ return JSON.parse(localStorage.getItem('aas_shared') || '[]'); }catch(e){ return []; }
+}
+function renderSsetShared(){
+  const list = getSharedConvs();
+  const box = document.getElementById('ssSharedList');
+  if(!list.length){
+    box.innerHTML = '<div class="ss-empty"><div class="eic"><span style="font-size:30px">🔗</span></div>' +
+      '<b>No shared conversations yet</b><p>Tap the Share button in chat to save<br>a conversation here.</p></div>';
+    return;
+  }
+  box.innerHTML = '<div class="ss-card">' + list.map(function(s, i){
+    return '<div class="ss-share-item"><b>' + escapeHtml(s.title || 'Conversation') + '</b>' +
+      '<small>' + escapeHtml(s.date || '') + '</small><p>' + escapeHtml(s.preview || '') + '</p>' +
+      '<div class="ss-share-btns"><button class="ss-play" onclick="copySharedConv(' + i + ')">📋 Copy</button>' +
+      '<button class="ss-play" onclick="deleteSharedConv(' + i + ')" style="color:#f87171">Delete</button></div></div>';
+  }).join('') + '</div>';
+}
+function shareConversation(){
+  if(document.querySelectorAll('#chatList .msg-user .bubble').length === 0){ showToast('💬 Chat a little first, then share!'); return; }
+  let text = '';
+  document.querySelectorAll('#chatList .msg-user .bubble, #chatList .msg-ai .bubble').forEach(function(b){
+    const who = b.closest('.msg-user') ? 'You' : 'Ayaz AI';
+    text += who + ': ' + (b.innerText || '').trim().slice(0, 500) + '\n\n';
+  });
+  text = text.trim().slice(0, 4000);
+  if(!text){ showToast('💬 Nothing to share yet.'); return; }
+  const list = getSharedConvs();
+  const firstUser = document.querySelector('#chatList .msg-user .bubble');
+  const title = firstUser ? (firstUser.innerText || '').trim().slice(0, 60) : 'Conversation';
+  list.unshift({ title: title, date: new Date().toLocaleString(), preview: text.slice(0, 220), full: text });
+  try{ localStorage.setItem('aas_shared', JSON.stringify(list.slice(0, 20))); }catch(e){}
+  const done = function(){ showToast('🔗 Conversation saved to Shared'); };
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done, done); }
+  else done();
+}
+function copySharedConv(i){
+  const s = getSharedConvs()[i]; if(!s) return;
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(s.full || s.preview || '').then(function(){ showToast('📋 Copied'); }, function(){ showToast('📋 Copy failed'); });
+  } else showToast('📋 Copy not supported here.');
+}
+function deleteSharedConv(i){
+  const list = getSharedConvs(); list.splice(i, 1);
+  try{ localStorage.setItem('aas_shared', JSON.stringify(list)); }catch(e){}
+  renderSsetShared();
+}
 function spSignOut(){ closeInfo('mSettings'); logout(); }
 function openDataControls(){
   document.getElementById('pwCur').value = '';
@@ -3633,7 +4144,7 @@ document.addEventListener('keydown', function(e){
   if(e.key === 'Escape'){
     toggleDrawer(false);
     toggleBotPanel(false);
-    ['mSettings','mPrivacy','mTerms','mHelp','mContact','mAbout','mFeedback','mLibrary','mPricing','mApiDocs','mRefer','mAutomations','mNewAutomation','mProjects','mNewProject','mVerify','mCredits','mAds','mDataControls','mLicenses'].forEach(closeInfo);
+    ['mSettings','mPrivacy','mTerms','mHelp','mContact','mAbout','mFeedback','mLibrary','mPricing','mApiDocs','mRefer','mAutomations','mNewAutomation','mProjects','mNewProject','mVerify','mCredits','mAds','mDataControls','mLicenses','mSsetHaptics','mSsetWidget','mSsetLang','mSsetAdvanced','mSsetCustomize','mSsetConnectors','mSsetSkills','mSsetKids','mSsetVoice','mSsetBot','mSsetShared'].forEach(closeInfo);
     closeImagineSettings();
     closeBuildCode();
     document.getElementById('modeMenu').classList.remove('show');
@@ -4066,6 +4577,7 @@ function startVoice(targetId, btnId){
 /* speak: read the last AI reply aloud (Grok-style Speak button) */
 function speakLast(){
   if(!('speechSynthesis' in window)){ showToast('🔊 Speech is not supported in this browser.'); return; }
+  if(!ssetSkillOn('voice')){ showToast('🎯 Voice Output is off — enable it in Settings → Skills.'); return; }
   const btn = document.getElementById('speakBtn');
   if(window.speechSynthesis.speaking){
     window.speechSynthesis.cancel();
@@ -4079,7 +4591,8 @@ function speakLast(){
   text = text.replace(/⚠️|✨/g, '').trim().slice(0, 600);
   if(!text){ showToast('💬 Nothing to speak yet.'); return; }
   const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'en-US';
+  const sv = getSsetVoice();
+  if(sv){ u.voice = sv; u.lang = sv.lang; } else { u.lang = 'en-US'; }
   u.onend = u.onerror = function(){
     btn.classList.remove('speaking');
     document.getElementById('speakLabel').textContent = 'Speak';
@@ -4237,6 +4750,7 @@ async function clearChat(){
   showToast('🗑️ Chat cleared — fresh start!');
 }
 async function sendChat(){
+  vibe(12); dlog('sendChat');
   if(chatSending) return;
   if(needAuth()) return;
   const inp = document.getElementById('chatInput');
@@ -4256,7 +4770,7 @@ async function sendChat(){
     const r = await fetch('/api/chat', {
       method: 'POST',
       headers: authHeaders({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ message: text, imageId: att ? att.id : null, mode: useMode, study: useMode === 'study' }),
+      body: JSON.stringify({ message: text, imageId: att ? att.id : null, mode: useMode, study: useMode === 'study', customInstructions: getCustomInstructions() || undefined, kidsMode: isKidsMode() || undefined }),
     });
     const d = await r.json().catch(() => ({}));
     removeTyping();
@@ -4375,6 +4889,8 @@ async function generate(){
   const raw = document.getElementById('prompt').value.trim();
   if(!raw){ document.getElementById('status').textContent = 'Please describe your image first!'; return; }
   if(needAuth()) return;
+  if(!ssetSkillOn('image')){ document.getElementById('status').textContent = 'Image Generation is off — enable it in Settings → Skills.'; return; }
+  vibe(15); dlog('generate image');
   let prompt = styledPrompt(raw) + imagineQualitySuffix();
   if(refImageId) prompt += '. Transform the attached reference photo accordingly, keeping the subject recognizable.';
   const [w,h] = document.getElementById('size').value.split('x');
@@ -4405,6 +4921,8 @@ async function generateVideo(){
   const raw = document.getElementById('vprompt').value.trim();
   if(!raw){ document.getElementById('status').textContent = 'Please describe your video first!'; return; }
   if(needAuth()) return;
+  if(!ssetSkillOn('video')){ document.getElementById('status').textContent = 'Video Generation is off — enable it in Settings → Skills.'; return; }
+  vibe(15); dlog('generate video');
   let prompt = styledPrompt(raw);
   if(refImageId) prompt += '. Transform the attached reference photo accordingly, keeping the subject recognizable.';
   const duration = document.getElementById('vdur').value;
@@ -4589,6 +5107,13 @@ window.addEventListener('DOMContentLoaded', () => {
   checkCookies();
   checkAutoReminder();
   initVoiceButtons();
+  applyDevMode();
+  applyBotBranding();
+  initSsetVoiceSub();
+  if('speechSynthesis' in window){
+    loadSsetVoices();
+    try{ window.speechSynthesis.onvoiceschanged = function(){ loadSsetVoices(); initSsetVoiceSub(); }; }catch(e){}
+  }
   // Grok-exact: show chat send button while typing
   const chatInpEl = document.getElementById('chatInput');
   if(chatInpEl){
