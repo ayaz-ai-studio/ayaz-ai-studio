@@ -5,6 +5,7 @@ const fs = require('fs');
 const os = require('os');
 const crypto = require('crypto');
 const { spawn } = require('child_process');
+const db = require('./db'); // storage backend: PostgreSQL (DATABASE_URL) or JSON files
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -16,41 +17,26 @@ app.use(express.json({ limit: '2mb' })); // 2mb: profile photo uploads go throug
 app.use(express.static(path.join(__dirname, 'public')));
 
 /* ------------------------------------------------------------------ */
-/* Auth — email + password accounts (file-based, users.json)            */
+/* Auth — email + password accounts                                      */
 /*                                                                     */
 /* Passwords are hashed with PBKDF2 (SHA-512, 120k iterations, unique   */
 /* salt per user). Plain passwords are never stored. Sessions are      */
 /* random 256-bit bearer tokens stored with the user record.           */
 /*                                                                     */
-/* HONEST LIMITS (file-based store):                                   */
-/* - users.json / usage.json live on the local filesystem. On free     */
-/*   hosting (Render free tier) the filesystem is EPHEMERAL — accounts */
-/*   and usage reset whenever the service restarts or sleeps.          */
+/* STORAGE: accounts live in the in-memory userStore and are persisted */
+/* write-through by db.js — PostgreSQL when DATABASE_URL is set       */
+/* (survives deploys/restarts), JSON files otherwise (ephemeral on    */
+/* Render free tier).                                                  */
 /* - No rate limiting on login/register (production needs it).         */
 /* - No email verification (production should verify emails).          */
-/* Production path: move users + usage to Supabase Postgres +          */
-/* Supabase Auth / Better Auth.                                        */
 /* ------------------------------------------------------------------ */
 
-const USERS_FILE = path.join(__dirname, 'users.json');
 const PBKDF2_ITER = 120000;
 const TOKEN_BYTES = 32;
 
+/* Populated by db.init() at boot (Postgres or JSON files). */
 let userStore = { users: {} };
-function loadUsers() {
-  try {
-    if (fs.existsSync(USERS_FILE)) {
-      const parsed = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
-      if (parsed && parsed.users) userStore = parsed;
-    }
-  } catch (e) { console.log('users.json unreadable, starting fresh'); }
-}
-loadUsers();
-function saveUsers() {
-  fs.writeFile(USERS_FILE, JSON.stringify(userStore), (e) => {
-    if (e) console.log('users save failed:', e.message);
-  });
-}
+function saveUsers() { db.saveUsers(userStore); }
 
 function normEmail(e) { return (e || '').toString().trim().toLowerCase(); }
 function validEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e); }
@@ -857,29 +843,18 @@ app.get('/auth/google/callback', async (req, res) => {
 /* Feedback                                                             */
 /*                                                                     */
 /* POST /api/feedback { rating 1-5, text } — signed-in users can rate   */
-/* the service and leave comments. Stored in feedback.json (ephemeral   */
-/* on free hosting, same caveat as users/usage).                        */
+/* the service and leave comments. Persisted by db.js (Postgres when   */
+/* DATABASE_URL is set, JSON files otherwise).                          */
 /* GET /api/feedback — returns the signed-in user's own feedback list   */
 /* (newest first). No admin role exists yet, so this is a simple       */
 /* per-user view for now.                                               */
 /* ------------------------------------------------------------------ */
 
-const FEEDBACK_FILE = path.join(__dirname, 'feedback.json');
 const FEEDBACK_MAX_TOTAL = 2000;
 
+/* Populated by db.init() at boot (Postgres or JSON files). */
 let feedbackStore = { entries: [] };
-try {
-  if (fs.existsSync(FEEDBACK_FILE)) {
-    const parsed = JSON.parse(fs.readFileSync(FEEDBACK_FILE, 'utf8'));
-    if (parsed && Array.isArray(parsed.entries)) feedbackStore = parsed;
-  }
-} catch (e) { console.log('feedback.json unreadable, starting fresh'); }
-
-function saveFeedback() {
-  fs.writeFile(FEEDBACK_FILE, JSON.stringify(feedbackStore), (e) => {
-    if (e) console.log('feedback save failed:', e.message);
-  });
-}
+function saveFeedback() { db.saveFeedback(feedbackStore); }
 
 /**
  * POST /api/feedback  { rating: 1-5, text }
@@ -922,26 +897,14 @@ app.get('/api/feedback', requireAuth, (req, res) => {
 /* Newsletter                                                           */
 /*                                                                     */
 /* POST /api/newsletter { email } — public signup for product updates.  */
-/* Stored in newsletter.json (ephemeral on free hosting, same caveat   */
-/* as users/usage). Duplicates are ignored.                            */
+/* Persisted by db.js. Duplicates are ignored.                         */
 /* ------------------------------------------------------------------ */
 
-const NEWSLETTER_FILE = path.join(__dirname, 'newsletter.json');
 const NEWSLETTER_MAX_TOTAL = 10000;
 
+/* Populated by db.init() at boot (Postgres or JSON files). */
 let newsletterStore = { emails: [] };
-try {
-  if (fs.existsSync(NEWSLETTER_FILE)) {
-    const parsed = JSON.parse(fs.readFileSync(NEWSLETTER_FILE, 'utf8'));
-    if (parsed && Array.isArray(parsed.emails)) newsletterStore = parsed;
-  }
-} catch (e) { console.log('newsletter.json unreadable, starting fresh'); }
-
-function saveNewsletter() {
-  fs.writeFile(NEWSLETTER_FILE, JSON.stringify(newsletterStore), (e) => {
-    if (e) console.log('newsletter save failed:', e.message);
-  });
-}
+function saveNewsletter() { db.saveNewsletter(newsletterStore); }
 
 /**
  * POST /api/newsletter  { email }
@@ -967,30 +930,18 @@ app.post('/api/newsletter', (req, res) => {
 /* ------------------------------------------------------------------ */
 /* My Creations (notebook)                                              */
 /*                                                                     */
-/* Every successful generation is logged per account in                 */
-/* creations.json: { type, prompt, params, createdAt }. The actual      */
-/* image/video files are NOT stored (they stream on-demand), so each   */
-/* entry offers a "Regenerate" action that re-runs the same prompt.    */
-/* Capped at 100 entries per user (oldest dropped). Ephemeral on free  */
-/* hosting — production path is Supabase Postgres.                      */
+/* Every successful generation is logged per account by db.js:         */
+/* { type, prompt, params, createdAt }. The actual image/video files    */
+/* are NOT stored (they stream on-demand), so each entry offers a      */
+/* "Regenerate" action that re-runs the same prompt.                   */
+/* Capped at 100 entries per user (oldest dropped).                    */
 /* ------------------------------------------------------------------ */
 
-const CREATIONS_FILE = path.join(__dirname, 'creations.json');
 const CREATIONS_MAX_PER_USER = 100;
 
+/* Populated by db.init() at boot (Postgres or JSON files). */
 let creationsStore = { users: {} };
-try {
-  if (fs.existsSync(CREATIONS_FILE)) {
-    const parsed = JSON.parse(fs.readFileSync(CREATIONS_FILE, 'utf8'));
-    if (parsed && parsed.users) creationsStore = parsed;
-  }
-} catch (e) { console.log('creations.json unreadable, starting fresh'); }
-
-function saveCreations() {
-  fs.writeFile(CREATIONS_FILE, JSON.stringify(creationsStore), (e) => {
-    if (e) console.log('creations save failed:', e.message);
-  });
-}
+function saveCreations() { db.saveCreations(creationsStore); }
 
 /** Log one successful generation for the notebook. */
 function recordCreation(email, type, prompt, params) {
@@ -1017,15 +968,13 @@ app.get('/api/my-creations', requireAuth, (req, res) => {
 /* ------------------------------------------------------------------ */
 /* Daily limits + rewarded ads                                          */
 /*                                                                     */
-/* Usage is tracked per account (email) in usage.json.                 */
-/* HONEST LIMIT: free hosting (Render free tier) has an EPHEMERAL       */
-/* filesystem — usage.json resets whenever the service restarts or     */
-/* sleeps. Real production needs a database (Supabase Postgres).        */
+/* Usage is tracked per account (email) and persisted by db.js —        */
+/* PostgreSQL when DATABASE_URL is set (survives deploys), JSON files */
+/* otherwise.                                                        */
 /* ------------------------------------------------------------------ */
 
 const DAILY_IMAGE_LIMIT = 6;
 const DAILY_VIDEO_LIMIT = 3;
-const USAGE_FILE = path.join(__dirname, 'usage.json');
 
 /* ------------------------------------------------------------------ */
 /* Rewarded ads (simulated for now)                                     */
@@ -1043,19 +992,9 @@ const MAX_ADS_PER_DAY = 5;      // max rewarded-ad watches per user per day
 const AD_REWARD_IMAGES = 2;     // +images per completed ad watch
 const AD_REWARD_VIDEOS = 1;     // +videos per completed ad watch
 
+/* Populated by db.init() at boot (Postgres or JSON files). */
 let usageStore = { users: {} };
-try {
-  if (fs.existsSync(USAGE_FILE)) {
-    const parsed = JSON.parse(fs.readFileSync(USAGE_FILE, 'utf8'));
-    if (parsed && parsed.users) usageStore = parsed;
-  }
-} catch (e) { console.log('usage.json unreadable, starting fresh'); }
-
-function saveUsage() {
-  fs.writeFile(USAGE_FILE, JSON.stringify(usageStore), (e) => {
-    if (e) console.log('usage save failed:', e.message);
-  });
-}
+function saveUsage() { db.saveUsage(usageStore); }
 
 function todayStr() { return new Date().toISOString().slice(0, 10); }
 
@@ -1429,8 +1368,8 @@ app.get('/api/generate-video', requireAuth, async (req, res) => {
 /*                                                                     */
 /* POST /api/chat { message, imageId? } — auth required. Proxies to    */
 /*   Pollinations (free, no key). Daily limit: 50 messages. History    */
-/*   stored per user in chat.json (ephemeral on free hosting, same     */
-/*   caveat as users/usage).                                           */
+/*   persisted per user by db.js (Postgres when DATABASE_URL is set,   */
+/*   JSON files otherwise).                                            */
 /* GET /api/chat/history — returns the user's chat history.            */
 /* DELETE /api/chat/history — clears it.                               */
 /* POST /api/upload { image: dataURL, name? } — stores an uploaded     */
@@ -1443,22 +1382,11 @@ app.get('/api/generate-video', requireAuth, async (req, res) => {
 /* ------------------------------------------------------------------ */
 
 const CHAT_DAILY_LIMIT = 50;
-const CHAT_FILE = path.join(__dirname, 'chat.json');
 const CHAT_MAX_PER_USER = 100;
 
+/* Populated by db.init() at boot (Postgres or JSON files). */
 let chatStore = { users: {} };
-try {
-  if (fs.existsSync(CHAT_FILE)) {
-    const parsed = JSON.parse(fs.readFileSync(CHAT_FILE, 'utf8'));
-    if (parsed && parsed.users) chatStore = parsed;
-  }
-} catch (e) { console.log('chat.json unreadable, starting fresh'); }
-
-function saveChat() {
-  fs.writeFile(CHAT_FILE, JSON.stringify(chatStore), (e) => {
-    if (e) console.log('chat save failed:', e.message);
-  });
-}
+function saveChat() { db.saveChat(chatStore); }
 
 function recordChatMessage(email, role, content, imageUrl) {
   const list = chatStore.users[email] || [];
@@ -1885,8 +1813,8 @@ const _origDeleteAccount = null; // (handled inline below via chatStore)
 /*   - video: 720p                                                     */
 /*   - image: 1024px                                                   */
 /*                                                                     */
-/* Storage: video_queue.json / image_queue.json (file-based, same      */
-/* ephemeral-on-free-hosting caveat as users/usage).                   */
+/* Storage: queues live in memory and are persisted write-through by   */
+/* db.js — PostgreSQL when DATABASE_URL is set, JSON files otherwise.  */
 /*                                                                     */
 /* Request shape:                                                      */
 /*   { id, userId, kind, prompt, status, createdAt, resultUrl,          */
@@ -1894,34 +1822,23 @@ const _origDeleteAccount = null; // (handled inline below via chatStore)
 /* status: 'pending' | 'processing' | 'done' | 'failed'                */
 /*                                                                     */
 /* MANUAL PROCESSING (for the agent):                                  */
-/*   1. Read video_queue.json / image_queue.json, take oldest          */
-/*      'pending' item, set status to 'processing'.                    */
-/*   2. Generate the media (720p video / 1024px image).                */
+/*   1. Read the queue (video_queue / image_queue via db.js), take      */
+/*      oldest 'pending' item, set status to 'processing'.              */
+/*   2. Generate the media (720p video / 1024px image).                 */
 /*   3. Upload the file somewhere public (or serve from /uploads) and  */
 /*      set status to 'done' + resultUrl to the download URL.          */
 /*      On failure set status to 'failed'.                             */
-/*   4. Save the JSON file. The user sees it in Library → Requests.    */
+/*   4. Save via db.saveQueue(). The user sees it in Library →        */
+/*      Requests.                                                      */
 /* ------------------------------------------------------------------ */
-const VIDEO_QUEUE_FILE = path.join(__dirname, 'video_queue.json');
-const IMAGE_QUEUE_FILE = path.join(__dirname, 'image_queue.json');
 const QUEUE_MAX_PENDING = 100;
 
-function loadQueueFile(file) {
-  try {
-    if (fs.existsSync(file)) {
-      const parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
-      if (Array.isArray(parsed)) return parsed;
-    }
-  } catch (e) { console.log(path.basename(file), 'unreadable, starting fresh'); }
-  return [];
+/* Populated by db.init() at boot (Postgres or JSON files). */
+let videoQueue = [];
+let imageQueue = [];
+function saveQueue(kind) {
+  db.saveQueue(kind, kind === 'video' ? videoQueue : imageQueue);
 }
-function saveQueueFile(file, arr) {
-  fs.writeFile(file, JSON.stringify(arr), (e) => {
-    if (e) console.log('queue save failed:', e.message);
-  });
-}
-let videoQueue = loadQueueFile(VIDEO_QUEUE_FILE);
-let imageQueue = loadQueueFile(IMAGE_QUEUE_FILE);
 
 function pendingQueueItems(arr) {
   return arr
@@ -1932,7 +1849,7 @@ function queuePosition(arr, id) {
   const idx = pendingQueueItems(arr).findIndex((q) => q.id === id);
   return idx >= 0 ? idx + 1 : null;
 }
-function enqueueRequest(arr, file, item) {
+function enqueueRequest(arr, kind, item) {
   if (pendingQueueItems(arr).length >= QUEUE_MAX_PENDING) return null;
   const entry = Object.assign(
     {
@@ -1944,7 +1861,7 @@ function enqueueRequest(arr, file, item) {
     item
   );
   arr.push(entry);
-  saveQueueFile(file, arr);
+  saveQueue(kind);
   return entry;
 }
 
@@ -1958,7 +1875,7 @@ app.post('/api/queue/video', requireAuth, (req, res) => {
   const duration = Math.min(Math.max(parseInt(req.body.duration) || 5, 3), 8);
   const motion = ['zoomin', 'zoomout', 'panleft', 'panright'].includes(req.body.motion)
     ? req.body.motion : 'zoomin';
-  const entry = enqueueRequest(videoQueue, VIDEO_QUEUE_FILE, {
+  const entry = enqueueRequest(videoQueue, 'video', {
     userId: req.authEmail, kind: 'video', prompt, duration, motion,
   });
   if (!entry) return res.status(429).json({ error: 'Video queue is full (100). Please try again later.' });
@@ -1978,7 +1895,7 @@ app.post('/api/queue/image', requireAuth, (req, res) => {
   if (!prompt) return res.status(400).json({ error: 'prompt required' });
   const width = Math.min(Math.max(parseInt(req.body.width) || 1024, 256), 1024);
   const height = Math.min(Math.max(parseInt(req.body.height) || 1024, 256), 1024);
-  const entry = enqueueRequest(imageQueue, IMAGE_QUEUE_FILE, {
+  const entry = enqueueRequest(imageQueue, 'image', {
     userId: req.authEmail, kind: 'image', prompt, width, height,
   });
   if (!entry) return res.status(429).json({ error: 'Image queue is full (100). Please try again later.' });
@@ -2026,18 +1943,38 @@ app.get('/api/queue/my', requireAuth, (req, res) => {
  */
 app.delete('/api/queue/:id', requireAuth, (req, res) => {
   const id = (req.params.id || '').toString();
-  for (const [arr, file] of [[videoQueue, VIDEO_QUEUE_FILE], [imageQueue, IMAGE_QUEUE_FILE]]) {
+  for (const [arr, kind] of [[videoQueue, 'video'], [imageQueue, 'image']]) {
     const idx = arr.findIndex((q) => q.id === id && q.userId === req.authEmail);
     if (idx >= 0) {
       if (arr[idx].status !== 'pending') {
         return res.status(409).json({ error: 'Only pending requests can be cancelled.' });
       }
       arr.splice(idx, 1);
-      saveQueueFile(file, arr);
+      saveQueue(kind);
       return res.json({ ok: true });
     }
   }
   res.status(404).json({ error: 'Request not found.' });
 });
 
-app.listen(PORT, () => console.log(`Ayaz AI Studio running on http://localhost:${PORT}`));
+/* Boot: load all stores (PostgreSQL when DATABASE_URL is set, JSON   */
+/* files otherwise) BEFORE accepting requests, so the first request   */
+/* sees fully-loaded data. Falls back to empty stores on error — the   */
+/* server never refuses to start because storage is unavailable.      */
+db.init()
+  .then((s) => {
+    userStore = s.userStore;
+    usageStore = s.usageStore;
+    creationsStore = s.creationsStore;
+    chatStore = s.chatStore;
+    feedbackStore = s.feedbackStore;
+    newsletterStore = s.newsletterStore;
+    videoQueue = s.videoQueue;
+    imageQueue = s.imageQueue;
+    console.log(`[db] storage ready (mode: ${db.mode()})`);
+    app.listen(PORT, () => console.log(`Ayaz AI Studio running on http://localhost:${PORT}`));
+  })
+  .catch((e) => {
+    console.log('[db] init failed, starting with empty stores:', e.message);
+    app.listen(PORT, () => console.log(`Ayaz AI Studio running on http://localhost:${PORT}`));
+  });

@@ -11,6 +11,8 @@ feedback.json
 creations.json
 newsletter.json
 chat.json
+video_queue.json
+image_queue.json
 
 # OS / editor junk
 .DS_Store

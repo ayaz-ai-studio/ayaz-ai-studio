@@ -1,6 +1,18 @@
 # Render deployment blueprint for Ayaz AI Studio
 # Usage: push this repo to GitHub, then in Render Dashboard choose
 # "New +" -> "Blueprint" and point it at the repo. Render reads this file.
+#
+# NOTE: the blueprint below provisions a free Render PostgreSQL database
+# and wires its connection string into DATABASE_URL. The app uses it for
+# persistent storage (users/sessions survive deploys). Without it the app
+# falls back to JSON files (ephemeral on the free tier).
+# Render free Postgres expires after 90 days — recreate it from the
+# dashboard when that happens, or move to a permanent DB (Supabase/Neon).
+databases:
+  - name: ayaz-ai-studio-db
+    plan: free
+    databaseName: ayaz_ai_studio
+    user: ayaz_ai_studio
 services:
   - type: web
     name: ayaz-ai-studio
@@ -14,6 +26,10 @@ services:
     envVars:
       - key: NODE_VERSION
         value: "20"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ayaz-ai-studio-db
+          property: connectionString
       # Optional: a free Hugging Face token enables the HF image fallback
       # and a best-effort true-AI-video attempt. Get one free at
       # https://huggingface.co/settings/tokens (read-only is enough).
