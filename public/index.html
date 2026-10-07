@@ -3,6 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ayaz AI">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
 <title>Ayaz AI Studio — Ask & Imagine</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -556,6 +564,22 @@
   .sharerow { display: flex; gap: 8px; justify-content: center; margin-top: 12px; flex-wrap: wrap; }
   .sharebtn { font-size: 13px; padding: 9px 14px; border-radius: 20px; background: var(--card2);
     border: 1px solid var(--border); color: var(--text); cursor: pointer; font-weight: 600; flex: none; }
+  /* generation queue */
+  .qstatus { text-align: center; font-size: 13px; color: var(--muted); margin-top: 12px; }
+  .qstatus b { color: var(--text); }
+  .qbtn { background: var(--card2) !important; color: var(--text) !important; border: 1px solid var(--border) !important;
+    display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .qtag { font-size: 11px; font-weight: 700; background: var(--blue, #3b82f6); color: #fff;
+    border-radius: 8px; padding: 3px 8px; }
+  .qpill { display: inline-block; font-size: 11px; font-weight: 700; border-radius: 10px; padding: 3px 10px; }
+  .qpill.pending { background: rgba(245, 158, 11, .18); color: #f59e0b; }
+  .qpill.processing { background: rgba(59, 130, 246, .18); color: #3b82f6; }
+  .qpill.done { background: rgba(34, 197, 94, .18); color: #22c55e; }
+  .qpill.failed { background: rgba(239, 68, 68, .18); color: #ef4444; }
+  .qpos { font-size: 13px; color: var(--muted); margin-top: 6px; }
+  .qcancel { margin-top: 10px; font-size: 13px; background: none; border: 1px solid var(--border);
+    color: var(--muted); border-radius: 10px; padding: 7px 14px; cursor: pointer; }
+  .qdl { display: inline-block; margin-top: 10px; font-size: 14px; color: var(--blue); font-weight: 700; text-decoration: none; }
   .imtabs { display: flex; gap: 8px; margin: 14px 0 4px; }
   .imtabs button { flex: 1; font-size: 15px; padding: 11px; border-radius: 14px; border: 1px solid var(--border);
     background: var(--card); color: var(--muted); cursor: pointer; font-weight: 700; }
@@ -1103,6 +1127,14 @@
   .adbar { height: 8px; background: var(--border); border-radius: 4px; margin: 12px 0; overflow: hidden; }
   #adBarFill { height: 100%; width: 0%; background: linear-gradient(90deg, #15803d, #22c55e); transition: width 1s linear; }
   .adnote { font-size: 12px; color: var(--muted); text-align: center; }
+  /* ── Adsterra ad slots (hidden until ADSTERRA_CONFIG.enabled = true) ── */
+  .adsterra-slot { width: 100%; display: flex; justify-content: center; align-items: center;
+    overflow: hidden; margin: 0 auto; }
+  .adsterra-banner { min-height: 50px; padding: 6px 0; background: transparent; }
+  @media (min-width: 760px){ .adsterra-banner { min-height: 90px; } }
+  .adsterra-native { margin: 14px auto; max-width: 640px; padding: 0 16px; }
+  body.ads-live #adsterraBannerTop { display: flex !important; }
+  body.ads-live #adsterraNativeImagine { display: block !important; }
   /* toast */
   #toast { position: fixed; bottom: 90px; left: 50%; z-index: 200; max-width: 92%;
     transform: translateX(-50%) translateY(120px); background: #222; color: #fff;
@@ -1404,6 +1436,20 @@
   <button id="topRightBtn" onclick="toggleBotPanel()" title="Chat with Ayaz Bot" aria-label="Chat with Ayaz Bot">💬</button>
 </header>
 
+<!-- ══════════ Adsterra Banner (728x90 desktop / 320x50 mobile) ══════════
+     HOW TO ENABLE:
+     1. In your Adsterra dashboard create a Banner ad unit.
+     2. Copy the embed code Adsterra gives you.
+     3. Paste it inside the div below (replacing the comment).
+     4. Set ADSTERRA_CONFIG.enabled = true at the top of the <script>.
+     While enabled:false this whole slot stays hidden. -->
+<div id="adsterraBannerTop" class="adsterra-slot adsterra-banner" style="display:none">
+  <!-- Adsterra Banner - Replace with your ad code.
+       Paste Adsterra's banner "invoke" snippet here (the async script tag
+       plus its container div, e.g. id="container-YOUR_BANNER_ID").
+  -->
+</div>
+
 <div id="drawerOverlay" onclick="toggleDrawer(false)"></div>
 <aside id="drawer">
   <div class="dprofile" onclick="drawerGo('settings')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();drawerGo('settings')}" style="cursor:pointer" role="button" tabindex="0" aria-label="Open Settings">
@@ -1484,6 +1530,16 @@
       </div>
       <div class="featgrid" id="featGrid"></div>
 
+      <!-- ══════════ Adsterra Native Ad (between templates) ══════════
+           HOW TO ENABLE:
+           1. In your Adsterra dashboard create a Native Banner ad unit.
+           2. Copy the embed code and paste it inside the div below.
+           3. Set ADSTERRA_CONFIG.enabled = true at the top of the <script>.
+           While enabled:false this slot stays hidden. -->
+      <div id="adsterraNativeImagine" class="adsterra-slot adsterra-native" style="display:none">
+        <!-- Adsterra Native - Replace with your ad code -->
+      </div>
+
       <div class="secttl">✨ Trending styles</div>
       <div id="stylesRow"></div>
 
@@ -1513,6 +1569,11 @@
             </select>
             <button class="genbtn" id="go" onclick="generate()">✨ Generate</button>
           </div>
+          <div class="qstatus" id="iQueueStatus">Images in queue: …/100</div>
+          <div class="row">
+            <button class="genbtn qbtn" id="qImgBtn" onclick="requestImage()">📩 Request Agent Image <span class="qtag">1024px</span></button>
+          </div>
+          <div class="note">Agent-made: higher quality, processed manually (normal quality for now).</div>
         </div>
       </div>
 
@@ -1538,6 +1599,11 @@
           <div class="row">
             <button class="genbtn" id="vgo" onclick="generateVideo()">🎬 Generate Video</button>
           </div>
+          <div class="qstatus" id="vQueueStatus">Videos in queue: …/100</div>
+          <div class="row">
+            <button class="genbtn qbtn" id="qVidBtn" onclick="requestVideo()">📩 Request Agent Video <span class="qtag">720p</span></button>
+          </div>
+          <div class="note">Agent-made: higher quality, processed manually (normal quality for now).</div>
           <div class="note">Free mode: AI still + cinematic motion (3–8s). True AI video needs paid APIs.</div>
         </div>
       </div>
@@ -2345,6 +2411,7 @@
       <button class="lib-tab" data-ltab="media" onclick="setLibTab('media')">Media</button>
       <button class="lib-tab" data-ltab="apps" onclick="setLibTab('apps')">Apps</button>
       <button class="lib-tab" data-ltab="files" onclick="setLibTab('files')">Files</button>
+      <button class="lib-tab" data-ltab="requests" onclick="setLibTab('requests')">Requests</button>
     </div>
     <div id="libList"></div>
   </div>
@@ -2454,6 +2521,37 @@
    Set to '' to hide the bar entirely.
    ═══════════════════════════════════════════════════════════════ */
 const NOTICE_MSG = "";
+/* ═══════════════════════════════════════════════════════════════
+   ADSTERRA AD CONFIG — fill these in from your Adsterra dashboard
+   (https://beta.adsterra.com/) and set enabled:true to go live.
+   Until then, enabled:false keeps every ad slot hidden — no
+   broken iframes, no console errors, nothing user-visible.
+   ═══════════════════════════════════════════════════════════════ */
+const ADSTERRA_CONFIG = {
+  enabled: false,                 // ← set true after pasting your IDs
+  publisherId: 'YOUR_PUBLISHER_ID', // Adsterra account / publisher key
+  bannerId: 'YOUR_BANNER_ID',       // 728x90 (desktop) / 320x50 (mobile) banner key
+  nativeId: 'YOUR_NATIVE_ID',       // Native banner key
+  popunderScript: ''                // Paste full Adsterra popunder script URL here, e.g. 'https://....js'
+};
+/* Load Adsterra banner/native ad units once the config is live. */
+function loadAdsterraAds(){
+  if(!ADSTERRA_CONFIG.enabled) return;
+  /* Banner + native units are rendered by the inline snippets placed
+     in the HTML below (search "Adsterra Banner" / "Adsterra Native").
+     This loader only fires the popunder trigger helper — real unit
+     scripts come from Adsterra's own embed codes you paste there. */
+  document.body.classList.add('ads-live');
+}
+/* Popunder trigger — call on rewarded-ad click when enabled. */
+function triggerAdsterraPopunder(){
+  if(!ADSTERRA_CONFIG.enabled || !ADSTERRA_CONFIG.popunderScript) return;
+  const s = document.createElement('script');
+  s.src = ADSTERRA_CONFIG.popunderScript;
+  s.async = true;
+  document.body.appendChild(s);
+}
+window.addEventListener('DOMContentLoaded', loadAdsterraAds);
 function showNotice(){
   if(!NOTICE_MSG) return;
   if(localStorage.getItem('aas_notice_dismissed') === NOTICE_MSG) return;
@@ -2487,6 +2585,7 @@ function switchMainTab(which){
   });
   if(which === 'ask'){ scrollChatToBottom(); }
   if(which === 'build'){ renderBuildTemplates(); }
+  if(which === 'imagine'){ refreshQueueStatus(); }
   updateTopbarRight();
 }
 
@@ -4309,7 +4408,14 @@ let adCountdown = null;
 function watchAd(){
   if(needAuth()) return;
   const btn = document.getElementById('adBtn');
-  if(btn.disabled) return;
+  if(btn && btn.disabled) return;
+  /* Adsterra popunder: when the config is live, fire the real ad first.
+     The simulated 30s countdown below only runs while ads are disabled. */
+  if(ADSTERRA_CONFIG.enabled && ADSTERRA_CONFIG.popunderScript){
+    triggerAdsterraPopunder();
+    /* With a real ad network the provider confirms the view; until the
+       server-side postback is wired, keep the simulated credit flow. */
+  }
   document.getElementById('adModal').classList.add('show');
   let t = 30;
   const timerEl = document.getElementById('adTimer');
@@ -4440,15 +4546,19 @@ function setLibTab(tab, silent){
   document.querySelectorAll('#mLibrary .lib-tab').forEach(function(b){
     b.classList.toggle('on', b.getAttribute('data-ltab') === tab);
   });
-  if(!silent) renderLibrary();
+  if(silent) return;
+  if(tab === 'requests'){ loadMyRequests(); return; }
+  renderLibrary();
 }
 function libSearch(q){
   libQuery = (q || '').toLowerCase();
+  if(libTab === 'requests'){ renderRequests(); return; }
   renderLibrary();
 }
 function setLibSort(s){
   libSort = s;
   document.getElementById('libMenu').classList.remove('show');
+  if(libTab === 'requests'){ renderRequests(); return; }
   renderLibrary();
 }
 function toggleLibMenu(e){
@@ -4514,6 +4624,155 @@ function regenerateCreation(type, prompt){
     document.getElementById('prompt').focus();
   }
   showToast('✏️ Prompt loaded — tap Generate to re-run it.');
+}
+
+/* ---------- generation queue (agent-processed, max 100 pending each) ---------- */
+var myRequests = [];
+function queueStatusLabel(s){
+  if(s === 'pending') return 'Pending';
+  if(s === 'processing') return 'Processing';
+  if(s === 'done') return 'Done';
+  if(s === 'failed') return 'Failed';
+  return s || '';
+}
+async function refreshQueueStatus(){
+  if(typeof getToken === 'function' && !getToken()) return;
+  const vEl = document.getElementById('vQueueStatus');
+  const iEl = document.getElementById('iQueueStatus');
+  try{
+    const r = await fetch('/api/queue/status', { headers: authHeaders() });
+    if(!r.ok) return;
+    const d = await r.json();
+    if(vEl) vEl.innerHTML = 'Videos in queue: <b>' + d.videoQueue + '</b>/' + d.videoMax;
+    if(iEl) iEl.innerHTML = 'Images in queue: <b>' + d.imageQueue + '</b>/' + d.imageMax;
+  }catch(e){}
+}
+async function requestVideo(){
+  const raw = document.getElementById('vprompt').value.trim();
+  if(!raw){ document.getElementById('status').textContent = 'Please describe your video first!'; return; }
+  if(needAuth()) return;
+  const btn = document.getElementById('qVidBtn');
+  btn.disabled = true;
+  try{
+    const r = await fetch('/api/queue/video', {
+      method: 'POST',
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({
+        prompt: raw,
+        duration: document.getElementById('vdur').value,
+        motion: document.getElementById('vmotion').value,
+      }),
+    });
+    const d = await r.json().catch(function(){ return {}; });
+    if(!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+    document.getElementById('status').textContent = '✅ Added! Position #' + d.position + ' in the video queue.';
+    showToast('🎬 Video requested — position #' + d.position);
+    refreshQueueStatus();
+  }catch(e){
+    document.getElementById('status').textContent = '❌ ' + e.message;
+  }
+  btn.disabled = false;
+}
+async function requestImage(){
+  const raw = document.getElementById('prompt').value.trim();
+  if(!raw){ document.getElementById('status').textContent = 'Please describe your image first!'; return; }
+  if(needAuth()) return;
+  const btn = document.getElementById('qImgBtn');
+  btn.disabled = true;
+  try{
+    const r = await fetch('/api/queue/image', {
+      method: 'POST',
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ prompt: raw, width: 1024, height: 1024 }),
+    });
+    const d = await r.json().catch(function(){ return {}; });
+    if(!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+    document.getElementById('status').textContent = '✅ Added! Position #' + d.position + ' in the image queue.';
+    showToast('🖼️ Image requested — position #' + d.position);
+    refreshQueueStatus();
+  }catch(e){
+    document.getElementById('status').textContent = '❌ ' + e.message;
+  }
+  btn.disabled = false;
+}
+async function loadMyRequests(){
+  const listEl = document.getElementById('libList');
+  listEl.innerHTML = '<div class="lib-empty"><div class="lib-eic">' + LIB_FOLDER_SVG + '</div><b>Loading…</b></div>';
+  try{
+    const r = await fetch('/api/queue/my', { headers: authHeaders() });
+    const d = await r.json().catch(function(){ return {}; });
+    if(r.status === 401){ logout(); throw new Error('Session expired — please sign in again.'); }
+    if(!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+    myRequests = d.requests || [];
+    renderRequests();
+  }catch(e){
+    listEl.innerHTML = '<div class="lib-empty"><div class="lib-eic">' + LIB_FOLDER_SVG + '</div><b>Couldn\'t load</b><span>' + escapeHtml(e.message) + '</span></div>';
+  }
+}
+function renderRequests(){
+  const listEl = document.getElementById('libList');
+  let items = myRequests.slice();
+  if(libQuery){
+    items = items.filter(function(q){ return (q.prompt || '').toLowerCase().indexOf(libQuery) !== -1; });
+  }
+  items.sort(function(a, b){
+    const ta = new Date(a.createdAt || 0).getTime(), tb = new Date(b.createdAt || 0).getTime();
+    return libSort === 'new' ? tb - ta : ta - tb;
+  });
+  if(!items.length){
+    const hint = libQuery ? 'No results for "' + escapeHtml(libQuery) + '"'
+      : 'Request an agent-made video or image from the Imagine tab.';
+    listEl.innerHTML = '<div class="lib-empty"><div class="lib-eic">' + LIB_FOLDER_SVG + '</div><b>Nothing here yet</b><span>' + hint + '</span></div>';
+    return;
+  }
+  const grid = document.createElement('div');
+  grid.className = 'lib-grid';
+  items.forEach(function(q){
+    const card = document.createElement('div');
+    card.className = 'lib-card';
+    const icon = q.kind === 'video' ? '🎬' : '🖼️';
+    let sub = '<div class="qpos"><span class="qpill ' + escapeHtml(q.status) + '">' + escapeHtml(queueStatusLabel(q.status)) + '</span>';
+    if(q.status === 'pending' && q.position) sub += ' &nbsp;Queue position #' + q.position;
+    if(q.kind === 'video' && q.duration) sub += ' &nbsp;•&nbsp; ' + q.duration + 's • 720p';
+    if(q.kind === 'image' && q.width) sub += ' &nbsp;•&nbsp; ' + q.width + '×' + q.height;
+    sub += '</div>';
+    card.innerHTML =
+      '<div class="lib-ctop"><span class="badge">' + icon + ' ' + escapeHtml((q.kind || '').toUpperCase()) + ' REQUEST</span>' +
+      '<span class="cdate">' + escapeHtml(fmtDate(q.createdAt)) + '</span></div>' +
+      '<div class="cprompt">' + escapeHtml(q.prompt || '') + '</div>' + sub;
+    if(q.status === 'done' && q.resultUrl){
+      const a = document.createElement('a');
+      a.className = 'qdl';
+      a.href = q.resultUrl;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.textContent = '⬇ Download';
+      card.appendChild(a);
+    }
+    if(q.status === 'pending'){
+      const c = document.createElement('button');
+      c.type = 'button';
+      c.className = 'qcancel';
+      c.textContent = 'Cancel request';
+      c.onclick = function(){ cancelQueueRequest(q.id); };
+      card.appendChild(c);
+    }
+    grid.appendChild(card);
+  });
+  listEl.innerHTML = '';
+  listEl.appendChild(grid);
+}
+async function cancelQueueRequest(id){
+  try{
+    const r = await fetch('/api/queue/' + encodeURIComponent(id), { method: 'DELETE', headers: authHeaders() });
+    const d = await r.json().catch(function(){ return {}; });
+    if(!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+    showToast('🗑️ Request cancelled.');
+    loadMyRequests();
+    refreshQueueStatus();
+  }catch(e){
+    showToast('❌ ' + e.message);
+  }
 }
 
 /* ---------- newsletter ---------- */
@@ -4858,6 +5117,7 @@ function switchTab(which){
   document.getElementById('panelVid').classList.toggle('active', !isImg);
   document.getElementById('result').style.display = 'none';
   document.getElementById('status').textContent = '';
+  refreshQueueStatus();
 }
 function setPrompt(t){ document.getElementById('prompt').value = t; }
 function setVPrompt(t){ document.getElementById('vprompt').value = t; }
@@ -5136,6 +5396,14 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+</script>
+<script>
+// PWA: register service worker
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('/sw.js').catch(function(e){ /* offline support optional */ });
+  });
+}
 </script>
 </body>
 </html>
