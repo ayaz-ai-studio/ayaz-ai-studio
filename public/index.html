@@ -103,9 +103,238 @@
   .authcard .switch a { color: #7aa5ff; cursor: pointer; }
   .locked { text-align: center; padding: 28px 16px; font-size: 15px; opacity: .85; }
   .locked button { margin-top: 14px; font-size: 15px; padding: 12px 28px; }
+  /* ---- captcha ---- */
+  .crow { display: flex; gap: 8px; margin-bottom: 10px; }
+  .crow .cq { flex: 2; display: flex; align-items: center; justify-content: center;
+    font-size: 19px; font-weight: 700; letter-spacing: 2px; user-select: none;
+    background: rgba(0,0,0,.35); border: 1px dashed rgba(255,255,255,.25);
+    border-radius: 12px; padding: 10px; color: #9ec2ff; }
+  .crow button { flex: none; width: 52px; font-size: 20px; padding: 0; }
+  /* ---- hamburger menu + drawer ---- */
+  #menuBtn { position: fixed; top: 14px; left: 14px; z-index: 150; width: 44px; height: 44px;
+    border-radius: 12px; font-size: 22px; line-height: 1; padding: 0; flex: none;
+    background: rgba(10,14,20,.85); border: 1px solid rgba(255,255,255,.18);
+    backdrop-filter: blur(8px); color: #e8ecf1; }
+  #menuBtn:hover { border-color: #5b8cff; }
+  #drawerOverlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6);
+    z-index: 160; }
+  #drawerOverlay.show { display: block; }
+  #drawer { position: fixed; top: 0; left: 0; bottom: 0; width: 280px; z-index: 170;
+    background: #10161f; border-right: 1px solid rgba(255,255,255,.12);
+    transform: translateX(-105%); transition: transform .28s ease;
+    display: flex; flex-direction: column; padding: 20px 0 16px; }
+  #drawer.open { transform: translateX(0); }
+  #drawer .dhead { padding: 0 20px 14px; border-bottom: 1px solid rgba(255,255,255,.1); }
+  #drawer .dhead .t { font-size: 18px; font-weight: 700; }
+  #drawer .dhead .s { font-size: 12px; opacity: .55; margin-top: 2px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #drawer nav { flex: 1; overflow-y: auto; padding: 10px 8px; }
+  #drawer nav button { display: flex; align-items: center; gap: 12px; width: 100%;
+    background: none; border: none; color: #e8ecf1; font-size: 15px; font-weight: 500;
+    padding: 12px 14px; border-radius: 10px; text-align: left; cursor: pointer; flex: none; }
+  #drawer nav button:hover { background: rgba(91,140,255,.14); }
+  #drawer nav button .ic { font-size: 18px; width: 26px; text-align: center; }
+  #drawer nav button.danger { color: #f87171; }
+  #drawer .dfoot { padding: 12px 20px 0; font-size: 11px; opacity: .45;
+    border-top: 1px solid rgba(255,255,255,.1); }
+  /* ---- info modals (privacy / terms / help / about / contact / settings) ---- */
+  .infomodal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.88);
+    z-index: 180; align-items: center; justify-content: center; padding: 16px; }
+  .infomodal.show { display: flex; }
+  .infocard { background: #141a26; border-radius: 16px; padding: 0;
+    max-width: 480px; width: 100%; max-height: 82vh; display: flex; flex-direction: column;
+    border: 1px solid rgba(255,255,255,.15); }
+  .infocard .ihead { display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 20px 12px; border-bottom: 1px solid rgba(255,255,255,.1); }
+  .infocard .ihead h2 { font-size: 18px; }
+  .infocard .ihead button { flex: none; width: 36px; height: 36px; padding: 0;
+    font-size: 18px; background: rgba(255,255,255,.08); border-radius: 10px; }
+  .infocard .ibody { padding: 18px 20px; overflow-y: auto; font-size: 14px; line-height: 1.65; }
+  .infocard .ibody h3 { font-size: 15px; margin: 16px 0 6px; color: #9ec2ff; }
+  .infocard .ibody h3:first-child { margin-top: 0; }
+  .infocard .ibody p, .infocard .ibody li { opacity: .85; margin-bottom: 8px; }
+  .infocard .ibody ul { padding-left: 20px; }
+  .infocard .ibody .faq-q { font-weight: 700; margin: 14px 0 4px; color: #e8ecf1; }
+  .infocard .ibody .faq-a { opacity: .8; margin-bottom: 6px; }
+  .infocard .iform input { width: 100%; font-size: 15px; border-radius: 10px; padding: 11px;
+    border: 1px solid rgba(255,255,255,.2); background: rgba(0,0,0,.3); color: #fff;
+    margin-bottom: 10px; }
+  .infocard .iform input:focus { outline: none; border-color: #5b8cff; }
+  .infocard .iform .err { color: #f87171; font-size: 13px; min-height: 18px; margin-bottom: 6px; }
+  .infocard .iform .ok { color: #4ade80; font-size: 13px; min-height: 18px; margin-bottom: 6px; }
+  .infocard .iform label { display: block; font-size: 13px; opacity: .7; margin: 8px 0 4px; }
+  .infocard .danger-zone { margin-top: 18px; border: 1px solid rgba(248,113,113,.4);
+    background: rgba(248,113,113,.07); border-radius: 12px; padding: 14px; }
+  .infocard .danger-zone h3 { color: #f87171; margin-top: 0; }
+  .infocard .danger-zone button { background: linear-gradient(90deg, #b91c1c, #ef4444); flex: 1; }
+  .contact-row { display: flex; align-items: center; gap: 10px; background: rgba(91,140,255,.1);
+    border: 1px solid rgba(91,140,255,.35); border-radius: 10px; padding: 12px; margin-top: 10px; }
+  .contact-row .ic { font-size: 20px; }
+  .contact-row a { color: #7aa5ff; }
 </style>
 </head>
 <body>
+<!-- Hamburger button -->
+<button id="menuBtn" onclick="toggleDrawer(true)" aria-label="Menu">☰</button>
+
+<!-- Slide-out drawer -->
+<div id="drawerOverlay" onclick="toggleDrawer(false)"></div>
+<aside id="drawer">
+  <div class="dhead">
+    <div class="t">🎨 Ayaz AI Studio</div>
+    <div class="s" id="drawerEmail">Not signed in</div>
+  </div>
+  <nav>
+    <button onclick="drawerGo('home')"><span class="ic">🏠</span>Home</button>
+    <button onclick="drawerGo('settings')"><span class="ic">⚙️</span>Settings</button>
+    <button onclick="drawerGo('privacy')"><span class="ic">📄</span>Privacy Policy</button>
+    <button onclick="drawerGo('terms')"><span class="ic">📋</span>Terms of Service</button>
+    <button onclick="drawerGo('help')"><span class="ic">❓</span>Help / FAQ</button>
+    <button onclick="drawerGo('contact')"><span class="ic">📞</span>Contact Us</button>
+    <button onclick="drawerGo('about')"><span class="ic">ℹ️</span>About</button>
+  </nav>
+  <div class="dfoot">Ayaz AI Studio • v1.0</div>
+</aside>
+
+<!-- SETTINGS MODAL -->
+<div id="mSettings" class="infomodal">
+  <div class="infocard">
+    <div class="ihead"><h2>⚙️ Settings</h2><button onclick="closeInfo('mSettings')">✕</button></div>
+    <div class="ibody iform">
+      <h3>Account</h3>
+      <p id="settingsEmail">Not signed in</p>
+      <h3>Change password</h3>
+      <label>Current password</label>
+      <input id="pwCur" type="password" placeholder="Current password" autocomplete="current-password">
+      <label>New password (min 6 characters)</label>
+      <input id="pwNew" type="password" placeholder="New password" autocomplete="new-password">
+      <label>Confirm new password</label>
+      <input id="pwNew2" type="password" placeholder="Confirm new password" autocomplete="new-password">
+      <div class="err" id="pwErr"></div>
+      <div class="ok" id="pwOk"></div>
+      <div class="row"><button onclick="changePassword()">Update Password</button></div>
+      <div class="danger-zone">
+        <h3>Delete account</h3>
+        <p>Permanently delete your account and all its data. This cannot be undone.</p>
+        <label>Enter your password to confirm</label>
+        <input id="delPw" type="password" placeholder="Your password" autocomplete="current-password">
+        <div class="err" id="delErr"></div>
+        <div class="row"><button onclick="deleteAccount()">Delete My Account</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PRIVACY POLICY MODAL -->
+<div id="mPrivacy" class="infomodal">
+  <div class="infocard">
+    <div class="ihead"><h2>📄 Privacy Policy</h2><button onclick="closeInfo('mPrivacy')">✕</button></div>
+    <div class="ibody">
+      <p><i>Last updated: October 2026</i></p>
+      <h3>1. Information we collect</h3>
+      <p>When you create an account, we collect your email address and a securely hashed password. We also store the text prompts you submit for generation and your daily usage counts (images, videos, ad watches) to enforce free-tier limits.</p>
+      <h3>2. How we use your information</h3>
+      <ul>
+        <li>To operate your account and provide image/video generation.</li>
+        <li>To enforce daily limits and award ad-earned credits.</li>
+        <li>To improve the service and prevent abuse.</li>
+      </ul>
+      <h3>3. What we never do</h3>
+      <p>We never sell your personal data. We never store your password in plain text — passwords are hashed with PBKDF2 (SHA-512, 120,000 iterations).</p>
+      <h3>4. Third-party generation providers</h3>
+      <p>Your prompts are sent to third-party AI providers to generate images and videos. Those providers process the prompt text under their own privacy policies.</p>
+      <h3>5. Data retention &amp; deletion</h3>
+      <p>You can permanently delete your account (and all associated data) at any time from Settings → Delete account.</p>
+      <h3>6. Contact</h3>
+      <p>Questions about this policy: <a href="mailto:support@ayaz-ai-studio.com" style="color:#7aa5ff">support@ayaz-ai-studio.com</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- TERMS OF SERVICE MODAL -->
+<div id="mTerms" class="infomodal">
+  <div class="infocard">
+    <div class="ihead"><h2>📋 Terms of Service</h2><button onclick="closeInfo('mTerms')">✕</button></div>
+    <div class="ibody">
+      <p><i>Last updated: October 2026</i></p>
+      <h3>1. The service</h3>
+      <p>Ayaz AI Studio provides AI-powered image and video generation. A free tier is offered with daily limits; additional credits can be earned by watching rewarded ads.</p>
+      <h3>2. Acceptable use</h3>
+      <ul>
+        <li>You must be at least 13 years old.</li>
+        <li>Do not generate content that is illegal, hateful, sexually explicit involving minors, or that infringes others' rights.</li>
+        <li>Do not attempt to abuse, overload, or circumvent the service's limits.</li>
+      </ul>
+      <h3>3. Your content</h3>
+      <p>You retain rights to the images and videos you generate, subject to the terms of the underlying AI providers. You are responsible for how you use generated content.</p>
+      <h3>4. Availability</h3>
+      <p>The service is provided "as is" with no guarantee of uninterrupted availability. We may change limits or features at any time.</p>
+      <h3>5. Account termination</h3>
+      <p>We may suspend accounts that violate these terms. You may delete your account at any time from Settings.</p>
+      <h3>6. Contact</h3>
+      <p><a href="mailto:support@ayaz-ai-studio.com" style="color:#7aa5ff">support@ayaz-ai-studio.com</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- HELP / FAQ MODAL -->
+<div id="mHelp" class="infomodal">
+  <div class="infocard">
+    <div class="ihead"><h2>❓ Help / FAQ</h2><button onclick="closeInfo('mHelp')">✕</button></div>
+    <div class="ibody">
+      <div class="faq-q">How do I generate an image?</div>
+      <div class="faq-a">Sign in, type a description in the Image tab, choose a size, and tap Generate. Images usually take 10–30 seconds.</div>
+      <div class="faq-q">How do I generate a video?</div>
+      <div class="faq-a">Switch to the Video tab, describe your scene, pick a duration and motion style, then tap Generate Video. Free-mode videos are AI stills with cinematic motion (3–8 seconds).</div>
+      <div class="faq-q">What are the daily limits?</div>
+      <div class="faq-a">Free accounts get 6 images and 3 videos per day. Limits reset every day.</div>
+      <div class="faq-q">How do I earn extra credits?</div>
+      <div class="faq-a">Tap "Watch Ad" and watch the full 30-second ad. Each completed ad gives +2 images and +1 video (up to 5 ads per day).</div>
+      <div class="faq-q">I forgot my password. What can I do?</div>
+      <div class="faq-a">If you can still sign in, change it from the menu → Settings. If you are locked out, contact support@ayaz-ai-studio.com.</div>
+      <div class="faq-q">How do I delete my account?</div>
+      <div class="faq-a">Open the menu → Settings → Delete account, enter your password, and confirm. This permanently removes your account and data.</div>
+      <div class="faq-q">Is my password safe?</div>
+      <div class="faq-a">Yes. Passwords are never stored in plain text — they are hashed with PBKDF2 (SHA-512, 120,000 iterations) with a unique salt per user.</div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTACT MODAL -->
+<div id="mContact" class="infomodal">
+  <div class="infocard">
+    <div class="ihead"><h2>📞 Contact Us</h2><button onclick="closeInfo('mContact')">✕</button></div>
+    <div class="ibody">
+      <p>Have a question, found a bug, or want to suggest a feature? We'd love to hear from you.</p>
+      <div class="contact-row">
+        <span class="ic">✉️</span>
+        <div><b>Email</b><br><a href="mailto:support@ayaz-ai-studio.com">support@ayaz-ai-studio.com</a></div>
+      </div>
+      <p style="margin-top:14px">We aim to reply within 2 business days.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ABOUT MODAL -->
+<div id="mAbout" class="infomodal">
+  <div class="infocard">
+    <div class="ihead"><h2>ℹ️ About</h2><button onclick="closeInfo('mAbout')">✕</button></div>
+    <div class="ibody">
+      <h3>🎨 Ayaz AI Studio</h3>
+      <p>Ayaz AI Studio is a free AI creation platform. Describe anything you imagine — our AI turns your words into images and short videos in seconds.</p>
+      <h3>What you get, free</h3>
+      <ul>
+        <li>6 AI images every day</li>
+        <li>3 AI videos every day</li>
+        <li>Extra credits by watching short ads</li>
+      </ul>
+      <h3>Our promise</h3>
+      <p>No hidden charges, no surprise bills. Free means free — the daily limits reset every day, and you can always earn more with ads.</p>
+      <p style="opacity:.6">Version 1.0 • Made with care</p>
+    </div>
+  </div>
+</div>
+
 <div class="wrap">
   <header>
     <h1>🎨 Ayaz AI Studio</h1>
@@ -209,6 +438,11 @@
       <div class="err" id="authErr"></div>
       <input id="authEmail" type="email" placeholder="Email address" autocomplete="email">
       <input id="authPass" type="password" placeholder="Password (min 6 characters)" autocomplete="current-password">
+      <div class="crow">
+        <span class="cq" id="capQ">…</span>
+        <button type="button" onclick="loadCaptcha()" title="New question" aria-label="New question">↻</button>
+      </div>
+      <input id="capAns" type="text" inputmode="numeric" placeholder="Answer the math question above" autocomplete="off">
       <div class="row">
         <button id="authGo" onclick="submitAuth()">Sign In</button>
       </div>
@@ -245,6 +479,94 @@
 </div>
 
 <script>
+/* ---------- hamburger drawer + info modals ---------- */
+function toggleDrawer(open){
+  document.getElementById('drawer').classList.toggle('open', open);
+  document.getElementById('drawerOverlay').classList.toggle('show', open);
+}
+function drawerGo(which){
+  toggleDrawer(false);
+  if(which === 'home'){
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+  if(which === 'settings'){
+    openSettings();
+    return;
+  }
+  const map = { privacy: 'mPrivacy', terms: 'mTerms', help: 'mHelp', contact: 'mContact', about: 'mAbout' };
+  if(map[which]) openInfo(map[which]);
+}
+function openInfo(id){ document.getElementById(id).classList.add('show'); }
+function closeInfo(id){ document.getElementById(id).classList.remove('show'); }
+function openSettings(){
+  const email = getEmail();
+  document.getElementById('settingsEmail').textContent = email ? 'Signed in as: ' + email : 'Not signed in';
+  document.getElementById('pwCur').value = '';
+  document.getElementById('pwNew').value = '';
+  document.getElementById('pwNew2').value = '';
+  document.getElementById('pwErr').textContent = '';
+  document.getElementById('pwOk').textContent = '';
+  document.getElementById('delPw').value = '';
+  document.getElementById('delErr').textContent = '';
+  openInfo('mSettings');
+}
+async function changePassword(){
+  const cur = document.getElementById('pwCur').value;
+  const nw = document.getElementById('pwNew').value;
+  const nw2 = document.getElementById('pwNew2').value;
+  const errEl = document.getElementById('pwErr');
+  const okEl = document.getElementById('pwOk');
+  errEl.textContent = ''; okEl.textContent = '';
+  if(!cur || !nw || !nw2){ errEl.textContent = 'Please fill in all three fields.'; return; }
+  if(nw.length < 6){ errEl.textContent = 'New password must be at least 6 characters.'; return; }
+  if(nw !== nw2){ errEl.textContent = 'New passwords do not match.'; return; }
+  try{
+    const r = await fetch('/api/change-password', {
+      method: 'POST',
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ currentPassword: cur, newPassword: nw }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if(!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+    okEl.textContent = '✅ ' + (d.message || 'Password changed successfully.');
+    document.getElementById('pwCur').value = '';
+    document.getElementById('pwNew').value = '';
+    document.getElementById('pwNew2').value = '';
+  }catch(e){
+    errEl.textContent = '❌ ' + e.message;
+  }
+}
+async function deleteAccount(){
+  const pw = document.getElementById('delPw').value;
+  const errEl = document.getElementById('delErr');
+  errEl.textContent = '';
+  if(!pw){ errEl.textContent = 'Please enter your password to confirm.'; return; }
+  if(!confirm('This will PERMANENTLY delete your account and all its data. Continue?')) return;
+  if(!confirm('Final confirmation: delete your account forever?')) return;
+  try{
+    const r = await fetch('/api/account', {
+      method: 'DELETE',
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ password: pw }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if(!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+    closeInfo('mSettings');
+    logout();
+    showToast('🗑️ ' + (d.message || 'Account deleted.'));
+  }catch(e){
+    errEl.textContent = '❌ ' + e.message;
+  }
+}
+// Close modals/drawer with the Escape key
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape'){
+    toggleDrawer(false);
+    ['mSettings','mPrivacy','mTerms','mHelp','mContact','mAbout'].forEach(closeInfo);
+  }
+});
+
 /* ---------- auth ---------- */
 function getToken(){ return localStorage.getItem('aas_token') || ''; }
 function getEmail(){ return localStorage.getItem('aas_email') || ''; }
@@ -255,6 +577,19 @@ function authHeaders(extra){
   return h;
 }
 let authMode = 'login';
+let captchaId = '';
+async function loadCaptcha(){
+  try{
+    const r = await fetch('/api/captcha');
+    const d = await r.json();
+    captchaId = d.id;
+    document.getElementById('capQ').textContent = d.question + ' = ?';
+    const ans = document.getElementById('capAns');
+    if(ans) ans.value = '';
+  }catch(e){
+    document.getElementById('capQ').textContent = 'Check unavailable';
+  }
+}
 function openAuth(mode){
   authMode = mode || 'login';
   document.getElementById('authErr').textContent = '';
@@ -270,21 +605,24 @@ function openAuth(mode){
     ? 'New here? <a onclick="openAuth(\'register\')">Create an account</a>'
     : 'Already have an account? <a onclick="openAuth(\'login\')">Sign in</a>';
   document.getElementById('authModal').classList.add('show');
+  loadCaptcha();
 }
 function closeAuth(){ document.getElementById('authModal').classList.remove('show'); }
 async function submitAuth(){
   const email = document.getElementById('authEmail').value.trim();
   const password = document.getElementById('authPass').value;
+  const captchaAnswer = document.getElementById('capAns').value.trim();
   const errEl = document.getElementById('authErr');
   errEl.textContent = '';
   if(!email || !password){ errEl.textContent = 'Please enter your email and password.'; return; }
+  if(!captchaAnswer){ errEl.textContent = 'Please answer the security question.'; return; }
   const btn = document.getElementById('authGo');
   btn.disabled = true;
   try{
     const r = await fetch('/api/' + authMode, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, captchaId, captchaAnswer }),
     });
     const d = await r.json().catch(() => ({}));
     if(!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
@@ -296,6 +634,7 @@ async function submitAuth(){
     refreshCredits();
   }catch(e){
     errEl.textContent = e.message;
+    loadCaptcha(); // refresh the security question after any failure
   }
   btn.disabled = false;
 }
@@ -311,6 +650,7 @@ function renderAuthState(){
   const email = getEmail();
   const bar = document.getElementById('userbar');
   const loggedIn = !!getToken();
+  document.getElementById('drawerEmail').textContent = loggedIn ? email : 'Not signed in';
   if(loggedIn){
     bar.innerHTML =
       '<div class="authbox"><div class="who">👤 ' + escapeHtml(email) + '</div>' +
