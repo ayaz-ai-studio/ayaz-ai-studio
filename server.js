@@ -1705,9 +1705,10 @@ app.post('/api/lipsync', requireAuth, express.json({ limit: '2mb' }), async (req
     if (!audio_url) return res.status(400).json({ error: 'audio_url required (generate via /api/tts first)' });
 
     // Call Hugging Face Space via gradio client
-    // LivePortrait: KwaiVGI/LivePortrait (humans + animals)
-    // LatentSync: ByteDance/LatentSync (HD human)
-    const space = mode === 'animal' ? 'KwaiVGI/LivePortrait' : 'ByteDance/LatentSync1.5';
+    // LivePortrait: KwaiVGI/LivePortrait (humans + animals, no login)
+    // LatentSync: fffiloni/LatentSync (HD human lip-sync)
+    // SadTalker: vinthony/SadTalker (fast)
+    const space = mode === 'animal' ? 'KwaiVGI/LivePortrait' : 'fffiloni/LatentSync';
     const client = await Client.connect(space);
 
     const result = await client.predict('/generate', {
