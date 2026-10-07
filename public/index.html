@@ -395,10 +395,6 @@
   body.light #drawer nav .dmenu button, body.light #drawer nav button.dwatchad { background: #f0f0f0; color: #111; }
   body.light #drawer nav .dmenu button:active, body.light #drawer nav button.dwatchad:active { background: #e2e2e2; }
   body.light .dpgo { background: #ececec; color: #111; }
-  body.light .dsearch { background: #f0f0f0; }
-  body.light .dsearch input { color: #111; }
-  body.light .dsearch input::placeholder { color: #999; }
-  body.light .diconbtn { background: #ececec; color: #111; }
   body.light #drawerHistory .hempty b { color: #111; }
   body.light #drawerHistory .hempty span { color: #777; }
   .dsect { font-size: 11px; font-weight: 700; color: var(--faint); text-transform: uppercase;
@@ -411,16 +407,6 @@
   #drawerHistory button.hist:active { background: var(--card2); }
   #drawerHistory button.hist .h { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   #drawerHistory .hempty { font-size: 12.5px; color: var(--faint); padding: 6px 20px 10px; }
-  .dbottom { display: flex; align-items: center; gap: 10px; padding: 12px 16px calc(14px + env(safe-area-inset-bottom));
-    border-top: none; }
-  .dsearch { flex: 1; display: flex; align-items: center; gap: 10px; background: #1a1a1a;
-    border: none; border-radius: 999px; padding: 12px 16px; }
-  .dsearch input { flex: 1; background: none; border: none; color: #fff; font-size: 15px; min-width: 0; font-family: inherit; }
-  .dsearch input:focus { outline: none; }
-  .dsearch input::placeholder { color: #8a8a8a; }
-  .diconbtn { background: #1a1a1a; border: none; color: #fff;
-    width: 48px; height: 48px; border-radius: 50%; font-size: 20px; cursor: pointer; flex-shrink: 0; }
-  .diconbtn:active { background: var(--card2); }
   /* ---------- center logo empty state (Grok exact) ---------- */
   .chatempty .centerlogo { width: 140px; height: 140px; border-radius: 36px; object-fit: cover;
     margin-bottom: 0; opacity: .95; }
@@ -1055,6 +1041,8 @@
       <button data-label="library my creations" onclick="drawerGo('library')"><span class="ic">🗄️</span>Library</button>
       <button data-label="projects saved prompts" onclick="drawerGo('projects')"><span class="ic">📁</span>Projects</button>
       <button data-label="ayaz bot assistant" onclick="drawerGo('ayazbot')"><span class="ic">💬</span><span>Ayaz Bot<span class="newbadge">New</span></span></button>
+      <button data-label="settings preferences" onclick="drawerGo('settings')"><span class="ic">⚙️</span>Settings</button>
+      <button data-label="new chat clear history" onclick="toggleDrawer(false);clearChat()"><span class="ic">✎</span>New Chat</button>
     </div>
     <div class="dpromo">
       <span class="dpicon">◈</span>
@@ -1064,11 +1052,6 @@
     <button class="dwatchad" data-label="watch ad extra credits" onclick="openAdsPage()"><span class="ic">🎬</span>Watch Ad for Credits</button>
     <div id="drawerHistory"><div class="hempty"><b>No chat history available</b><span>Start a new conversation with Ayaz to see it here.</span></div></div>
   </nav>
-  <div class="dbottom">
-    <div class="dsearch"><span>🔍</span><input id="drawerSearch" placeholder="Search" oninput="filterDrawer(this.value)" autocomplete="off"></div>
-    <button class="diconbtn" onclick="drawerGo('settings')" title="Settings" aria-label="Settings">⚙️</button>
-    <button class="diconbtn" onclick="toggleDrawer(false);clearChat()" title="New chat" aria-label="New chat">✎</button>
-  </div>
 </aside>
 
 <!-- ══════════ ASK VIEW ══════════ -->
@@ -2610,19 +2593,6 @@ function historyAsk(btn){
   const inp = document.getElementById('chatInput');
   inp.value = q;
   inp.focus();
-}
-function filterDrawer(q){
-  q = (q || '').trim().toLowerCase();
-  document.querySelectorAll('#drawerNav [data-label]').forEach(function(el){
-    if(el.classList.contains('dsect') || el.id === 'drawerHistory') return;
-    const label = el.getAttribute('data-label') || '';
-    const txt = (el.innerText || '').toLowerCase();
-    el.style.display = (!q || label.indexOf(q) !== -1 || txt.indexOf(q) !== -1) ? '' : 'none';
-  });
-  document.querySelectorAll('#drawerHistory .hist').forEach(function(el){
-    const label = el.getAttribute('data-label') || '';
-    el.style.display = (!q || label.indexOf(q) !== -1) ? '' : 'none';
-  });
 }
 /* ---------- Ayaz Bot floating widget ---------- */
 let botSending = false;
