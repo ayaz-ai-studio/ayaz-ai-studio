@@ -160,7 +160,6 @@
   .typing span:nth-child(3) { animation-delay: .4s; }
   @keyframes blink { 0%, 60%, 100% { opacity: .25; } 30% { opacity: 1; } }
   .chatempty { text-align: center; color: var(--faint); margin: auto 0; padding: 40px 20px; }
-  .chatempty .big { font-size: 44px; display: block; margin-bottom: 12px; }
   .chatempty h2 { font-size: 20px; color: var(--text); margin-bottom: 8px; font-weight: 700; }
   .chatempty p { font-size: 14px; line-height: 1.6; }
   /* bottom chat bar */
@@ -193,6 +192,195 @@
   }
   #attachPreview img { width: 44px; height: 44px; object-fit: cover; border-radius: 8px; }
   #attachPreview button { background: none; border: none; color: var(--faint); font-size: 16px; cursor: pointer; }
+  /* ---------- Grok-style two-row bottom bar ---------- */
+  #chatBar { flex-direction: column; align-items: stretch; border-radius: 26px; padding: 8px 8px 6px; gap: 0; }
+  #chatBar .cbrow1 { display: flex; align-items: center; gap: 4px; }
+  #chatBar .cbrow1 input { padding: 10px 8px; }
+  #chatBar .cbrow2 { display: flex; align-items: center; gap: 2px; padding-top: 2px; }
+  .cb2spacer { flex: 1; }
+  #modeWrap { position: relative; }
+  #modeBtn {
+    display: flex; align-items: center; gap: 5px; background: var(--card2);
+    border: 1px solid var(--border); color: var(--text); font-size: 14px; font-weight: 600;
+    border-radius: 999px; padding: 8px 13px; cursor: pointer; font-family: inherit; white-space: nowrap;
+  }
+  #modeBtn:active { background: var(--border); }
+  #modeBtn .caret { font-size: 10px; color: var(--faint); }
+  #modeMenu {
+    display: none; position: absolute; bottom: 46px; left: 0; z-index: 60;
+    background: var(--card2); border: 1px solid var(--border); border-radius: 16px;
+    padding: 6px; min-width: 210px; box-shadow: 0 12px 40px rgba(0,0,0,.55);
+  }
+  #modeMenu.show { display: block; }
+  #modeMenu button {
+    display: flex; align-items: center; gap: 11px; width: 100%; text-align: left;
+    background: none; border: none; color: var(--text); padding: 10px 12px;
+    border-radius: 11px; cursor: pointer; font-family: inherit;
+  }
+  #modeMenu button:active { background: var(--border); }
+  #modeMenu button.sel { background: var(--border); }
+  #modeMenu .mico { font-size: 18px; width: 24px; text-align: center; }
+  #modeMenu b { display: block; font-size: 14px; }
+  #modeMenu i { display: block; font-size: 11px; color: var(--faint); font-style: normal; }
+  #modeMenu .tick { margin-left: auto; color: var(--green); font-size: 14px; }
+  #speakBtn {
+    display: flex; align-items: center; gap: 7px; background: #fff; color: #000;
+    border: none; border-radius: 999px; font-size: 14px; font-weight: 700;
+    padding: 9px 16px; cursor: pointer; font-family: inherit; white-space: nowrap;
+  }
+  #speakBtn:active { background: #d4d4d4; }
+  #speakBtn.speaking { background: #ef4444; color: #fff; }
+  #speakBtn .wave { font-size: 13px; letter-spacing: -1px; }
+  body.light #speakBtn { background: #111; color: #fff; }
+  body.light #speakBtn.speaking { background: #ef4444; color: #fff; }
+  /* ---------- offer / promo cards ---------- */
+  #offerRow { display: none; gap: 10px; overflow-x: auto; max-width: 760px; margin: 0 auto;
+    padding: 4px 12px 10px; scrollbar-width: none; }
+  #offerRow.show { display: flex; }
+  #offerRow::-webkit-scrollbar { display: none; }
+  .offercard {
+    flex-shrink: 0; display: flex; align-items: center; gap: 11px; text-align: left;
+    background: var(--card); border: 1px solid var(--border); border-radius: 18px;
+    padding: 13px 16px; cursor: pointer; font-family: inherit; color: var(--text);
+    min-width: 200px; max-width: 240px;
+  }
+  .offercard:active { background: var(--card2); transform: scale(.98); }
+  .offercard .oic { font-size: 24px; }
+  .offercard b { display: block; font-size: 14px; font-weight: 700; }
+  .offercard i { display: block; font-size: 11.5px; color: var(--faint); font-style: normal; margin-top: 2px; }
+  .offercard.blue { background: linear-gradient(135deg, #1d4ed8, #2563eb); border-color: #3b82f6; }
+  .offercard.blue i { color: #dbeafe; }
+  /* ---------- enhanced drawer ---------- */
+  #drawer { width: 300px; }
+  .dprofile { display: flex; align-items: center; gap: 12px; padding: 4px 16px 14px; border-bottom: 1px solid var(--border); }
+  .davatar {
+    width: 46px; height: 46px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; font-weight: 800;
+  }
+  .dpinfo { flex: 1; min-width: 0; }
+  .dpname { font-size: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dpemail { font-size: 12px; color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+  .dpgo { background: var(--card2); border: 1px solid var(--border); color: var(--text);
+    width: 38px; height: 38px; border-radius: 50%; font-size: 18px; cursor: pointer; flex-shrink: 0; }
+  .dpgo:active { background: var(--border); }
+  .newbadge { background: #1d4ed8; color: #fff; font-size: 10px; font-weight: 700;
+    border-radius: 10px; padding: 2px 8px; margin-left: 6px; }
+  .dsect { font-size: 11px; font-weight: 700; color: var(--faint); text-transform: uppercase;
+    letter-spacing: .8px; padding: 14px 20px 6px; }
+  .promobanner { margin: 6px 14px 4px; background: linear-gradient(135deg, #1d4ed8, #2563eb);
+    border-radius: 18px; padding: 14px 15px; position: relative; cursor: pointer; }
+  .promobanner .pt { font-size: 14px; font-weight: 800; color: #fff; }
+  .promobanner .ps { font-size: 12px; color: #dbeafe; margin-top: 3px; }
+  .promobanner .pclaim { position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.45); color: #fff;
+    font-size: 13px; font-weight: 700; border-radius: 999px; padding: 8px 15px; cursor: pointer; font-family: inherit; }
+  .promobanner .pclaim:active { background: rgba(255,255,255,.3); }
+  #drawerHistory button.hist {
+    display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+    background: none; border: none; color: var(--muted); font-size: 13.5px;
+    padding: 9px 20px; cursor: pointer; font-family: inherit;
+  }
+  #drawerHistory button.hist:active { background: var(--card2); }
+  #drawerHistory button.hist .h { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #drawerHistory .hempty { font-size: 12.5px; color: var(--faint); padding: 6px 20px 10px; }
+  .dbottom { display: flex; align-items: center; gap: 8px; padding: 10px 14px calc(12px + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--border); }
+  .dsearch { flex: 1; display: flex; align-items: center; gap: 8px; background: var(--card);
+    border: 1px solid var(--border); border-radius: 999px; padding: 9px 14px; }
+  .dsearch input { flex: 1; background: none; border: none; color: var(--text); font-size: 14px; min-width: 0; font-family: inherit; }
+  .dsearch input:focus { outline: none; }
+  .dsearch input::placeholder { color: var(--faint); }
+  .diconbtn { background: var(--card); border: 1px solid var(--border); color: var(--text);
+    width: 44px; height: 44px; border-radius: 50%; font-size: 18px; cursor: pointer; flex-shrink: 0; }
+  .diconbtn:active { background: var(--card2); }
+  /* ---------- center logo empty state ---------- */
+  .chatempty .centerlogo { width: 92px; height: 92px; border-radius: 24px; object-fit: cover;
+    margin-bottom: 20px; opacity: .92; box-shadow: 0 8px 40px rgba(59,130,246,.22); }
+  /* ---------- automations / projects ---------- */
+  .autoset { display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    background: var(--card2); border: 1px solid var(--border); border-radius: 14px; padding: 13px 14px; margin-bottom: 10px; }
+  .autoset .t { font-size: 14px; font-weight: 700; }
+  .autoset .s { font-size: 12px; color: var(--faint); margin-top: 2px; }
+  .switch { position: relative; width: 46px; height: 27px; flex-shrink: 0; cursor: pointer; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .switch .sl { position: absolute; inset: 0; background: var(--border); border-radius: 999px; transition: .2s; }
+  .switch .sl::before { content: ''; position: absolute; width: 21px; height: 21px; border-radius: 50%;
+    background: #fff; top: 3px; left: 3px; transition: .2s; }
+  .switch input:checked + .sl { background: #2563eb; }
+  .switch input:checked + .sl::before { transform: translateX(19px); }
+  .projitem { display: flex; align-items: center; gap: 10px; background: var(--card2);
+    border: 1px solid var(--border); border-radius: 14px; padding: 11px 13px; margin-bottom: 8px; }
+  .projitem .pi { flex: 1; min-width: 0; cursor: pointer; }
+  .projitem .pn { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .projitem .pp { font-size: 12px; color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+  .projitem .pdel { background: none; border: none; color: var(--faint); font-size: 16px; cursor: pointer; padding: 4px; }
+  .projitem .pdel:active { color: #ef4444; }
+  .autotime { background: var(--card2); border: 1px solid var(--border); color: var(--text);
+    border-radius: 10px; padding: 9px 11px; font-size: 14px; font-family: inherit; }
+  /* ---------- Ayaz Bot floating widget (Grok Bot style) ---------- */
+  #botFab {
+    position: fixed; right: 16px; bottom: calc(108px + env(safe-area-inset-bottom)); z-index: 80;
+    width: 58px; height: 58px; border-radius: 50%; border: 1px solid var(--border);
+    background: linear-gradient(135deg, #1d4ed8, #7c3aed); color: #fff; font-size: 28px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 28px rgba(59,130,246,.45); font-family: inherit;
+    animation: botpulse 2.6s ease-in-out infinite;
+  }
+  #botFab:active { transform: scale(.93); }
+  @keyframes botpulse {
+    0%, 100% { box-shadow: 0 8px 28px rgba(59,130,246,.45); }
+    50% { box-shadow: 0 8px 36px rgba(124,58,237,.65); }
+  }
+  #botPanel {
+    position: fixed; right: 16px; bottom: calc(176px + env(safe-area-inset-bottom)); z-index: 85;
+    width: 360px; max-width: calc(100vw - 32px); height: 480px; max-height: calc(100dvh - 220px);
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 22px;
+    display: none; flex-direction: column; overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,.6);
+    transform: translateY(16px) scale(.98); opacity: 0; transition: transform .22s ease, opacity .22s ease;
+  }
+  #botPanel.show { display: flex; }
+  #botPanel.open { transform: translateY(0) scale(1); opacity: 1; }
+  .bothead { display: flex; align-items: center; gap: 10px; padding: 13px 14px;
+    border-bottom: 1px solid var(--border); background: var(--card); flex-shrink: 0; }
+  .bothead .bav { width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg, #1d4ed8, #7c3aed);
+    display: flex; align-items: center; justify-content: center; font-size: 21px; }
+  .bothead .bt { flex: 1; min-width: 0; }
+  .bothead .bt b { display: block; font-size: 15px; }
+  .bothead .bt .on { display: flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--green); margin-top: 1px; }
+  .bothead .bt .on::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+  .bothead button { background: none; border: none; color: var(--muted); font-size: 17px;
+    width: 34px; height: 34px; border-radius: 10px; cursor: pointer; flex-shrink: 0; }
+  .bothead button:active { background: var(--card2); color: var(--text); }
+  #botMsgs { flex: 1; overflow-y: auto; padding: 14px 12px; display: flex; flex-direction: column; gap: 10px; }
+  #botMsgs .bmsg { display: flex; flex-direction: column; max-width: 100%; }
+  #botMsgs .bmsg-u { align-items: flex-end; }
+  #botMsgs .bmsg-a { align-items: flex-start; }
+  #botMsgs .bbub { padding: 9px 14px; border-radius: 18px; font-size: 14px; line-height: 1.5;
+    max-width: 86%; word-wrap: break-word; white-space: pre-wrap; }
+  #botMsgs .bmsg-u .bbub { background: #2b2b2e; color: var(--text); border-bottom-right-radius: 6px; }
+  #botMsgs .bmsg-a .bbub { background: var(--card); border: 1px solid var(--border);
+    color: var(--text); border-bottom-left-radius: 6px; }
+  body.light #botMsgs .bmsg-u .bbub { background: #e8e8e8; }
+  #botMsgs .bwho { font-size: 10.5px; color: var(--faint); margin-bottom: 3px; padding-left: 4px; }
+  #botMsgs .btyping { display: inline-flex; gap: 5px; padding: 12px 14px; background: var(--card);
+    border: 1px solid var(--border); border-radius: 18px; border-bottom-left-radius: 6px; }
+  #botMsgs .btyping span { width: 6px; height: 6px; border-radius: 50%; background: var(--faint); animation: blink 1.2s infinite; }
+  #botMsgs .btyping span:nth-child(2) { animation-delay: .2s; }
+  #botMsgs .btyping span:nth-child(3) { animation-delay: .4s; }
+  .botinput { display: flex; align-items: center; gap: 8px; padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--border); background: var(--card); flex-shrink: 0; }
+  .botinput input { flex: 1; background: var(--bg2); border: 1px solid var(--border); color: var(--text);
+    border-radius: 999px; padding: 10px 15px; font-size: 14px; min-width: 0; font-family: inherit; }
+  .botinput input:focus { outline: none; border-color: #3b82f6; }
+  .botinput input::placeholder { color: var(--faint); }
+  .botinput button { background: var(--text); color: var(--bg); border: none; width: 40px; height: 40px;
+    border-radius: 50%; font-size: 17px; cursor: pointer; flex-shrink: 0; }
+  .botinput button:disabled { opacity: .35; }
+  .botinput button:active { transform: scale(.93); }
   /* ---------- IMAGINE view ---------- */
   #imagineView { overflow-y: auto; }
   #imagineInner { max-width: 560px; width: 100%; margin: 0 auto; padding: 14px 14px 40px; }
@@ -276,9 +464,6 @@
     display: flex; flex-direction: column; padding: 18px 0;
   }
   #drawer.open { transform: translateX(0); }
-  #drawer .dhead { padding: 0 20px 14px; border-bottom: 1px solid var(--border); }
-  #drawer .dhead .t { font-size: 17px; font-weight: 800; }
-  #drawer .dhead .s { font-size: 12px; color: var(--faint); margin-top: 4px; overflow: hidden; text-overflow: ellipsis; }
   #drawer nav { flex: 1; overflow-y: auto; padding: 10px 0; }
   #drawer nav button {
     display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
@@ -287,7 +472,6 @@
   }
   #drawer nav button:active { background: var(--card2); }
   #drawer nav button .ic { width: 24px; text-align: center; }
-  #drawer .dfoot { padding: 12px 20px 0; border-top: 1px solid var(--border); font-size: 11px; color: var(--faint); }
   /* ---------- modals ---------- */
   .infomodal, .authmodal, .admodal {
     display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75);
@@ -324,6 +508,9 @@
   .caprow { display: flex; gap: 8px; align-items: center; }
   .caprow .cq { flex: 1; font-size: 15px; font-weight: 700; text-align: center;
     background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 11px; }
+  .democode { background: #1e3a8a; border: 1px dashed #3b82f6; border-radius: 12px;
+    padding: 12px; margin: 10px 0; font-size: 13px; color: #dbeafe; text-align: center; line-height: 1.6; }
+  .democode b { display: block; font-size: 26px; letter-spacing: 6px; color: #fff; margin-top: 4px; }
   .caprow button { flex-shrink: 0; width: 44px; height: 44px; border-radius: 12px; font-size: 18px;
     background: var(--card2); border: 1px solid var(--border); color: var(--text); cursor: pointer; }
   /* settings */
@@ -465,25 +652,44 @@
 
 <div id="drawerOverlay" onclick="toggleDrawer(false)"></div>
 <aside id="drawer">
-  <div class="dhead">
-    <div class="t"><img src="logo-icon.webp" class="drawerlogo" alt="Ayaz AI Studio logo">Ayaz AI Studio</div>
-    <div class="s" id="drawerEmail">Not signed in</div>
+  <div class="dprofile">
+    <div class="davatar" id="drawerAvatar">?</div>
+    <div class="dpinfo">
+      <div class="dpname" id="drawerName">Ayaz AI Studio</div>
+      <div class="dpemail" id="drawerEmail">Not signed in</div>
+    </div>
+    <button class="dpgo" onclick="drawerGo('settings')" title="Account" aria-label="Account">»</button>
   </div>
-  <nav>
-    <button onclick="drawerGo('home')"><span class="ic">🏠</span>Home</button>
-    <button onclick="drawerGo('creations')"><span class="ic">📓</span>My Creations</button>
-    <button onclick="openRefer()"><span class="ic">🎁</span>Refer & Earn</button>
-    <button onclick="drawerGo('feedback')"><span class="ic">💬</span>Feedback</button>
-    <button onclick="drawerGo('pricing')"><span class="ic">💎</span>Pricing</button>
-    <button onclick="drawerGo('apidocs')"><span class="ic">🧩</span>API Docs</button>
-    <button onclick="drawerGo('settings')"><span class="ic">⚙️</span>Settings</button>
-    <button onclick="drawerGo('privacy')"><span class="ic">📄</span>Privacy Policy</button>
-    <button onclick="drawerGo('terms')"><span class="ic">📋</span>Terms of Service</button>
-    <button onclick="drawerGo('help')"><span class="ic">❓</span>Help / FAQ</button>
-    <button onclick="drawerGo('contact')"><span class="ic">📞</span>Contact Us</button>
-    <button onclick="drawerGo('about')"><span class="ic">ℹ️</span>About</button>
+  <nav id="drawerNav">
+    <button data-label="automations" onclick="drawerGo('automations')"><span class="ic">⚡</span>Automations</button>
+    <button data-label="library my creations" onclick="drawerGo('library')"><span class="ic">📚</span>Library</button>
+    <button data-label="projects saved prompts" onclick="drawerGo('projects')"><span class="ic">📁</span>Projects</button>
+    <button data-label="ayaz bot assistant" onclick="drawerGo('ayazbot')"><span class="ic">🤖</span><span>Ayaz Bot<span class="newbadge">New</span></span></button>
+    <div class="promobanner" data-label="invite friends earn credits referral" onclick="openRefer()">
+      <div class="pt">🎉 Invite friends, earn credits</div>
+      <div class="ps">+5 images & +3 videos each</div>
+      <button class="pclaim" onclick="event.stopPropagation();openRefer()">Claim</button>
+    </div>
+    <div class="dsect">Chats</div>
+    <div id="drawerHistory"><div class="hempty">No chat history yet.</div></div>
+    <div class="dsect">More</div>
+    <button data-label="home" onclick="drawerGo('home')"><span class="ic">🏠</span>Home</button>
+    <button data-label="refer earn invite" onclick="openRefer()"><span class="ic">🎁</span>Refer & Earn</button>
+    <button data-label="feedback" onclick="drawerGo('feedback')"><span class="ic">💬</span>Feedback</button>
+    <button data-label="pricing pro plans" onclick="drawerGo('pricing')"><span class="ic">💎</span>Pricing</button>
+    <button data-label="api docs developers" onclick="drawerGo('apidocs')"><span class="ic">🧩</span>API Docs</button>
+    <button data-label="settings account" onclick="drawerGo('settings')"><span class="ic">⚙️</span>Settings</button>
+    <button data-label="privacy policy" onclick="drawerGo('privacy')"><span class="ic">📄</span>Privacy Policy</button>
+    <button data-label="terms service" onclick="drawerGo('terms')"><span class="ic">📋</span>Terms of Service</button>
+    <button data-label="help faq questions" onclick="drawerGo('help')"><span class="ic">❓</span>Help / FAQ</button>
+    <button data-label="contact support" onclick="drawerGo('contact')"><span class="ic">📞</span>Contact Us</button>
+    <button data-label="about" onclick="drawerGo('about')"><span class="ic">ℹ️</span>About</button>
   </nav>
-  <div class="dfoot">© 2026 Ayaz AI Studio<br>v2.0 — Ask & Imagine</div>
+  <div class="dbottom">
+    <div class="dsearch"><span>🔍</span><input id="drawerSearch" placeholder="Search" oninput="filterDrawer(this.value)" autocomplete="off"></div>
+    <button class="diconbtn" onclick="drawerGo('settings')" title="Settings" aria-label="Settings">⚙️</button>
+    <button class="diconbtn" onclick="newChatFromDrawer()" title="New chat" aria-label="New chat">✎</button>
+  </div>
 </aside>
 
 <!-- ══════════ ASK VIEW ══════════ -->
@@ -497,11 +703,26 @@
   <div id="chatList"></div>
   <div id="attachPreview"><span class="prev"><img id="attachImg" alt="attached"><span id="attachName"></span><button onclick="clearAttach()" aria-label="Remove">✕</button></span></div>
   <div id="chatBarWrap">
+    <div id="offerRow"></div>
     <div id="chatBar">
-      <button class="cbtn" id="attachBtn" onclick="document.getElementById('chatFile').click()" title="Attach image" aria-label="Attach image">📎</button>
-      <input id="chatInput" placeholder="Ask anything..." autocomplete="off" maxlength="2000">
-      <button class="cbtn" id="chatMic" onclick="startVoiceChat()" title="Voice input" aria-label="Voice input">🎤</button>
-      <button class="cbtn" id="chatSend" onclick="sendChat()" title="Send" aria-label="Send">➤</button>
+      <div class="cbrow1">
+        <input id="chatInput" placeholder="Ask anything..." autocomplete="off" maxlength="2000">
+        <button class="cbtn" id="chatSend" onclick="sendChat()" title="Send" aria-label="Send">➤</button>
+      </div>
+      <div class="cbrow2">
+        <button class="cbtn" id="attachBtn" onclick="document.getElementById('chatFile').click()" title="Attach image" aria-label="Attach image">+</button>
+        <div id="modeWrap">
+          <button id="modeBtn" onclick="toggleModeMenu(event)"><span id="modeIcon">⚡</span><span id="modeLabel">Fast</span><span class="caret">▾</span></button>
+          <div id="modeMenu">
+            <button data-mode="fast" onclick="setChatMode('fast')"><span class="mico">⚡</span><span><b>Fast</b><i>Quick answers</i></span><span class="tick"></span></button>
+            <button data-mode="smart" onclick="setChatMode('smart')"><span class="mico">🧠</span><span><b>Smart</b><i>Detailed, thorough answers</i></span><span class="tick"></span></button>
+            <button data-mode="study" onclick="setChatMode('study')"><span class="mico">📚</span><span><b>Study</b><i>Step-by-step tutoring</i></span><span class="tick"></span></button>
+          </div>
+        </div>
+        <span class="cb2spacer"></span>
+        <button class="cbtn" id="chatMic" onclick="startVoiceChat()" title="Voice input" aria-label="Voice input">🎤</button>
+        <button id="speakBtn" onclick="speakLast()" title="Read last reply aloud" aria-label="Speak"><span class="wave">▂▄▆</span><span id="speakLabel">Speak</span></button>
+      </div>
     </div>
   </div>
   <input type="file" id="chatFile" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
@@ -613,6 +834,22 @@
     <div class="fcopy">© 2026 Ayaz AI Studio. All rights reserved.</div>
   </footer>
 </main>
+
+<!-- ══════════ AYAZ BOT floating widget ══════════ -->
+<button id="botFab" onclick="toggleBotPanel()" title="Chat with Ayaz Bot" aria-label="Chat with Ayaz Bot">🤖</button>
+<div id="botPanel" role="dialog" aria-label="Ayaz Bot chat">
+  <div class="bothead">
+    <div class="bav">🤖</div>
+    <div class="bt"><b>Ayaz Bot</b><span class="on">Online — replies instantly</span></div>
+    <button onclick="botExpand()" title="Open full chat" aria-label="Open full chat">⤢</button>
+    <button onclick="toggleBotPanel(false)" title="Close" aria-label="Close">✕</button>
+  </div>
+  <div id="botMsgs"></div>
+  <div class="botinput">
+    <input id="botInput" placeholder="Ask Ayaz Bot..." autocomplete="off" maxlength="2000">
+    <button id="botSend" onclick="sendBotChat()" title="Send" aria-label="Send">➤</button>
+  </div>
+</div>
 
 <!-- ══════════ MODALS ══════════ -->
 <div id="mSettings" class="infomodal">
@@ -793,6 +1030,36 @@
   </div>
 </div>
 
+<div id="mAutomations" class="infomodal">
+  <div class="infocard">
+    <button class="xbtn" onclick="closeInfo('mAutomations')">✕</button>
+    <h2>⚡ Automations</h2>
+    <div class="sub">Small daily helpers, right on this device</div>
+    <div class="autoset">
+      <div><div class="t">⏰ Daily reminder</div><div class="s">Nudge me to use my fresh daily credits</div></div>
+      <label class="switch"><input type="checkbox" id="autoReminderTgl" onchange="saveAutomations()"><span class="sl"></span></label>
+    </div>
+    <div class="autoset">
+      <div><div class="t">🕘 Reminder time</div><div class="s">When should we remind you?</div></div>
+      <input type="time" class="autotime" id="autoReminderTime" value="09:00" onchange="saveAutomations()">
+    </div>
+    <p style="font-size:12px;color:var(--faint);line-height:1.6;margin-top:6px">🔜 Scheduled auto-generation (e.g. "make me a wallpaper every morning") is coming soon.</p>
+  </div>
+</div>
+
+<div id="mProjects" class="infomodal">
+  <div class="infocard">
+    <button class="xbtn" onclick="closeInfo('mProjects')">✕</button>
+    <h2>📁 Projects</h2>
+    <div class="sub">Save prompts & ideas, reuse them anytime</div>
+    <div id="projList"><p style="text-align:center;color:var(--muted)">No saved projects yet.</p></div>
+    <div class="row" style="margin-top:12px">
+      <button class="genbtn" onclick="saveProject('chat')">💾 Save chat idea</button>
+      <button class="genbtn" onclick="saveProject('imagine')">💾 Save imagine prompt</button>
+    </div>
+  </div>
+</div>
+
 <div id="mFeedback" class="infomodal">
   <div class="infocard">
     <button class="xbtn" onclick="closeInfo('mFeedback')">✕</button>
@@ -841,6 +1108,20 @@
     <button class="primary" id="authGo" onclick="submitAuth()">Sign In</button>
     <div class="flink"><a onclick="openForgot()">Forgot password?</a></div>
     <div class="switch" id="authSwitch">New here? <a onclick="openAuth('register')">Create an account</a></div>
+  </div>
+</div>
+
+<div id="mVerify" class="authmodal">
+  <div class="authcard">
+    <button class="xbtn" onclick="closeVerify()">✕</button>
+    <h2>✉️ Verify your email</h2>
+    <div class="sub" id="verifySub">We sent a 6-digit code to <b id="verifyEmailAddr"></b>. Enter it below to activate your account.</div>
+    <div class="err" id="verifyErr"></div>
+    <div class="democode" id="verifyDemoCode" style="display:none"></div>
+    <input id="verifyCode" type="text" inputmode="numeric" maxlength="6" placeholder="6-digit code" autocomplete="one-time-code" style="text-align:center;font-size:22px;letter-spacing:8px;font-weight:800">
+    <button class="primary" id="verifyGo" onclick="submitVerify()">Verify & Continue</button>
+    <div class="flink"><a onclick="resendVerification()">Resend code</a></div>
+    <div class="switch" style="font-size:12px;color:var(--faint)">Code expires in 15 minutes. Wrong email? <a onclick="closeVerify();openAuth('register')">Go back</a></div>
   </div>
 </div>
 
@@ -1061,6 +1342,75 @@ function openAuth(mode){
   loadCaptcha();
 }
 function closeAuth(){ document.getElementById('authModal').classList.remove('show'); }
+/* ---------- email verification ---------- */
+let verifyEmailAddr = '';
+function openVerify(email, demoCode){
+  verifyEmailAddr = email || '';
+  document.getElementById('verifyEmailAddr').textContent = verifyEmailAddr;
+  document.getElementById('verifyErr').textContent = '';
+  document.getElementById('verifyCode').value = '';
+  const dc = document.getElementById('verifyDemoCode');
+  if(demoCode){
+    dc.style.display = 'block';
+    dc.innerHTML = '🔧 <b>Demo mode</b> — no email server configured yet.<br>Your verification code is:<b>' + escapeHtml(demoCode) + '</b>';
+  } else {
+    dc.style.display = 'none';
+    dc.innerHTML = '';
+  }
+  document.getElementById('mVerify').classList.add('show');
+  setTimeout(function(){ document.getElementById('verifyCode').focus(); }, 250);
+}
+function closeVerify(){ document.getElementById('mVerify').classList.remove('show'); }
+async function submitVerify(){
+  const code = document.getElementById('verifyCode').value.trim();
+  const errEl = document.getElementById('verifyErr');
+  errEl.textContent = '';
+  if(!/^\d{6}$/.test(code)){ errEl.textContent = 'Please enter the 6-digit code.'; return; }
+  const btn = document.getElementById('verifyGo');
+  btn.disabled = true;
+  try{
+    const r = await fetch('/api/verify-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: verifyEmailAddr, code }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if(!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+    localStorage.setItem('aas_token', d.token);
+    localStorage.setItem('aas_email', d.email);
+    if(d.credits && d.credits.referralApplied){
+      showToast('🎁 Referral bonus applied! +5 images, +3 videos for you and your friend!');
+    }
+    clearPendingReferral();
+    closeVerify();
+    renderAuthState();
+    showToast('✅ Email verified — welcome aboard, ' + d.email + '!');
+    refreshCredits();
+    loadChatHistory();
+  }catch(e){
+    errEl.textContent = e.message;
+  }
+  btn.disabled = false;
+}
+async function resendVerification(){
+  const errEl = document.getElementById('verifyErr');
+  errEl.textContent = '';
+  try{
+    const r = await fetch('/api/resend-verification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: verifyEmailAddr }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if(!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+    const dc = document.getElementById('verifyDemoCode');
+    dc.style.display = 'block';
+    dc.innerHTML = '🔧 <b>Demo mode</b> — no email server configured yet.<br>Your new verification code is:<b>' + escapeHtml(d.demoCode) + '</b>';
+    showToast('📨 New code sent! (demo mode — shown above)');
+  }catch(e){
+    errEl.textContent = e.message;
+  }
+}
 async function submitAuth(){
   const email = document.getElementById('authEmail').value.trim();
   const password = document.getElementById('authPass').value;
@@ -1083,7 +1433,26 @@ async function submitAuth(){
       body: JSON.stringify(body),
     });
     const d = await r.json().catch(() => ({}));
-    if(!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+    if(!r.ok){
+      // Unverified account trying to sign in → route to the verify screen
+      if(r.status === 403 && d.code === 'email_not_verified'){
+        btn.disabled = false;
+        closeAuth();
+        openVerify(d.email || email, null);
+        setTimeout(resendVerification, 300); // auto-issue a fresh demo code
+        return;
+      }
+      throw new Error(d.error || ('HTTP ' + r.status));
+    }
+    // New accounts must verify their email first (demo mode shows the code)
+    if(authMode === 'register' && d.needsVerification){
+      const pendingRef = getPendingReferral();
+      if(pendingRef) localStorage.setItem('aas_pending_ref', pendingRef); // keep for verify step
+      closeAuth();
+      openVerify(d.email, d.demoCode);
+      showToast('📝 Account created! Please verify your email.');
+      return;
+    }
     localStorage.setItem('aas_token', d.token);
     localStorage.setItem('aas_email', d.email);
     if(authMode === 'register'){
@@ -1113,9 +1482,8 @@ function logout(){
   showToast('You have been signed out. See you soon!');
 }
 function renderAuthState(){
-  const email = getEmail();
   const loggedIn = !!getToken();
-  document.getElementById('drawerEmail').textContent = loggedIn ? email : 'Not signed in';
+  renderDrawerProfile();
   document.getElementById('loginScreen').classList.toggle('show', !loggedIn);
   document.getElementById('studyBar').classList.toggle('show', loggedIn && document.getElementById('tabAsk').classList.contains('active'));
   // Imagine view: full-screen Grok-style login covers the app when logged out
@@ -1124,6 +1492,7 @@ function renderAuthState(){
   gate.innerHTML = '';
   main.style.display = loggedIn ? 'block' : 'none';
   renderCreditsStrip();
+  loadDrawerHistory();
 }
 /* ---------- Grok-style login screen ---------- */
 function loginGoogle(){ showToast('🔜 Google sign-in is coming soon!'); }
@@ -1214,6 +1583,7 @@ async function doReset(){
 function toggleDrawer(open){
   document.getElementById('drawer').classList.toggle('open', open);
   document.getElementById('drawerOverlay').classList.toggle('show', open);
+  if(open){ renderDrawerProfile(); loadDrawerHistory(); }
 }
 function drawerGo(which){
   toggleDrawer(false);
@@ -1223,11 +1593,252 @@ function drawerGo(which){
     return;
   }
   if(which === 'settings'){ openSettings(); return; }
+  if(which === 'automations'){ openAutomations(); return; }
+  if(which === 'library'){ openCreations(); return; }
+  if(which === 'projects'){ openProjects(); return; }
+  if(which === 'ayazbot'){ openAyazBot(); return; }
   const map = { privacy: 'mPrivacy', terms: 'mTerms', help: 'mHelp', contact: 'mContact',
     about: 'mAbout', pricing: 'mPricing', apidocs: 'mApiDocs' };
   if(map[which]) openInfo(map[which]);
   if(which === 'feedback'){ openFeedback(); return; }
   if(which === 'creations'){ openCreations(); return; }
+}
+/* ---------- drawer profile + history (Grok style) ---------- */
+function renderDrawerProfile(){
+  const email = getEmail();
+  const loggedIn = !!getToken();
+  document.getElementById('drawerEmail').textContent = loggedIn ? email : 'Not signed in';
+  document.getElementById('drawerName').textContent = loggedIn ? email.split('@')[0] : 'Ayaz AI Studio';
+  document.getElementById('drawerAvatar').textContent = loggedIn ? email.charAt(0).toUpperCase() : '?';
+}
+async function loadDrawerHistory(){
+  const box = document.getElementById('drawerHistory');
+  if(!box) return;
+  if(!getToken()){ box.innerHTML = '<div class="hempty">Sign in to see chats.</div>'; return; }
+  try{
+    const r = await fetch('/api/chat/history', { headers: authHeaders() });
+    if(!r.ok) throw new Error();
+    const d = await r.json().catch(() => ({}));
+    const users = (d.messages || []).filter(function(m){ return m.role === 'user'; }).slice(-8).reverse();
+    if(!users.length){ box.innerHTML = '<div class="hempty">No chat history yet.</div>'; return; }
+    box.innerHTML = users.map(function(m){
+      const t = (m.content || '').replace(/^[📚🧠]\s*/, '');
+      return '<button class="hist" data-label="' + escapeHtml(t.toLowerCase()) + '" onclick="historyAsk(this)" data-q="' +
+        escapeHtml(t).replace(/"/g, '&quot;') + '"><span>💬</span><span class="h">' + escapeHtml(t) + '</span></button>';
+    }).join('');
+  }catch(e){
+    box.innerHTML = '<div class="hempty">No chat history yet.</div>';
+  }
+}
+function historyAsk(btn){
+  const q = btn.getAttribute('data-q') || '';
+  toggleDrawer(false);
+  switchMainTab('ask');
+  const inp = document.getElementById('chatInput');
+  inp.value = q;
+  inp.focus();
+}
+function filterDrawer(q){
+  q = (q || '').trim().toLowerCase();
+  document.querySelectorAll('#drawerNav [data-label]').forEach(function(el){
+    if(el.classList.contains('dsect') || el.id === 'drawerHistory') return;
+    const label = el.getAttribute('data-label') || '';
+    const txt = (el.innerText || '').toLowerCase();
+    el.style.display = (!q || label.indexOf(q) !== -1 || txt.indexOf(q) !== -1) ? '' : 'none';
+  });
+  document.querySelectorAll('#drawerHistory .hist').forEach(function(el){
+    const label = el.getAttribute('data-label') || '';
+    el.style.display = (!q || label.indexOf(q) !== -1) ? '' : 'none';
+  });
+}
+/* ---------- Ayaz Bot floating widget ---------- */
+let botSending = false;
+let botGreeted = false;
+function openAyazBot(){
+  toggleDrawer(false);
+  toggleBotPanel(true);
+}
+function toggleBotPanel(force){
+  const p = document.getElementById('botPanel');
+  const show = typeof force === 'boolean' ? force : !p.classList.contains('show');
+  if(show && needAuth()) return;
+  if(show){
+    p.classList.add('show');
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){ p.classList.add('open'); }); });
+    if(!botGreeted){
+      botGreeted = true;
+      botAddAi('🤖 <b>Hi, I\'m Ayaz Bot!</b> Your quick AI buddy — ask me anything right here. For longer chats tap ⤢ up top, or visit the <b>Imagine</b> tab to create images & videos! ✨');
+    }
+    setTimeout(function(){ document.getElementById('botInput').focus(); }, 280);
+  } else {
+    p.classList.remove('open');
+    setTimeout(function(){ p.classList.remove('show'); }, 220);
+    if('speechSynthesis' in window) window.speechSynthesis.cancel();
+  }
+}
+function botExpand(){
+  toggleBotPanel(false);
+  switchMainTab('ask');
+  setTimeout(function(){ document.getElementById('chatInput').focus(); }, 300);
+}
+function botScroll(){
+  const m = document.getElementById('botMsgs');
+  m.scrollTop = m.scrollHeight;
+}
+function botAddUser(text){
+  const m = document.getElementById('botMsgs');
+  const div = document.createElement('div');
+  div.className = 'bmsg bmsg-u';
+  div.innerHTML = '<div class="bbub">' + escapeHtml(text) + '</div>';
+  m.appendChild(div);
+  botScroll();
+}
+function botAddAi(html){
+  const m = document.getElementById('botMsgs');
+  const div = document.createElement('div');
+  div.className = 'bmsg bmsg-a';
+  div.innerHTML = '<div class="bwho">🤖 Ayaz Bot</div><div class="bbub">' + html + '</div>';
+  m.appendChild(div);
+  botScroll();
+  return div;
+}
+function botTyping(){
+  const m = document.getElementById('botMsgs');
+  const div = document.createElement('div');
+  div.className = 'bmsg bmsg-a';
+  div.id = 'botTypingRow';
+  div.innerHTML = '<div class="btyping"><span></span><span></span><span></span></div>';
+  m.appendChild(div);
+  botScroll();
+}
+function botUntype(){
+  const t = document.getElementById('botTypingRow');
+  if(t) t.remove();
+}
+async function sendBotChat(){
+  if(botSending) return;
+  if(needAuth()) return;
+  const inp = document.getElementById('botInput');
+  const text = inp.value.trim();
+  if(!text) return;
+  botSending = true;
+  document.getElementById('botSend').disabled = true;
+  botAddUser(text);
+  inp.value = '';
+  botTyping();
+  try{
+    const r = await fetch('/api/chat', {
+      method: 'POST',
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ message: text, mode: 'fast' }),
+    });
+    const d = await r.json().catch(() => ({}));
+    botUntype();
+    if(r.status === 401){ toggleBotPanel(false); logout(); throw new Error('Session expired — please sign in again.'); }
+    if(!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+    botAddAi(formatAiText(d.reply || ''));
+    if(d.visionUsed) showToast('👁️ Image analyzed!');
+  }catch(e){
+    botUntype();
+    botAddAi('⚠️ ' + escapeHtml(e.message));
+  }
+  botSending = false;
+  document.getElementById('botSend').disabled = false;
+  refreshCredits();
+}
+/* ---------- automations (simple, on-device) ---------- */
+function openAutomations(){
+  const on = localStorage.getItem('aas_auto_reminder') === '1';
+  const tm = localStorage.getItem('aas_auto_time') || '09:00';
+  document.getElementById('autoReminderTgl').checked = on;
+  document.getElementById('autoReminderTime').value = tm;
+  openInfo('mAutomations');
+}
+function saveAutomations(){
+  const on = document.getElementById('autoReminderTgl').checked;
+  const tm = document.getElementById('autoReminderTime').value || '09:00';
+  localStorage.setItem('aas_auto_reminder', on ? '1' : '0');
+  localStorage.setItem('aas_auto_time', tm);
+  localStorage.removeItem('aas_reminded_day');
+  showToast(on ? '⏰ Daily reminder set for ' + tm + '!' : '⏰ Daily reminder off.');
+}
+function checkAutoReminder(){
+  try{
+    if(localStorage.getItem('aas_auto_reminder') !== '1') return;
+    const tm = localStorage.getItem('aas_auto_time') || '09:00';
+    const now = new Date();
+    const cur = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+    const today = now.toISOString().slice(0, 10);
+    if(cur >= tm && localStorage.getItem('aas_reminded_day') !== today){
+      localStorage.setItem('aas_reminded_day', today);
+      showToast('⏰ Good day! Your Ayaz AI Studio daily credits are fresh — time to create! 🎨');
+    }
+  }catch(e){}
+}
+/* ---------- projects (saved prompts, on-device) ---------- */
+function getProjects(){
+  try{ return JSON.parse(localStorage.getItem('aas_projects') || '[]'); }
+  catch(e){ return []; }
+}
+function setProjects(p){
+  try{ localStorage.setItem('aas_projects', JSON.stringify(p.slice(0, 50))); }catch(e){}
+}
+function openProjects(){
+  renderProjects();
+  openInfo('mProjects');
+}
+function renderProjects(){
+  const box = document.getElementById('projList');
+  const ps = getProjects();
+  if(!ps.length){ box.innerHTML = '<p style="text-align:center;color:var(--muted)">No saved projects yet.</p>'; return; }
+  box.innerHTML = ps.map(function(p, i){
+    const icon = p.type === 'imagine' ? '🎨' : '💬';
+    return '<div class="projitem"><div class="pi" onclick="loadProject(' + i + ')">' +
+      '<div class="pn">' + icon + ' ' + escapeHtml(p.name) + '</div>' +
+      '<div class="pp">' + escapeHtml(p.prompt) + '</div></div>' +
+      '<button class="pdel" onclick="deleteProject(' + i + ')" aria-label="Delete">🗑️</button></div>';
+  }).join('');
+}
+function saveProject(type){
+  let prompt = '', name = '';
+  if(type === 'chat'){
+    prompt = document.getElementById('chatInput').value.trim();
+    if(!prompt){ showToast('💬 Type an idea in the Ask box first!'); return; }
+    name = prompt.slice(0, 34) + (prompt.length > 34 ? '…' : '');
+  } else {
+    const isImg = document.getElementById('tabImg').classList.contains('active');
+    prompt = (isImg ? document.getElementById('prompt').value : document.getElementById('vprompt').value).trim();
+    if(!prompt){ showToast('🎨 Type a prompt in the Imagine tab first!'); switchMainTab('imagine'); return; }
+    name = (isImg ? '🖼️ ' : '🎬 ') + prompt.slice(0, 32) + (prompt.length > 32 ? '…' : '');
+  }
+  const ps = getProjects();
+  ps.unshift({ name: name, prompt: prompt, type: type, ts: Date.now() });
+  setProjects(ps);
+  renderProjects();
+  showToast('💾 Project saved!');
+}
+function loadProject(i){
+  const ps = getProjects();
+  const p = ps[i];
+  if(!p) return;
+  closeInfo('mProjects');
+  if(p.type === 'imagine'){
+    switchMainTab('imagine');
+    const isImg = document.getElementById('tabImg').classList.contains('active');
+    document.getElementById(isImg ? 'prompt' : 'vprompt').value = p.prompt;
+    showToast('📁 Project loaded in Imagine!');
+  } else {
+    switchMainTab('ask');
+    document.getElementById('chatInput').value = p.prompt;
+    document.getElementById('chatInput').focus();
+    showToast('📁 Project loaded — hit send!');
+  }
+}
+function deleteProject(i){
+  const ps = getProjects();
+  ps.splice(i, 1);
+  setProjects(ps);
+  renderProjects();
 }
 function openInfo(id){ document.getElementById(id).classList.add('show'); }
 function closeInfo(id){ document.getElementById(id).classList.remove('show'); }
@@ -1294,13 +1905,19 @@ async function deleteAccount(){
 document.addEventListener('keydown', function(e){
   if(e.key === 'Escape'){
     toggleDrawer(false);
-    ['mSettings','mPrivacy','mTerms','mHelp','mContact','mAbout','mFeedback','mCreations','mPricing','mApiDocs','mRefer'].forEach(closeInfo);
+    toggleBotPanel(false);
+    ['mSettings','mPrivacy','mTerms','mHelp','mContact','mAbout','mFeedback','mCreations','mPricing','mApiDocs','mRefer','mAutomations','mProjects','mVerify'].forEach(closeInfo);
+    document.getElementById('modeMenu').classList.remove('show');
     closeAuth();
     closeForgot();
   }
   if(e.key === 'Enter' && document.activeElement === document.getElementById('chatInput') && !e.shiftKey){
     e.preventDefault();
     sendChat();
+  }
+  if(e.key === 'Enter' && document.activeElement === document.getElementById('botInput') && !e.shiftKey){
+    e.preventDefault();
+    sendBotChat();
   }
 });
 
@@ -1590,19 +2207,67 @@ function startVoice(targetId, btnId){
   try { rec.start(); }
   catch(err){ showToast('🎤 Voice input failed to start.'); rec.onend(); }
 }
+/* speak: read the last AI reply aloud (Grok-style Speak button) */
+function speakLast(){
+  if(!('speechSynthesis' in window)){ showToast('🔊 Speech is not supported in this browser.'); return; }
+  const btn = document.getElementById('speakBtn');
+  if(window.speechSynthesis.speaking){
+    window.speechSynthesis.cancel();
+    btn.classList.remove('speaking');
+    document.getElementById('speakLabel').textContent = 'Speak';
+    return;
+  }
+  const ais = document.querySelectorAll('#chatList .msg-ai .bubble');
+  if(!ais.length){ showToast('💬 Nothing to speak yet — ask something first!'); return; }
+  let text = ais[ais.length - 1].innerText || '';
+  text = text.replace(/⚠️|✨/g, '').trim().slice(0, 600);
+  if(!text){ showToast('💬 Nothing to speak yet.'); return; }
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US';
+  u.onend = u.onerror = function(){
+    btn.classList.remove('speaking');
+    document.getElementById('speakLabel').textContent = 'Speak';
+  };
+  btn.classList.add('speaking');
+  document.getElementById('speakLabel').textContent = 'Stop';
+  window.speechSynthesis.speak(u);
+}
 /* ---------- ASK : chat ---------- */
 let studyMode = false;
+let chatMode = 'fast'; // 'fast' | 'smart' | 'study'
 let chatAttached = null; // { id, url, name }
 let chatSending = false;
-
-function toggleStudy(){
-  studyMode = !studyMode;
-  const b = document.getElementById('studyToggle');
-  b.classList.toggle('on', studyMode);
-  showToast(studyMode ? '📚 Study Mode ON — detailed step-by-step explanations!' : '📚 Study Mode OFF');
-  if(studyMode && getToken() && !document.querySelector('#chatList .msg')){
+const MODE_META = {
+  fast:  { icon: '⚡', label: 'Fast' },
+  smart: { icon: '🧠', label: 'Smart' },
+  study: { icon: '📚', label: 'Study' },
+};
+function toggleModeMenu(e){
+  if(e) e.stopPropagation();
+  document.getElementById('modeMenu').classList.toggle('show');
+}
+function setChatMode(m){
+  if(!MODE_META[m]) m = 'fast';
+  chatMode = m;
+  studyMode = (m === 'study');
+  document.getElementById('modeIcon').textContent = MODE_META[m].icon;
+  document.getElementById('modeLabel').textContent = MODE_META[m].label;
+  document.querySelectorAll('#modeMenu button').forEach(function(b){
+    const sel = b.getAttribute('data-mode') === m;
+    b.classList.toggle('sel', sel);
+    b.querySelector('.tick').textContent = sel ? '✓' : '';
+  });
+  document.getElementById('modeMenu').classList.remove('show');
+  const st = document.getElementById('studyToggle');
+  if(st) st.classList.toggle('on', studyMode);
+  if(m === 'study' && getToken() && !document.querySelector('#chatList .msg')){
     addAiMessage('📚 <b>Study Mode is on!</b> Ask me anything — math problems, science concepts, history, or upload a photo of a diagram or problem and I\'ll walk you through it step by step.');
   }
+}
+
+function toggleStudy(){
+  setChatMode(studyMode ? 'fast' : 'study');
+  showToast(studyMode ? '📚 Study Mode ON — detailed step-by-step explanations!' : '📚 Study Mode OFF');
 }
 function quickStudy(prefix){
   if(needAuth()) return;
@@ -1615,9 +2280,52 @@ function renderChatEmpty(){
   const list = document.getElementById('chatList');
   if(list.querySelector('.msg')) return;
   list.innerHTML =
-    '<div class="chatempty"><span class="big">✨</span>' +
+    '<div class="chatempty"><img class="centerlogo" src="logo-icon.webp" alt="Ayaz AI Studio">' +
     '<h2>What can I help with?</h2>' +
-    '<p>Ask anything, or turn on <b>📚 Study Mode</b> for<br>detailed step-by-step tutoring.</p></div>';
+    '<p>Ask anything, imagine images & videos,<br>or turn on <b>📚 Study Mode</b> for tutoring.</p></div>';
+  updateOfferRow(true);
+}
+function updateOfferRow(show){
+  const row = document.getElementById('offerRow');
+  if(!row) return;
+  row.classList.toggle('show', !!show);
+}
+/* ---------- offer / promo cards (Grok style) ---------- */
+const OFFERS = [
+  { id: 'refer', icon: '🎁', title: 'Refer & Earn', sub: 'Get +5 credits per friend', blue: true },
+  { id: 'ads', icon: '📺', title: 'Watch Ads', sub: 'Extra credits daily' },
+  { id: 'styles', icon: '🎨', title: 'Trending Styles', sub: 'Chibi, Anime & more' },
+  { id: 'study', icon: '📚', title: 'Study Mode', sub: 'Learn anything' },
+  { id: 'pro', icon: '⭐', title: 'Go Pro', sub: 'Coming soon' },
+];
+function renderOffers(){
+  const row = document.getElementById('offerRow');
+  if(!row) return;
+  row.innerHTML = OFFERS.map(function(o){
+    return '<button class="offercard' + (o.blue ? ' blue' : '') + '" onclick="offerGo(\'' + o.id + '\')">' +
+      '<span class="oic">' + o.icon + '</span><span><b>' + o.title + '</b><i>' + o.sub + '</i></span></button>';
+  }).join('');
+}
+function offerGo(id){
+  if(id === 'refer'){ openRefer(); return; }
+  if(id === 'ads'){
+    switchMainTab('imagine');
+    setTimeout(function(){
+      const b = document.getElementById('adBtn');
+      if(b && b.style.display !== 'none' && !b.disabled){ watchAd(); }
+      else { showToast('📺 Watch ads from the Imagine tab when your credits run low!'); }
+    }, 350);
+    return;
+  }
+  if(id === 'styles'){ switchMainTab('imagine'); return; }
+  if(id === 'study'){
+    if(needAuth()) return;
+    setChatMode('study');
+    showToast('📚 Study Mode ON — ask me anything!');
+    document.getElementById('chatInput').focus();
+    return;
+  }
+  if(id === 'pro'){ drawerGo('pricing'); return; }
 }
 function scrollChatToBottom(){
   const list = document.getElementById('chatList');
@@ -1627,6 +2335,7 @@ function addUserMessage(text, imageUrl){
   const list = document.getElementById('chatList');
   const empty = list.querySelector('.chatempty');
   if(empty) empty.remove();
+  updateOfferRow(false);
   const div = document.createElement('div');
   div.className = 'msg msg-user';
   let html = '<div class="bubble">';
@@ -1644,7 +2353,7 @@ function addAiMessage(html, opts){
   const div = document.createElement('div');
   div.className = 'msg msg-ai';
   div.innerHTML =
-    '<div class="who">✨ Ayaz AI' + (opts.study ? ' <span class="studybadge">📚 STUDY</span>' : '') + '</div>' +
+    '<div class="who">✨ Ayaz AI' + (opts.study ? ' <span class="studybadge">📚 STUDY</span>' : '') + (opts.smart ? ' <span class="studybadge">🧠 SMART</span>' : '') + '</div>' +
     '<div class="bubble">' + html + '</div>';
   list.appendChild(div);
   scrollChatToBottom();
@@ -1682,12 +2391,22 @@ async function loadChatHistory(){
     const list = document.getElementById('chatList');
     list.innerHTML = '';
     if(!msgs.length){ renderChatEmpty(); return; }
-    msgs.forEach(function(m){
+    updateOfferRow(false);
+    msgs.forEach(function(m, i){
       if(m.role === 'user'){
         addUserMessage(m.content || '', m.imageUrl);
       } else {
-        const isStudy = (m.content || '').indexOf('📚') === 0;
-        addAiMessage(formatAiText(m.content || ''), { study: isStudy });
+        // badge the AI reply from the preceding user message's mode prefix
+        const opts = {};
+        for(let j = i - 1; j >= 0; j--){
+          if(msgs[j].role === 'user'){
+            const c = msgs[j].content || '';
+            if(c.indexOf('📚') === 0) opts.study = true;
+            else if(c.indexOf('🧠') === 0) opts.smart = true;
+            break;
+          }
+        }
+        addAiMessage(formatAiText(m.content || ''), opts);
       }
     });
   }catch(e){ renderChatEmpty(); }
@@ -1700,7 +2419,13 @@ async function clearChat(){
   }catch(e){}
   document.getElementById('chatList').innerHTML = '';
   renderChatEmpty();
+  loadDrawerHistory();
   showToast('🗑️ Chat cleared — fresh start!');
+}
+function newChatFromDrawer(){
+  toggleDrawer(false);
+  switchMainTab('ask');
+  clearChat();
 }
 async function sendChat(){
   if(chatSending) return;
@@ -1710,9 +2435,10 @@ async function sendChat(){
   if(!text && !chatAttached){ return; }
   chatSending = true;
   document.getElementById('chatSend').disabled = true;
-  const useStudy = studyMode;
+  const useMode = chatMode;
+  const prefix = useMode === 'study' ? '📚 ' : (useMode === 'smart' ? '🧠 ' : '');
   const att = chatAttached;
-  addUserMessage((useStudy ? '📚 ' : '') + (text || '(image attached)'), att ? att.url : null);
+  addUserMessage(prefix + (text || '(image attached)'), att ? att.url : null);
   inp.value = '';
   clearAttach();
   addTyping();
@@ -1720,13 +2446,13 @@ async function sendChat(){
     const r = await fetch('/api/chat', {
       method: 'POST',
       headers: authHeaders({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ message: text, imageId: att ? att.id : null, study: useStudy }),
+      body: JSON.stringify({ message: text, imageId: att ? att.id : null, mode: useMode, study: useMode === 'study' }),
     });
     const d = await r.json().catch(() => ({}));
     removeTyping();
     if(r.status === 401){ logout(); throw new Error('Session expired — please sign in again.'); }
     if(!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
-    addAiMessage(formatAiText(d.reply || ''), { study: d.studyMode });
+    addAiMessage(formatAiText(d.reply || ''), { study: d.studyMode, smart: d.smartMode });
     if(d.visionUsed) showToast('👁️ Image analyzed!');
   }catch(e){
     removeTyping();
@@ -1735,6 +2461,7 @@ async function sendChat(){
   chatSending = false;
   document.getElementById('chatSend').disabled = false;
   refreshCredits();
+  loadDrawerHistory();
 }
 /* chat image attach */
 function initChatAttach(){
@@ -2007,6 +2734,8 @@ window.addEventListener('DOMContentLoaded', () => {
   renderAuthState();
   typeTagline();
   renderStyles();
+  renderOffers();
+  setChatMode('fast');
   initRefUpload();
   initChatAttach();
   if(getToken()){
@@ -2017,7 +2746,16 @@ window.addEventListener('DOMContentLoaded', () => {
   }
   showNotice();
   checkCookies();
+  checkAutoReminder();
   initVoiceButtons();
+  // close the mode dropdown when tapping anywhere else
+  document.addEventListener('click', function(e){
+    const menu = document.getElementById('modeMenu');
+    const wrap = document.getElementById('modeWrap');
+    if(menu && menu.classList.contains('show') && wrap && !wrap.contains(e.target)){
+      menu.classList.remove('show');
+    }
+  });
 });
 </script>
 </body>
