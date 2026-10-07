@@ -1386,14 +1386,48 @@ function recordChatUsage(email) {
   return Math.max(0, CHAT_DAILY_LIMIT - rec.chats);
 }
 
-/** Call Pollinations text API (GET, plain text response). */
-function pollinationsText(prompt, timeoutMs = 90000) {
+/* ------------------------------------------------------------------ */
+/* Pollinations text — resilient client                                     */
+/*                                                                         */
+/* Strategy:                                                               */
+/*  1. GET retries (up to 3) with exponential backoff (1s, 2s, 4s)          */
+/*  2. Fail fast on 4xx client errors (except 429 which is retried)        */
+/*  3. Fallback: POST to /openai endpoint (different server code path)     */
+/*  4. Rotating User-Agents to reduce IP/UA-based throttling               */
+/* ------------------------------------------------------------------ */
+
+const AI_UA_POOL = [
+  'AyazAIStudio/2.0',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15',
+];
+function pickAIUA() { return AI_UA_POOL[Math.floor(Math.random() * AI_UA_POOL.length)]; }
+
+function aiSleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+
+/* Classify an AI failure so the API can return honest, specific messages. */
+function classifyAIError(err) {
+  const msg = String((err && err.message) || err || '');
+  if (/timed?\s?out/i.test(msg))
+    return { kind: 'timeout', httpStatus: 504, userMessage: 'The AI took too long to respond. Please try again.' };
+  if (/(^|\D)429(\D|$)|rate.?limit/i.test(msg))
+    return { kind: 'ratelimit', httpStatus: 429, userMessage: 'Too many requests right now. Please wait a few seconds and try again.' };
+  if (/empty AI response/i.test(msg))
+    return { kind: 'empty', httpStatus: 502, userMessage: 'The AI returned an empty response. Please try again.' };
+  return { kind: 'server', httpStatus: 502, userMessage: 'The AI service is having trouble right now. Please try again in a moment.' };
+}
+
+/* Single GET attempt against text.pollinations.ai/<prompt>. */
+function pollinationsGetOnce(prompt, timeoutMs, ua) {
   return new Promise((resolve, reject) => {
     const url = 'https://text.pollinations.ai/' + encodeURIComponent(prompt);
-    const req = https.get(url, { timeout: timeoutMs, headers: { 'User-Agent': 'AyazAIStudio/1.0' } }, (res) => {
+    const req = https.get(url, { timeout: timeoutMs, headers: { 'User-Agent': ua, 'Accept': 'text/plain' } }, (res) => {
       if (res.statusCode !== 200) {
         res.resume();
-        return reject(new Error('AI service returned ' + res.statusCode));
+        const e = new Error('AI service returned ' + res.statusCode);
+        e.statusCode = res.statusCode;
+        return reject(e);
       }
       let data = '';
       res.on('data', (c) => { data += c; if (data.length > 12000) { res.destroy(); } });
@@ -1402,6 +1436,89 @@ function pollinationsText(prompt, timeoutMs = 90000) {
     req.on('timeout', () => { req.destroy(); reject(new Error('AI service timed out')); });
     req.on('error', reject);
   });
+}
+
+/* Fallback: POST to the OpenAI-compatible /openai endpoint (text-only).
+   This hits a different Pollinations code path than the GET route. */
+function pollinationsPostFallbackOnce(prompt, timeoutMs, ua) {
+  return new Promise((resolve, reject) => {
+    const body = JSON.stringify({
+      model: 'openai',
+      messages: [{ role: 'user', content: prompt.slice(0, 6000) }],
+      max_tokens: 1000,
+    });
+    const req = https.request({
+      hostname: 'text.pollinations.ai',
+      path: '/openai',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body),
+        'User-Agent': ua,
+      },
+      timeout: timeoutMs,
+    }, (res) => {
+      if (res.statusCode !== 200) {
+        res.resume();
+        const e = new Error('AI fallback returned ' + res.statusCode);
+        e.statusCode = res.statusCode;
+        return reject(e);
+      }
+      let data = '';
+      res.on('data', (c) => { data += c; if (data.length > 24000) { res.destroy(); } });
+      res.on('end', () => {
+        try {
+          const j = JSON.parse(data);
+          const content = j && j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content;
+          if (content && content.trim()) return resolve(content.trim().slice(0, 4000));
+        } catch (e) { /* fall through */ }
+        resolve('');
+      });
+    });
+    req.on('timeout', () => { req.destroy(); reject(new Error('AI service timed out')); });
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
+}
+
+function isClientErrorFastFail(err) {
+  const code = err && err.statusCode;
+  return typeof code === 'number' && code >= 400 && code < 500 && code !== 429;
+}
+
+/** Call Pollinations text API with retries + POST fallback. Resolves text or throws. */
+async function pollinationsText(prompt, timeoutMs = 60000) {
+  const backoffs = [1000, 2000, 4000];
+  let lastErr = null;
+
+  // Phase 1: GET route, up to 3 attempts with exponential backoff.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const text = await pollinationsGetOnce(prompt, timeoutMs, pickAIUA());
+      if (text) return text;
+      lastErr = new Error('empty AI response');
+    } catch (e) {
+      lastErr = e;
+      if (isClientErrorFastFail(e)) break; // 4xx (non-429): retrying won't help
+    }
+    if (attempt < 2) await aiSleep(backoffs[attempt]);
+  }
+
+  // Phase 2: POST /openai fallback route, up to 2 attempts.
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const text = await pollinationsPostFallbackOnce(prompt, timeoutMs, pickAIUA());
+      if (text) return text;
+      lastErr = new Error('empty AI response');
+    } catch (e) {
+      lastErr = e;
+      if (isClientErrorFastFail(e)) break;
+    }
+    if (attempt < 1) await aiSleep(2000);
+  }
+
+  throw lastErr || new Error('AI service unavailable');
 }
 
 /** Best-effort vision via Pollinations OpenAI-compatible endpoint. Resolves text or null. */
@@ -1425,7 +1542,7 @@ function pollinationsVision(text, dataUrl, systemPrompt, timeoutMs = 90000) {
       headers: {
         'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(body),
-        'User-Agent': 'AyazAIStudio/1.0',
+        'User-Agent': pickAIUA(),
       },
       timeout: timeoutMs,
     }, (res) => {
@@ -1509,7 +1626,8 @@ app.post('/api/chat', requireAuth, async (req, res) => {
     }
     if (!reply) throw new Error('empty AI response');
   } catch (e) {
-    return res.status(502).json({ error: 'AI service is busy right now. Please try again in a moment.' });
+    const cls = classifyAIError(e);
+    return res.status(cls.httpStatus).json({ error: cls.userMessage });
   }
 
   const left = recordChatUsage(email);
