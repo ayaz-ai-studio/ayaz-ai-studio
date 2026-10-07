@@ -50,11 +50,14 @@
     background: none; border: none; color: #fff; font-size: 14px; cursor: pointer; padding: 4px 8px; }
   /* ---------- top bar (Grok exact) ---------- */
   #topbar {
-    display: flex; align-items: center; justify-content: space-between;
+    display: grid; grid-template-columns: 48px 1fr 48px;
+    align-items: center; justify-items: center;
     height: 60px; padding: 0 12px; flex-shrink: 0;
     background: var(--bg); border-bottom: none;
     position: sticky; top: 0; z-index: 50;
   }
+  #menuBtn { justify-self: start; }
+  #topRightBtn { justify-self: end; }
   #menuBtn, #topRightBtn {
     background: #1a1a1a; border: none; color: #fff; font-size: 20px;
     width: 48px; height: 48px; border-radius: 50%; cursor: pointer; flex-shrink: 0;
@@ -1030,7 +1033,7 @@
     <button id="tabImagine" onclick="switchMainTab('imagine')">Imagine</button>
     <button id="tabBuild" onclick="switchMainTab('build')">Build</button>
   </nav>
-  <button id="topRightBtn" onclick="onTopRightBtn()" title="Settings" aria-label="Settings">⚙️</button>
+  <button id="topRightBtn" style="display:none" onclick="onTopRightBtn()" title="Settings" aria-label="Settings">⚙️</button>
 </header>
 
 <div id="drawerOverlay" onclick="toggleDrawer(false)"></div>
@@ -1069,7 +1072,7 @@
   <div id="attachPreview"><span class="prev"><img id="attachImg" alt="attached"><span id="attachName"></span><button onclick="clearAttach()" aria-label="Remove">✕</button></span></div>
   <div id="chatBarWrap">
     <div id="promoPills">
-      <button class="promo promo-blue" onclick="drawerGo('pricing')"><img src="logo-icon.webp" alt="Ayaz"><span>Ayaz Pro Offer</span></button>
+      <button class="promo promo-blue" onclick="drawerGo('pricing')"><span>Ayaz Pro Offer</span></button>
       <button class="promo promo-dark" onclick="switchMainTab('build')"><span class="pico">🔨</span><span>Build apps and sites</span></button>
     </div>
     <div id="chatBar">
@@ -1199,7 +1202,7 @@
     </div>
   </div>
   <footer>
-    <div><img src="logo-icon.webp" class="footlogo" alt="Ayaz AI Studio logo">Ayaz AI Studio • Powered by free AI models</div>
+    <div>Ayaz AI Studio • Powered by free AI models</div>
     <div class="flinkbar">
       <a onclick="drawerGo('pricing')">Pricing</a>
       <a onclick="drawerGo('apidocs')">API Docs</a>
@@ -1247,7 +1250,7 @@
 </main>
 
 <!-- ══════════ AYAZ BOT floating widget ══════════ -->
-<button id="botFab" onclick="toggleBotPanel()" title="Chat with Ayaz Bot" aria-label="Chat with Ayaz Bot"><img src="logo-icon.webp" alt="Ayaz Bot"></button>
+<button id="botFab" onclick="toggleBotPanel()" title="Chat with Ayaz Bot" aria-label="Chat with Ayaz Bot">💬</button>
 <div id="botPanel" role="dialog" aria-label="Ayaz Bot chat">
   <div class="bothead">
     <div class="bav"><img src="logo-icon.webp" alt="Ayaz Bot"></div>
@@ -1818,18 +1821,21 @@ function updateTopbarRight(){
   const btn = document.getElementById('topRightBtn');
   if(!btn) return;
   if(activeMainTab() === 'tabBuild'){
+    btn.style.display = '';
     btn.textContent = '✎';
     btn.title = 'New build';
     btn.setAttribute('aria-label', 'New build');
     return;
   }
   if(activeMainTab() === 'tabImagine'){
+    btn.style.display = '';
     btn.textContent = '⟳';
     btn.title = 'Refresh';
     btn.setAttribute('aria-label', 'Refresh');
     btn.onclick = function(){ refreshAll(); };
     return;
   }
+  btn.style.display = 'none'; /* Ask tab: no top-right button — top stays clean */
   btn.onclick = onTopRightBtn;
   btn.textContent = '⚙️';
   btn.title = 'Settings';
