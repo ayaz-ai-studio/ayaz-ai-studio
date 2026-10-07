@@ -209,39 +209,10 @@
     .ls-orb, .ls-logo, .ls-grad, .ls-anim, .ls-dot, .ls-cursor { animation: none !important; }
     .ls-anim { opacity: 1; }
   }
-  /* ---------- credits strip ---------- */
-  #creditsStrip {
-    display: none; gap: 8px; justify-content: center; align-items: center;
-    font-size: 12px; color: var(--muted); padding: 8px 12px;
-    border-bottom: 1px solid var(--border); flex-shrink: 0; flex-wrap: wrap;
-  }
-  #creditsStrip.show { display: flex; }
-  #creditsStrip b { color: var(--text); }
-  #creditsStrip .pill {
-    background: var(--card2); border: 1px solid var(--border);
-    border-radius: 20px; padding: 3px 10px;
-  }
   /* ---------- main views ---------- */
   .mainview { display: none; flex: 1; flex-direction: column; min-height: 0; }
   .mainview.active { display: flex; }
   /* ---------- ASK view : chat ---------- */
-  #studyBar {
-    display: none; align-items: center; gap: 8px; padding: 10px 14px;
-    border-bottom: 1px solid var(--border); flex-shrink: 0; overflow-x: auto;
-  }
-  #studyBar.show { display: flex; }
-  #studyToggle {
-    flex-shrink: 0; font-size: 13px; font-weight: 700; border-radius: 20px;
-    padding: 8px 14px; border: 1px solid var(--border); background: var(--card2);
-    color: var(--text); cursor: pointer; white-space: nowrap;
-  }
-  #studyToggle.on { background: #1e3a8a; border-color: #2563eb; color: #fff; }
-  .qpill {
-    flex-shrink: 0; font-size: 12px; border-radius: 20px; padding: 8px 12px;
-    border: 1px solid var(--border); background: var(--card); color: var(--muted);
-    cursor: pointer; white-space: nowrap;
-  }
-  .qpill:active { background: var(--card2); color: var(--text); }
   #chatList {
     flex: 1; overflow-y: auto; padding: 16px 14px 12px;
     display: flex; flex-direction: column; gap: 14px;
@@ -266,9 +237,30 @@
   .typing span:nth-child(2) { animation-delay: .2s; }
   .typing span:nth-child(3) { animation-delay: .4s; }
   @keyframes blink { 0%, 60%, 100% { opacity: .25; } 30% { opacity: 1; } }
-  .chatempty { text-align: center; color: var(--faint); margin: auto 0; padding: 40px 20px; }
-  .chatempty h2 { font-size: 20px; color: var(--text); margin-bottom: 8px; font-weight: 700; }
+  .chatempty { text-align: center; color: var(--faint); margin: auto 0; padding: 48px 24px; }
+  .chatempty h2 { font-size: 24px; color: var(--text); margin-bottom: 8px; font-weight: 700; letter-spacing: -.3px; }
   .chatempty p { font-size: 14px; line-height: 1.6; }
+  /* ---------- My Credits / Watch Ads pages ---------- */
+  .creditrow { display: flex; align-items: center; gap: 12px; padding: 12px 4px; border-bottom: 1px solid var(--border); }
+  .creditrow:last-of-type { border-bottom: none; }
+  .creditrow .cic { font-size: 26px; width: 34px; text-align: center; flex-shrink: 0; }
+  .creditrow .cinfo { flex: 1; min-width: 0; }
+  .creditrow .cinfo b { display: block; font-size: 14px; color: var(--text); }
+  .creditrow .cinfo span { font-size: 12px; color: var(--faint); }
+  .creditrow .cnum { font-size: 15px; font-weight: 800; color: var(--text); white-space: nowrap; }
+  .cbar { height: 6px; background: var(--card2); border-radius: 999px; margin-top: 7px; overflow: hidden; }
+  .cbar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #3b82f6, #8b5cf6); }
+  .bigbtn {
+    display: block; width: 100%; margin-top: 18px; padding: 15px; border: none; border-radius: 18px;
+    background: linear-gradient(135deg, #1d4ed8, #2563eb); color: #fff;
+    font-size: 15px; font-weight: 800; cursor: pointer; font-family: inherit;
+  }
+  .bigbtn:active { transform: scale(.98); }
+  .bigbtn:disabled { background: var(--card2); color: var(--faint); cursor: default; }
+  .bigbtn.ghost { background: var(--card2); color: var(--text); border: 1px solid var(--border); margin-top: 10px; }
+  .adsprogress { display: flex; align-items: baseline; gap: 10px; margin: 4px 0 2px; }
+  .adsprogress b { font-size: 28px; color: var(--text); }
+  .adsprogress span { font-size: 13px; color: var(--faint); }
   /* bottom chat bar */
   #chatBarWrap { flex-shrink: 0; padding: 8px 12px calc(10px + env(safe-area-inset-bottom)); background: var(--bg); }
   #chatBar {
@@ -340,23 +332,6 @@
   #speakBtn .wave { font-size: 13px; letter-spacing: -1px; }
   body.light #speakBtn { background: #111; color: #fff; }
   body.light #speakBtn.speaking { background: #ef4444; color: #fff; }
-  /* ---------- offer / promo cards ---------- */
-  #offerRow { display: none; gap: 10px; overflow-x: auto; max-width: 760px; margin: 0 auto;
-    padding: 4px 12px 10px; scrollbar-width: none; }
-  #offerRow.show { display: flex; }
-  #offerRow::-webkit-scrollbar { display: none; }
-  .offercard {
-    flex-shrink: 0; display: flex; align-items: center; gap: 11px; text-align: left;
-    background: var(--card); border: 1px solid var(--border); border-radius: 18px;
-    padding: 13px 16px; cursor: pointer; font-family: inherit; color: var(--text);
-    min-width: 200px; max-width: 240px;
-  }
-  .offercard:active { background: var(--card2); transform: scale(.98); }
-  .offercard .oic { font-size: 24px; }
-  .offercard b { display: block; font-size: 14px; font-weight: 700; }
-  .offercard i { display: block; font-size: 11.5px; color: var(--faint); font-style: normal; margin-top: 2px; }
-  .offercard.blue { background: linear-gradient(135deg, #1d4ed8, #2563eb); border-color: #3b82f6; }
-  .offercard.blue i { color: #dbeafe; }
   /* ---------- enhanced drawer ---------- */
   #drawer { width: 300px; }
   .dprofile { display: flex; align-items: center; gap: 12px; padding: 4px 16px 14px; border-bottom: 1px solid var(--border); }
@@ -369,6 +344,7 @@
   .dpinfo { flex: 1; min-width: 0; }
   .dpname { font-size: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .dpemail { font-size: 12px; color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+  .dpcredits { font-size: 11px; color: var(--muted); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .dpgo { background: var(--card2); border: 1px solid var(--border); color: var(--text);
     width: 38px; height: 38px; border-radius: 50%; font-size: 18px; cursor: pointer; flex-shrink: 0; }
   .dpgo:active { background: var(--border); }
@@ -376,14 +352,6 @@
     border-radius: 10px; padding: 2px 8px; margin-left: 6px; }
   .dsect { font-size: 11px; font-weight: 700; color: var(--faint); text-transform: uppercase;
     letter-spacing: .8px; padding: 14px 20px 6px; }
-  .promobanner { margin: 6px 14px 4px; background: linear-gradient(135deg, #1d4ed8, #2563eb);
-    border-radius: 18px; padding: 14px 15px; position: relative; cursor: pointer; }
-  .promobanner .pt { font-size: 14px; font-weight: 800; color: #fff; }
-  .promobanner .ps { font-size: 12px; color: #dbeafe; margin-top: 3px; }
-  .promobanner .pclaim { position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-    background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.45); color: #fff;
-    font-size: 13px; font-weight: 700; border-radius: 999px; padding: 8px 15px; cursor: pointer; font-family: inherit; }
-  .promobanner .pclaim:active { background: rgba(255,255,255,.3); }
   #drawerHistory button.hist {
     display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
     background: none; border: none; color: var(--muted); font-size: 13.5px;
@@ -921,13 +889,9 @@
     <button id="tabBuild" onclick="switchMainTab('build')">Build</button>
   </nav>
   <div class="topactions">
-    <button id="refreshBtn" onclick="refreshAll()" title="Refresh" aria-label="Refresh">🔄</button>
     <button id="newChatBtn" onclick="clearChat()" title="New chat" aria-label="New chat">✎</button>
-    <button id="themeBtn" onclick="toggleTheme()" title="Toggle theme" aria-label="Toggle theme">☀️</button>
   </div>
 </header>
-
-<div id="creditsStrip"></div>
 
 <div id="drawerOverlay" onclick="toggleDrawer(false)"></div>
 <aside id="drawer">
@@ -936,6 +900,7 @@
     <div class="dpinfo">
       <div class="dpname" id="drawerName">Ayaz AI Studio</div>
       <div class="dpemail" id="drawerEmail">Not signed in</div>
+      <div class="dpcredits" id="drawerCredits"></div>
     </div>
     <button class="dpgo" onclick="drawerGo('settings')" title="Account" aria-label="Account">»</button>
   </div>
@@ -944,11 +909,6 @@
     <button data-label="library my creations" onclick="drawerGo('library')"><span class="ic">📚</span>Library</button>
     <button data-label="projects saved prompts" onclick="drawerGo('projects')"><span class="ic">📁</span>Projects</button>
     <button data-label="ayaz bot assistant" onclick="drawerGo('ayazbot')"><span class="ic">🤖</span><span>Ayaz Bot<span class="newbadge">New</span></span></button>
-    <div class="promobanner" data-label="invite friends earn credits referral" onclick="openRefer()">
-      <div class="pt">🎉 Invite friends, earn credits</div>
-      <div class="ps">+5 images & +3 videos each</div>
-      <button class="pclaim" onclick="event.stopPropagation();openRefer()">Claim</button>
-    </div>
     <div class="dsect">Chats</div>
     <div id="drawerHistory"><div class="hempty">No chat history yet.</div></div>
     <div class="dsect">More</div>
@@ -963,6 +923,10 @@
     <button data-label="help faq questions" onclick="drawerGo('help')"><span class="ic">❓</span>Help / FAQ</button>
     <button data-label="contact support" onclick="drawerGo('contact')"><span class="ic">📞</span>Contact Us</button>
     <button data-label="about" onclick="drawerGo('about')"><span class="ic">ℹ️</span>About</button>
+    <button data-label="my credits daily limits usage" onclick="openCredits()"><span class="ic">💳</span>My Credits</button>
+    <button data-label="watch ads extra credits" onclick="openAdsPage()"><span class="ic">📺</span>Watch Ads</button>
+    <button data-label="theme dark light appearance" onclick="toggleTheme()"><span class="ic">☀️</span>Toggle Theme</button>
+    <button data-label="refresh reload" onclick="toggleDrawer(false);refreshAll()"><span class="ic">🔄</span>Refresh</button>
   </nav>
   <div class="dbottom">
     <div class="dsearch"><span>🔍</span><input id="drawerSearch" placeholder="Search" oninput="filterDrawer(this.value)" autocomplete="off"></div>
@@ -973,16 +937,9 @@
 
 <!-- ══════════ ASK VIEW ══════════ -->
 <main id="askView" class="mainview active">
-  <div id="studyBar">
-    <button id="studyToggle" onclick="toggleStudy()">📚 Study Mode</button>
-    <button class="qpill" onclick="quickStudy('Explain this concept: ')">💡 Explain a concept</button>
-    <button class="qpill" onclick="quickStudy('Solve this problem step by step: ')">🧮 Solve a problem</button>
-    <button class="qpill" onclick="quickStudy('Summarize this topic: ')">📝 Summarize a topic</button>
-  </div>
   <div id="chatList"></div>
   <div id="attachPreview"><span class="prev"><img id="attachImg" alt="attached"><span id="attachName"></span><button onclick="clearAttach()" aria-label="Remove">✕</button></span></div>
   <div id="chatBarWrap">
-    <div id="offerRow"></div>
     <div id="chatBar">
       <div class="cbrow1">
         <input id="chatInput" placeholder="Ask anything..." autocomplete="off" maxlength="2000">
@@ -1425,6 +1382,24 @@
   </div>
 </div>
 
+<div id="mCredits" class="infomodal">
+  <div class="infocard">
+    <button class="xbtn" onclick="closeInfo('mCredits')">✕</button>
+    <h2>💳 My Credits</h2>
+    <div class="sub">Your daily free limits — reset every day</div>
+    <div id="creditsBody"><p style="text-align:center;color:var(--muted)">Loading...</p></div>
+  </div>
+</div>
+
+<div id="mAds" class="infomodal">
+  <div class="infocard">
+    <button class="xbtn" onclick="closeInfo('mAds')">✕</button>
+    <h2>📺 Watch Ads</h2>
+    <div class="sub">Earn bonus credits — free</div>
+    <div id="adsBody"><p style="text-align:center;color:var(--muted)">Loading...</p></div>
+  </div>
+</div>
+
 <div id="mAutomations" class="infomodal">
   <div class="infocard">
     <button class="xbtn" onclick="closeInfo('mAutomations')">✕</button>
@@ -1573,7 +1548,7 @@
    the old one (dismissal is keyed to the message itself).
    Set to '' to hide the bar entirely.
    ═══════════════════════════════════════════════════════════════ */
-const NOTICE_MSG = "🎉 New: Ask tab with AI chat + 📚 Study Mode is live!";
+const NOTICE_MSG = "";
 function showNotice(){
   if(!NOTICE_MSG) return;
   if(localStorage.getItem('aas_notice_dismissed') === NOTICE_MSG) return;
@@ -1605,7 +1580,6 @@ function switchMainTab(which){
     document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle('active', on);
     document.getElementById(t + 'View').classList.toggle('active', on);
   });
-  document.getElementById('studyBar').classList.toggle('show', which === 'ask' && !!getToken());
   if(which === 'ask'){ scrollChatToBottom(); }
   if(which === 'build'){ renderBuildTemplates(); }
 }
@@ -1813,7 +1787,6 @@ function refreshAll(){
     refreshCredits();
     loadChatHistory();
     renderStyles();
-    renderOffers();
     renderFeatTemplates();
     if(document.getElementById('buildView').classList.contains('active')) renderBuildTemplates();
   }catch(e){ /* silent */ }
@@ -2133,7 +2106,6 @@ function renderAuthState(){
   const loggedIn = !!getToken();
   renderDrawerProfile();
   document.getElementById('loginScreen').classList.toggle('show', !loggedIn);
-  document.getElementById('studyBar').classList.toggle('show', loggedIn && document.getElementById('tabAsk').classList.contains('active'));
   // Imagine view: full-screen Grok-style login covers the app when logged out
   const gate = document.getElementById('imagineGate');
   const main = document.getElementById('imagineMain');
@@ -2598,7 +2570,7 @@ document.addEventListener('keydown', function(e){
   if(e.key === 'Escape'){
     toggleDrawer(false);
     toggleBotPanel(false);
-    ['mSettings','mPrivacy','mTerms','mHelp','mContact','mAbout','mFeedback','mCreations','mPricing','mApiDocs','mRefer','mAutomations','mProjects','mVerify'].forEach(closeInfo);
+    ['mSettings','mPrivacy','mTerms','mHelp','mContact','mAbout','mFeedback','mCreations','mPricing','mApiDocs','mRefer','mAutomations','mProjects','mVerify','mCredits','mAds'].forEach(closeInfo);
     closeImagineSettings();
     closeBuildCode();
     document.getElementById('modeMenu').classList.remove('show');
@@ -2666,17 +2638,83 @@ async function refreshCredits(){
   }catch(e){ /* silent */ }
 }
 function renderCreditsStrip(d){
-  const el = document.getElementById('creditsStrip');
-  if(!getToken()){ el.classList.remove('show'); el.innerHTML = ''; return; }
-  el.classList.add('show');
-  if(d){
-    el.innerHTML =
-      '<span class="pill">🖼️ <b>' + d.remaining.images + '/' + d.totals.images + '</b> images</span>' +
-      '<span class="pill">🎬 <b>' + d.remaining.videos + '/' + d.totals.videos + '</b> videos</span>' +
-      '<span class="pill">💬 <b>' + (d.chatsLeft !== undefined ? d.chatsLeft : '–') + '</b> chats</span>' +
-      '<span class="pill">📺 <b>' + d.ads.watched + '/' + d.ads.max + '</b> ads</span>';
-  } else {
-    el.innerHTML = '<span class="pill">Loading credits…</span>';
+  /* Grok-minimal: credits live on the dedicated My Credits page + a subtle
+     one-line summary in the drawer profile. No top strip anymore. */
+  const dc = document.getElementById('drawerCredits');
+  if(dc){
+    if(!getToken() || !d){ dc.textContent = ''; }
+    else{
+      dc.textContent = '🖼️ ' + d.remaining.images + '/' + d.totals.images +
+        '  ·  🎬 ' + d.remaining.videos + '/' + d.totals.videos;
+    }
+  }
+  if(d && document.getElementById('mCredits').classList.contains('show')) renderCreditsPage(d);
+  if(d && document.getElementById('mAds').classList.contains('show')) renderAdsPage(d);
+}
+/* ---------- My Credits page ---------- */
+function openCredits(){
+  if(needAuth()) return;
+  toggleDrawer(false);
+  openInfo('mCredits');
+  renderCreditsPage();
+}
+function creditRow(icon, label, sub, used, total){
+  const pct = total > 0 ? Math.min(100, Math.round(used / total * 100)) : 0;
+  return '<div class="creditrow"><div class="cic">' + icon + '</div>' +
+    '<div class="cinfo"><b>' + label + '</b><span>' + sub + '</span>' +
+    '<div class="cbar"><i style="width:' + pct + '%"></i></div></div>' +
+    '<div class="cnum">' + used + ' / ' + total + '</div></div>';
+}
+async function renderCreditsPage(d){
+  const box = document.getElementById('creditsBody');
+  if(!box) return;
+  try{
+    if(!d){
+      const r = await fetch('/api/me', { headers: authHeaders() });
+      if(r.status === 401){ logout(); return; }
+      d = await r.json();
+    }
+    const iu = d.totals.images - d.remaining.images, vu = d.totals.videos - d.remaining.videos;
+    box.innerHTML =
+      creditRow('🖼️', 'Images', 'AI image generations used today', iu, d.totals.images) +
+      creditRow('🎬', 'Videos', 'AI video generations used today', vu, d.totals.videos) +
+      '<div class="creditrow"><div class="cic">💬</div>' +
+      '<div class="cinfo"><b>Chats</b><span>AI chat messages — 50 free per day</span></div>' +
+      '<div class="cnum">50<span style="font-size:11px;color:var(--faint)">/day</span></div></div>' +
+      creditRow('📺', 'Rewarded ads', 'Bonus-credit ads watched today', d.ads.watched, d.ads.max) +
+      '<button class="bigbtn" onclick="closeInfo(\'mCredits\');openAdsPage()">📺 Watch Ads for Bonus Credits</button>' +
+      '<button class="bigbtn ghost" onclick="closeInfo(\'mCredits\');openRefer()">🎁 Refer & Earn Credits</button>';
+  }catch(e){
+    box.innerHTML = '<p style="color:#f87171">❌ Failed to load credits.</p>';
+  }
+}
+/* ---------- Watch Ads page ---------- */
+function openAdsPage(){
+  if(needAuth()) return;
+  toggleDrawer(false);
+  openInfo('mAds');
+  renderAdsPage();
+}
+async function renderAdsPage(d){
+  const box = document.getElementById('adsBody');
+  if(!box) return;
+  try{
+    if(!d){
+      const r = await fetch('/api/me', { headers: authHeaders() });
+      if(r.status === 401){ logout(); return; }
+      d = await r.json();
+    }
+    const left = d.ads.max - d.ads.watched;
+    box.innerHTML =
+      '<p style="font-size:13px;color:var(--muted);margin-bottom:14px">Watch a short ad to earn ' +
+      '<b>+' + d.ads.rewardImages + ' images</b> and <b>+' + d.ads.rewardVideos + ' video</b>. ' +
+      'Up to ' + d.ads.max + ' ads per day — limits reset daily.</p>' +
+      '<div class="adsprogress"><b>' + d.ads.watched + ' / ' + d.ads.max + '</b><span>ads watched today</span></div>' +
+      '<div class="cbar" style="margin-bottom:6px"><i style="width:' + Math.round(d.ads.watched / d.ads.max * 100) + '%"></i></div>' +
+      '<button class="bigbtn" onclick="watchAd()"' + (left <= 0 ? ' disabled' : '') + '>' +
+      (left <= 0 ? '✅ Daily limit reached — come back tomorrow' : '📺 Watch Ad & Earn Credits') + '</button>';
+  }catch(e){
+    box.innerHTML = '<p style="color:#f87171">❌ Failed to load.</p>';
   }
 }
 function updateButtonStates(iLeft, vLeft){
@@ -2979,51 +3017,7 @@ function renderChatEmpty(){
   if(list.querySelector('.msg')) return;
   list.innerHTML =
     '<div class="chatempty"><img class="centerlogo" src="logo-icon.webp" alt="Ayaz AI Studio">' +
-    '<h2>What can I help with?</h2>' +
-    '<p>Ask anything, imagine images & videos,<br>or turn on <b>📚 Study Mode</b> for tutoring.</p></div>';
-  updateOfferRow(true);
-}
-function updateOfferRow(show){
-  const row = document.getElementById('offerRow');
-  if(!row) return;
-  row.classList.toggle('show', !!show);
-}
-/* ---------- offer / promo cards (Grok style) ---------- */
-const OFFERS = [
-  { id: 'refer', icon: '🎁', title: 'Refer & Earn', sub: 'Get +5 credits per friend', blue: true },
-  { id: 'ads', icon: '📺', title: 'Watch Ads', sub: 'Extra credits daily' },
-  { id: 'styles', icon: '🎨', title: 'Trending Styles', sub: 'Chibi, Anime & more' },
-  { id: 'study', icon: '📚', title: 'Study Mode', sub: 'Learn anything' },
-  { id: 'pro', icon: '⭐', title: 'Go Pro', sub: 'Coming soon' },
-];
-function renderOffers(){
-  const row = document.getElementById('offerRow');
-  if(!row) return;
-  row.innerHTML = OFFERS.map(function(o){
-    return '<button class="offercard' + (o.blue ? ' blue' : '') + '" onclick="offerGo(\'' + o.id + '\')">' +
-      '<span class="oic">' + o.icon + '</span><span><b>' + o.title + '</b><i>' + o.sub + '</i></span></button>';
-  }).join('');
-}
-function offerGo(id){
-  if(id === 'refer'){ openRefer(); return; }
-  if(id === 'ads'){
-    switchMainTab('imagine');
-    setTimeout(function(){
-      const b = document.getElementById('adBtn');
-      if(b && b.style.display !== 'none' && !b.disabled){ watchAd(); }
-      else { showToast('📺 Watch ads from the Imagine tab when your credits run low!'); }
-    }, 350);
-    return;
-  }
-  if(id === 'styles'){ switchMainTab('imagine'); return; }
-  if(id === 'study'){
-    if(needAuth()) return;
-    setChatMode('study');
-    showToast('📚 Study Mode ON — ask me anything!');
-    document.getElementById('chatInput').focus();
-    return;
-  }
-  if(id === 'pro'){ drawerGo('pricing'); return; }
+    '<h2>What can I help with?</h2></div>';
 }
 function scrollChatToBottom(){
   const list = document.getElementById('chatList');
@@ -3033,7 +3027,6 @@ function addUserMessage(text, imageUrl){
   const list = document.getElementById('chatList');
   const empty = list.querySelector('.chatempty');
   if(empty) empty.remove();
-  updateOfferRow(false);
   const div = document.createElement('div');
   div.className = 'msg msg-user';
   let html = '<div class="bubble">';
@@ -3089,7 +3082,6 @@ async function loadChatHistory(){
     const list = document.getElementById('chatList');
     list.innerHTML = '';
     if(!msgs.length){ renderChatEmpty(); return; }
-    updateOfferRow(false);
     msgs.forEach(function(m, i){
       if(m.role === 'user'){
         addUserMessage(m.content || '', m.imageUrl);
@@ -3440,7 +3432,6 @@ window.addEventListener('DOMContentLoaded', () => {
   renderStyles();
   renderFeatTemplates();
   applyImagineSettings();
-  renderOffers();
   setChatMode('fast');
   initRefUpload();
   initChatAttach();
