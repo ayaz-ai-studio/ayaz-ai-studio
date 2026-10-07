@@ -1,6 +1,16 @@
-# 🎨 Ayaz AI Studio — Phase 16 (Premium Landing Redesign)
+# 🎨 Ayaz AI Studio — Phase 17 (Grok-Style Minimal Dashboard)
 
 A REAL, PUBLIC web app for free AI chat, tutoring, image + video generation. **Not a Muse artifact** — plain Node.js + Express, deployable to free hosting in minutes.
+
+## What's new in Phase 17 — ✨ Grok-style minimal dashboard
+
+- ✅ **Clean main page** — the Ask dashboard is now Grok-minimal: header (☰ · logo · Ask/Imagine/Build · ✎ new chat), centered hero (logo + "What can I help with?"), and the prominent bottom input bar. No clutter.
+- ✅ **Removed from main screen** — announcement bar, 4-pill credits strip, "Refer & Earn / Watch Ads / Trending Styles / Study Mode / Go Pro" promo cards, and the Study Mode quick-pill row. Study Mode still lives in the input bar's mode selector (Fast / Smart / Study).
+- ✅ **Header decluttered** — refresh 🔄 and theme ☀️ buttons moved into the hamburger menu; only ✎ new-chat stays in the top bar.
+- ✅ **💳 My Credits page** — dedicated page (hamburger menu → My Credits) with per-day usage rows, progress bars (images, videos, chats, rewarded ads), and shortcuts to Watch Ads / Refer & Earn.
+- ✅ **📺 Watch Ads page** — dedicated page (hamburger menu → Watch Ads) with ads-watched progress and a big "Watch Ad & Earn Credits" button (reuses the existing rewarded-ad flow).
+- ✅ **Subtle drawer credit line** — the drawer profile shows a one-line summary (🖼️ 6/6 · 🎬 3/3 · 💬 50); it refreshes automatically with the existing `refreshCredits()` cycle.
+- ✅ **Zero functionality removed** — all features (chat, study mode, imagine, build, referrals, ads, settings) intact; pages reuse the existing info-modal system and API endpoints.
 
 ## What's new in Phase 16 — ✨ Premium landing / login redesign
 
