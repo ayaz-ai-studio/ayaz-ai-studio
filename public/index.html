@@ -520,6 +520,12 @@
     filter: drop-shadow(0 2px 8px rgba(0,0,0,.45)); }
   .stylecard .sname { font-size: 13px; font-weight: 700; }
   .stylecard .sub { display: block; font-size: 10px; font-weight: 400; opacity: .85; }
+  .stylecard .simg { position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    object-fit: cover; }
+  .stylecard .sover { position: absolute; left: 0; right: 0; bottom: 0; height: 70%;
+    background: linear-gradient(transparent, rgba(0,0,0,.65)); }
+  .stylecard > div { position: relative; z-index: 1; }
+  .stylecard .sico { position: relative; z-index: 1; }
   .refbox {
     border: 1px dashed var(--border); border-radius: 16px; padding: 14px;
     text-align: center; color: var(--muted); font-size: 13px; cursor: pointer; margin-top: 6px;
@@ -876,7 +882,9 @@
     background: linear-gradient(transparent, #000 35%); margin-top: 14px; }
   #imagineBar { max-width: 560px; margin: 0 auto; display: flex; align-items: center; gap: 8px;
     background: #1c1c1c; border: none; border-radius: 999px; padding: 8px 10px; }
-  #imagineBar .cbtn { background: #2e2e2e; color: #fff; width: 48px; height: 48px; font-size: 20px; border-radius: 50%; }
+  #imagineBar .cbtn { background: #2e2e2e; color: #fff; width: 48px; height: 48px; font-size: 20px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; }
+  #imagineBar .cbtn svg { display: block; }
   #imagineInput { flex: 1; background: none; border: none; color: #fff;
     font-size: 16px; padding: 12px 8px; outline: none; font-family: inherit; min-width: 0; }
   #imagineInput::placeholder { color: #8a8a8a; }
@@ -1188,9 +1196,9 @@
     </div>
     <div id="imagineBarWrap">
       <div id="imagineBar">
-        <button class="cbtn" onclick="imaginePickPhoto()" title="Add photo" aria-label="Add photo">🖼️</button>
+        <button class="cbtn" onclick="imaginePickPhoto()" title="Add photo" aria-label="Add photo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></button>
         <input id="imagineInput" placeholder="Type to imagine" autocomplete="off" maxlength="1000">
-        <button class="cbtn" onclick="openImagineSettings()" title="Imagine settings" aria-label="Imagine settings">🎚️</button>
+        <button class="cbtn" onclick="openImagineSettings()" title="Imagine settings" aria-label="Imagine settings"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></button>
       </div>
     </div>
   </div>
@@ -1833,14 +1841,14 @@ function updateChatSendBtn(){
 
 /* ---------- trending styles ---------- */
 const TRENDING_STYLES = [
-  { name: 'Chibi', sub: 'cute 3D cartoon', icon: '🧸', prompt: ', chibi style, cute 3D cartoon, big expressive eyes, soft lighting', bg: 'linear-gradient(135deg,#f9a8d4,#c084fc)' },
-  { name: 'Photoreal', sub: 'ultra realistic', icon: '📷', prompt: ', ultra photorealistic, 8k, sharp focus, natural lighting, high detail', bg: 'linear-gradient(135deg,#334155,#0f172a)' },
-  { name: 'Anime', sub: 'japanese anime', icon: '🌸', prompt: ', anime style, studio ghibli inspired, vibrant colors, detailed', bg: 'linear-gradient(135deg,#f472b6,#8b5cf6)' },
-  { name: 'Cyberpunk', sub: 'neon future', icon: '🌃', prompt: ', cyberpunk style, neon lights, futuristic city, dramatic glow', bg: 'linear-gradient(135deg,#06b6d4,#3b82f6)' },
-  { name: 'Oil Paint', sub: 'classical art', icon: '🎨', prompt: ', classical oil painting, visible brush strokes, museum quality', bg: 'linear-gradient(135deg,#b45309,#78350f)' },
-  { name: 'Pixel Art', sub: 'retro 16-bit', icon: '👾', prompt: ', pixel art, 16-bit retro game style, crisp pixels', bg: 'linear-gradient(135deg,#22c55e,#15803d)' },
-  { name: 'Sketch', sub: 'pencil drawing', icon: '✏️', prompt: ', detailed pencil sketch, fine linework, shading', bg: 'linear-gradient(135deg,#6b7280,#1f2937)' },
-  { name: 'Fantasy', sub: 'epic magical', icon: '🐉', prompt: ', epic fantasy art, magical atmosphere, dramatic lighting, intricate details', bg: 'linear-gradient(135deg,#7c3aed,#4c1d95)' },
+  { name: 'Chibi', sub: 'cute 3D cartoon', icon: '🧸', prompt: ', chibi style, cute 3D cartoon, big expressive eyes, soft lighting', img: 'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=400', bg: 'linear-gradient(135deg,#f9a8d4,#c084fc)' },
+  { name: 'Photoreal', sub: 'ultra realistic', icon: '📷', prompt: ', ultra photorealistic, 8k, sharp focus, natural lighting, high detail', img: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400', bg: 'linear-gradient(135deg,#334155,#0f172a)' },
+  { name: 'Anime', sub: 'japanese anime', icon: '🌸', prompt: ', anime style, studio ghibli inspired, vibrant colors, detailed', img: 'https://images.unsplash.com/photo-1613376023733-0a73315d9b06?w=400', bg: 'linear-gradient(135deg,#f472b6,#8b5cf6)' },
+  { name: 'Cyberpunk', sub: 'neon future', icon: '🌃', prompt: ', cyberpunk style, neon lights, futuristic city, dramatic glow', img: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400', bg: 'linear-gradient(135deg,#06b6d4,#3b82f6)' },
+  { name: 'Oil Paint', sub: 'classical art', icon: '🎨', prompt: ', classical oil painting, visible brush strokes, museum quality', img: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=400', bg: 'linear-gradient(135deg,#b45309,#78350f)' },
+  { name: 'Pixel Art', sub: 'retro 16-bit', icon: '👾', prompt: ', pixel art, 16-bit retro game style, crisp pixels', img: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400', bg: 'linear-gradient(135deg,#22c55e,#15803d)' },
+  { name: 'Sketch', sub: 'pencil drawing', icon: '✏️', prompt: ', detailed pencil sketch, fine linework, shading', img: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=400', bg: 'linear-gradient(135deg,#6b7280,#1f2937)' },
+  { name: 'Fantasy', sub: 'epic magical', icon: '🐉', prompt: ', epic fantasy art, magical atmosphere, dramatic lighting, intricate details', img: 'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=400', bg: 'linear-gradient(135deg,#7c3aed,#4c1d95)' },
 ];
 let activeStyle = null;
 function renderStyles(){
@@ -1849,14 +1857,15 @@ function renderStyles(){
   const none = document.createElement('div');
   none.className = 'stylecard';
   none.style.background = 'var(--card2)';
-  none.innerHTML = '<div class="sico">📝</div><div><div class="sname">None</div><span class="sub">plain prompt</span></div>';
+  none.innerHTML = '<img class="simg" src="https://images.unsplash.com/photo-1493514789931-586cb221d7a7?w=400" alt="" loading="lazy" onerror="this.style.display=\'none\'"><span class="sover"></span><div class="sico">📝</div><div><div class="sname">None</div><span class="sub">plain prompt</span></div>';
   none.onclick = function(){ activeStyle = null; markStyle(none); };
   row.appendChild(none);
   TRENDING_STYLES.forEach(function(s){
     const c = document.createElement('div');
     c.className = 'stylecard';
     c.style.background = s.bg;
-    c.innerHTML = '<div class="sico">' + s.icon + '</div><div><div class="sname">' + escapeHtml(s.name) + '</div><span class="sub">' + escapeHtml(s.sub) + '</span></div>';
+    c.innerHTML = (s.img ? '<img class="simg" src="' + s.img + '" alt="" loading="lazy" onerror="this.style.display=\'none\'"><span class="sover"></span>' : '') +
+      '<div class="sico">' + s.icon + '</div><div><div class="sname">' + escapeHtml(s.name) + '</div><span class="sub">' + escapeHtml(s.sub) + '</span></div>';
     c.onclick = function(){ activeStyle = s; markStyle(c); showToast('✨ Style: ' + s.name + ' — it will be added to your prompt.'); };
     row.appendChild(c);
   });
