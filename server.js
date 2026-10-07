@@ -1873,4 +1873,167 @@ app.post('/api/upload', requireAuth, express.json({ limit: '6mb' }), (req, res) 
 // Delete-account cleanup: also wipe chat history for the account.
 const _origDeleteAccount = null; // (handled inline below via chatStore)
 
+/* ------------------------------------------------------------------ */
+/* Generation queue — agent-processed requests (max 100 pending each)  */
+/*                                                                     */
+/* Users submit prompts; the agent processes them manually for better  */
+/* quality than the free auto path. "Normal quality" for now:          */
+/*   - video: 720p                                                     */
+/*   - image: 1024px                                                   */
+/*                                                                     */
+/* Storage: video_queue.json / image_queue.json (file-based, same      */
+/* ephemeral-on-free-hosting caveat as users/usage).                   */
+/*                                                                     */
+/* Request shape:                                                      */
+/*   { id, userId, kind, prompt, status, createdAt, resultUrl,          */
+/*     ...kindParams }                                                 */
+/* status: 'pending' | 'processing' | 'done' | 'failed'                */
+/*                                                                     */
+/* MANUAL PROCESSING (for the agent):                                  */
+/*   1. Read video_queue.json / image_queue.json, take oldest          */
+/*      'pending' item, set status to 'processing'.                    */
+/*   2. Generate the media (720p video / 1024px image).                */
+/*   3. Upload the file somewhere public (or serve from /uploads) and  */
+/*      set status to 'done' + resultUrl to the download URL.          */
+/*      On failure set status to 'failed'.                             */
+/*   4. Save the JSON file. The user sees it in Library → Requests.    */
+/* ------------------------------------------------------------------ */
+const VIDEO_QUEUE_FILE = path.join(__dirname, 'video_queue.json');
+const IMAGE_QUEUE_FILE = path.join(__dirname, 'image_queue.json');
+const QUEUE_MAX_PENDING = 100;
+
+function loadQueueFile(file) {
+  try {
+    if (fs.existsSync(file)) {
+      const parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (e) { console.log(path.basename(file), 'unreadable, starting fresh'); }
+  return [];
+}
+function saveQueueFile(file, arr) {
+  fs.writeFile(file, JSON.stringify(arr), (e) => {
+    if (e) console.log('queue save failed:', e.message);
+  });
+}
+let videoQueue = loadQueueFile(VIDEO_QUEUE_FILE);
+let imageQueue = loadQueueFile(IMAGE_QUEUE_FILE);
+
+function pendingQueueItems(arr) {
+  return arr
+    .filter((q) => q.status === 'pending')
+    .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+}
+function queuePosition(arr, id) {
+  const idx = pendingQueueItems(arr).findIndex((q) => q.id === id);
+  return idx >= 0 ? idx + 1 : null;
+}
+function enqueueRequest(arr, file, item) {
+  if (pendingQueueItems(arr).length >= QUEUE_MAX_PENDING) return null;
+  const entry = Object.assign(
+    {
+      id: crypto.randomBytes(8).toString('hex'),
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+      resultUrl: null,
+    },
+    item
+  );
+  arr.push(entry);
+  saveQueueFile(file, arr);
+  return entry;
+}
+
+/**
+ * POST /api/queue/video { prompt, duration?, motion? } — auth required
+ * Adds a video request to the agent queue (max 100 pending).
+ */
+app.post('/api/queue/video', requireAuth, (req, res) => {
+  const prompt = ((req.body && req.body.prompt) || '').toString().trim().slice(0, 500);
+  if (!prompt) return res.status(400).json({ error: 'prompt required' });
+  const duration = Math.min(Math.max(parseInt(req.body.duration) || 5, 3), 8);
+  const motion = ['zoomin', 'zoomout', 'panleft', 'panright'].includes(req.body.motion)
+    ? req.body.motion : 'zoomin';
+  const entry = enqueueRequest(videoQueue, VIDEO_QUEUE_FILE, {
+    userId: req.authEmail, kind: 'video', prompt, duration, motion,
+  });
+  if (!entry) return res.status(429).json({ error: 'Video queue is full (100). Please try again later.' });
+  res.status(201).json({
+    ok: true, id: entry.id,
+    position: queuePosition(videoQueue, entry.id),
+    pending: pendingQueueItems(videoQueue).length,
+  });
+});
+
+/**
+ * POST /api/queue/image { prompt, width?, height? } — auth required
+ * Adds an image request to the agent queue (max 100 pending).
+ */
+app.post('/api/queue/image', requireAuth, (req, res) => {
+  const prompt = ((req.body && req.body.prompt) || '').toString().trim().slice(0, 500);
+  if (!prompt) return res.status(400).json({ error: 'prompt required' });
+  const width = Math.min(Math.max(parseInt(req.body.width) || 1024, 256), 1024);
+  const height = Math.min(Math.max(parseInt(req.body.height) || 1024, 256), 1024);
+  const entry = enqueueRequest(imageQueue, IMAGE_QUEUE_FILE, {
+    userId: req.authEmail, kind: 'image', prompt, width, height,
+  });
+  if (!entry) return res.status(429).json({ error: 'Image queue is full (100). Please try again later.' });
+  res.status(201).json({
+    ok: true, id: entry.id,
+    position: queuePosition(imageQueue, entry.id),
+    pending: pendingQueueItems(imageQueue).length,
+  });
+});
+
+/**
+ * GET /api/queue/status — auth required
+ * Returns pending counts for both queues.
+ */
+app.get('/api/queue/status', requireAuth, (req, res) => {
+  res.json({
+    videoQueue: pendingQueueItems(videoQueue).length,
+    imageQueue: pendingQueueItems(imageQueue).length,
+    videoMax: QUEUE_MAX_PENDING,
+    imageMax: QUEUE_MAX_PENDING,
+  });
+});
+
+/**
+ * GET /api/queue/my — auth required
+ * Returns the requesting user's queue items (both kinds), newest first,
+ * each pending item carrying its live queue position.
+ */
+app.get('/api/queue/my', requireAuth, (req, res) => {
+  const mine = videoQueue.concat(imageQueue).filter((q) => q.userId === req.authEmail);
+  const out = mine
+    .map((q) => {
+      const arr = q.kind === 'video' ? videoQueue : imageQueue;
+      return Object.assign({}, q, {
+        position: q.status === 'pending' ? queuePosition(arr, q.id) : null,
+      });
+    })
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  res.json({ requests: out });
+});
+
+/**
+ * DELETE /api/queue/:id — auth required
+ * Cancels the user's own pending request.
+ */
+app.delete('/api/queue/:id', requireAuth, (req, res) => {
+  const id = (req.params.id || '').toString();
+  for (const [arr, file] of [[videoQueue, VIDEO_QUEUE_FILE], [imageQueue, IMAGE_QUEUE_FILE]]) {
+    const idx = arr.findIndex((q) => q.id === id && q.userId === req.authEmail);
+    if (idx >= 0) {
+      if (arr[idx].status !== 'pending') {
+        return res.status(409).json({ error: 'Only pending requests can be cancelled.' });
+      }
+      arr.splice(idx, 1);
+      saveQueueFile(file, arr);
+      return res.json({ ok: true });
+    }
+  }
+  res.status(404).json({ error: 'Request not found.' });
+});
+
 app.listen(PORT, () => console.log(`Ayaz AI Studio running on http://localhost:${PORT}`));
