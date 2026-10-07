@@ -443,13 +443,6 @@
     background: #fff; top: 3px; left: 3px; transition: .2s; }
   .switch input:checked + .sl { background: #2563eb; }
   .switch input:checked + .sl::before { transform: translateX(19px); }
-  .projitem { display: flex; align-items: center; gap: 10px; background: var(--card2);
-    border: 1px solid var(--border); border-radius: 14px; padding: 11px 13px; margin-bottom: 8px; }
-  .projitem .pi { flex: 1; min-width: 0; cursor: pointer; }
-  .projitem .pn { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .projitem .pp { font-size: 12px; color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
-  .projitem .pdel { background: none; border: none; color: var(--faint); font-size: 16px; cursor: pointer; padding: 4px; }
-  .projitem .pdel:active { color: #ef4444; }
   .autotime { background: var(--card2); border: 1px solid var(--border); color: var(--text);
     border-radius: 10px; padding: 9px 11px; font-size: 14px; font-family: inherit; }
   /* ---------- Ayaz Bot panel (top-right, under topbar) ---------- */
@@ -716,6 +709,263 @@
   .sp-ver img { height: 26px; width: 26px; border-radius: 7px; vertical-align: -7px; margin-right: 6px; }
   body.light .sp-profile, body.light .sp-item { background: #f0f0f2; }
   body.light .sp-sect { color: #777; }
+  .sp-verified { display: inline-block; font-size: 12px; font-weight: 700; color: #4ade80;
+    background: rgba(74,222,128,.14); border: 1px solid rgba(74,222,128,.35);
+    border-radius: 999px; padding: 2px 9px; margin-left: 8px; vertical-align: 2px; white-space: nowrap; }
+  /* ══════════ Grok-style Automations pages (full-screen) ══════════ */
+  #mAutomations, #mNewAutomation { display: none; position: fixed; inset: 0; background: var(--bg);
+    z-index: 100; overflow-y: auto; overflow-x: hidden; }
+  #mAutomations.show, #mNewAutomation.show { display: block; }
+  #mNewAutomation { z-index: 101; }
+  .au-inner { max-width: 560px; margin: 0 auto; padding: 14px 16px 48px; }
+  .au-head { display: flex; align-items: center; gap: 14px; padding: 8px 0 18px; }
+  .au-head .au-x { background: none; border: none; color: var(--text); font-size: 24px;
+    cursor: pointer; padding: 4px; line-height: 1; font-family: inherit; }
+  .au-head h2 { font-size: 21px; font-weight: 700; margin: 0; color: var(--text); flex: 1; min-width: 0; }
+  .au-head .au-add { background: none; border: none; color: var(--text); font-size: 30px;
+    cursor: pointer; padding: 2px 6px; line-height: 1; font-family: inherit; }
+  .au-head .au-create { background: var(--card2); border: 1px solid var(--border); color: var(--text);
+    font-size: 15px; font-weight: 700; border-radius: 999px; padding: 9px 20px; cursor: pointer;
+    font-family: inherit; flex-shrink: 0; }
+  .au-head .au-create:active { transform: scale(.96); opacity: .85; }
+  .au-empty { text-align: center; padding: 80px 24px 30px; }
+  .au-empty .au-eic { width: 76px; height: 76px; border-radius: 50%; background: var(--card);
+    border: 1px solid var(--border); display: inline-flex; align-items: center; justify-content: center;
+    font-size: 30px; margin-bottom: 22px; color: var(--text); }
+  .au-empty b { display: block; font-size: 19px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+  .au-empty p { font-size: 14px; color: var(--muted); margin: 0 0 24px; line-height: 1.55; }
+  .au-empty .au-new { background: var(--card2); border: 1px solid var(--border); color: var(--text);
+    font-size: 15px; font-weight: 700; border-radius: 999px; padding: 13px 24px; cursor: pointer;
+    font-family: inherit; display: inline-flex; align-items: center; gap: 8px; }
+  .au-empty .au-new:active { transform: scale(.97); opacity: .85; }
+  .au-item { background: var(--card); border-radius: 18px; padding: 15px 16px; margin-bottom: 10px;
+    display: flex; gap: 12px; align-items: flex-start; }
+  .au-item .au-ic { width: 42px; height: 42px; border-radius: 13px; background: var(--card2);
+    border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+    font-size: 21px; flex-shrink: 0; }
+  .au-item .au-tx { flex: 1; min-width: 0; }
+  .au-item .au-tx b { display: block; font-size: 15px; font-weight: 700; color: var(--text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .au-item .au-tx span { display: block; font-size: 13px; color: var(--muted); margin-top: 3px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .au-item .au-del { background: none; border: none; color: var(--faint); font-size: 17px;
+    cursor: pointer; padding: 6px; line-height: 1; font-family: inherit; flex-shrink: 0; }
+  .au-item .au-del:active { color: #f87171; }
+  .au-hero { display: flex; justify-content: center; margin: 6px 0 22px; }
+  .au-hero .au-heroic { width: 76px; height: 76px; border-radius: 22px; background: var(--card);
+    border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+    font-size: 34px; }
+  .au-name { width: 100%; box-sizing: border-box; background: var(--card); border: 1px solid var(--border);
+    border-radius: 18px; padding: 16px 18px; font-size: 16px; color: var(--text); font-family: inherit;
+    outline: none; margin-bottom: 4px; }
+  .au-name:focus { border-color: var(--muted); }
+  .au-name::placeholder { color: var(--faint); }
+  .au-lab { font-size: 15px; color: var(--muted); padding: 18px 6px 10px; }
+  .au-schedwrap { position: relative; }
+  .au-sched { width: 100%; box-sizing: border-box; background: transparent; border: 2px dashed var(--border);
+    border-radius: 18px; padding: 17px 18px; font-size: 16px; color: var(--text); font-family: inherit;
+    cursor: pointer; display: flex; align-items: center; gap: 12px; text-align: left; }
+  .au-sched .au-plus2 { font-size: 22px; font-weight: 300; color: var(--text); line-height: 1; }
+  .au-schedmenu { display: none; position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+    background: var(--card2); border: 1px solid var(--border); border-radius: 16px; overflow: hidden;
+    z-index: 5; box-shadow: 0 12px 32px rgba(0,0,0,.35); }
+  .au-schedmenu.show { display: block; }
+  .au-schedmenu button { display: block; width: 100%; background: none; border: none; text-align: left;
+    padding: 14px 18px; font-size: 15px; font-weight: 600; color: var(--text); cursor: pointer;
+    font-family: inherit; }
+  .au-schedmenu button:active { background: var(--border); }
+  .au-timewrap { margin-top: 10px; }
+  .au-timewrap input[type="time"] { width: 100%; box-sizing: border-box; background: var(--card);
+    border: 1px solid var(--border); border-radius: 18px; padding: 14px 18px; font-size: 16px;
+    color: var(--text); font-family: inherit; outline: none; color-scheme: dark; }
+  body.light .au-timewrap input[type="time"] { color-scheme: light; }
+  .au-instr { background: var(--card); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; }
+  .au-instr textarea { width: 100%; box-sizing: border-box; background: transparent; border: none;
+    padding: 16px 18px 8px; font-size: 16px; color: var(--text); font-family: inherit; outline: none;
+    min-height: 120px; resize: vertical; }
+  .au-instr textarea::placeholder { color: var(--faint); }
+  .au-irow { display: flex; align-items: center; gap: 10px; padding: 8px 14px 14px; }
+  .au-iplus { width: 40px; height: 40px; border-radius: 50%; background: var(--card2);
+    border: 1px solid var(--border); color: var(--text); font-size: 22px; font-weight: 300;
+    cursor: pointer; line-height: 1; font-family: inherit; display: flex; align-items: center;
+    justify-content: center; }
+  .au-imode { background: var(--card2); border: 1px solid var(--border); color: var(--text);
+    font-size: 14px; font-weight: 700; border-radius: 999px; padding: 9px 16px; cursor: pointer;
+    font-family: inherit; }
+  .au-notif { display: flex; flex-direction: column; gap: 8px; }
+  .au-nrow { background: var(--card); border-radius: 18px; padding: 16px 18px;
+    display: flex; align-items: center; gap: 14px; }
+  .au-nic { font-size: 22px; width: 30px; text-align: center; flex-shrink: 0; color: var(--muted); }
+  .au-nt { flex: 1; font-size: 16px; font-weight: 600; color: var(--text); }
+  .au-dev { margin-top: 26px; }
+  .au-dev .au-lab { padding-top: 0; }
+  body.light #mAutomations .au-empty .au-eic, body.light #mAutomations .au-hero .au-heroic,
+  body.light #mNewAutomation .au-hero .au-heroic { background: #f0f0f2; }
+
+  /* ---------- projects (Grok-style full pages) ---------- */
+  #mProjects, #mNewProject { display: none; position: fixed; inset: 0; background: var(--bg);
+    z-index: 100; overflow-y: auto; overflow-x: hidden; }
+  #mProjects.show, #mNewProject.show { display: block; }
+  #mNewProject { z-index: 101; }
+  .pj-inner { max-width: 560px; margin: 0 auto; padding: 14px 16px 48px; }
+  .pj-head { display: flex; align-items: center; gap: 14px; padding: 8px 0 18px; }
+  .pj-head .pj-x { background: none; border: none; color: var(--text); font-size: 26px;
+    cursor: pointer; padding: 4px; line-height: 1; font-family: inherit; }
+  .pj-head h2 { font-size: 21px; font-weight: 700; margin: 0; color: var(--text); flex: 1; min-width: 0;
+    text-align: center; }
+  .pj-head .pj-add { background: none; border: none; color: var(--text); font-size: 30px;
+    cursor: pointer; padding: 2px 6px; line-height: 1; font-family: inherit; }
+  .pj-head .pj-create { background: var(--card2); border: 1px solid var(--border); color: var(--text);
+    font-size: 15px; font-weight: 700; border-radius: 999px; padding: 9px 20px; cursor: pointer;
+    font-family: inherit; flex-shrink: 0; }
+  .pj-head .pj-create:active { transform: scale(.96); opacity: .85; }
+  .pj-empty { text-align: center; padding: 120px 24px 30px; }
+  .pj-empty .pj-eic { width: 76px; height: 76px; border-radius: 50%; background: var(--card);
+    border: 1px solid var(--border); display: inline-flex; align-items: center; justify-content: center;
+    font-size: 30px; margin-bottom: 22px; color: var(--text); }
+  .pj-empty .pj-eic svg { display: block; }
+  .pj-empty b { display: block; font-size: 19px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+  .pj-empty p { font-size: 14px; color: var(--muted); margin: 0 0 24px; line-height: 1.55; }
+  .pj-empty .pj-new { background: var(--card2); border: 1px solid var(--border); color: var(--text);
+    font-size: 15px; font-weight: 700; border-radius: 999px; padding: 13px 24px; cursor: pointer;
+    font-family: inherit; display: inline-flex; align-items: center; gap: 8px; }
+  .pj-empty .pj-new:active { transform: scale(.97); opacity: .85; }
+  .pj-item { background: var(--card); border-radius: 18px; padding: 15px 16px; margin-bottom: 10px;
+    display: flex; gap: 12px; align-items: flex-start; }
+  .pj-item .pj-ic { width: 42px; height: 42px; border-radius: 13px; background: var(--card2);
+    border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+    font-size: 21px; flex-shrink: 0; }
+  .pj-item .pj-tx { flex: 1; min-width: 0; }
+  .pj-item .pj-tx b { display: block; font-size: 15px; font-weight: 700; color: var(--text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pj-item .pj-tx span { display: block; font-size: 13px; color: var(--muted); margin-top: 3px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pj-item .pj-del { background: none; border: none; color: var(--faint); font-size: 17px;
+    cursor: pointer; padding: 6px; line-height: 1; font-family: inherit; flex-shrink: 0; }
+  .pj-item .pj-del:active { color: #f87171; }
+  .pj-namerow { display: flex; gap: 12px; align-items: center; margin-bottom: 4px; }
+  .pj-namerow .pj-fic { width: 52px; height: 52px; border-radius: 50%; background: var(--card);
+    border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; color: var(--text); }
+  .pj-namerow .pj-fic svg { display: block; }
+  .pj-name { flex: 1; min-width: 0; box-sizing: border-box; background: var(--card);
+    border: 1px solid var(--border); border-radius: 18px; padding: 16px 18px; font-size: 16px;
+    color: var(--text); font-family: inherit; outline: none; }
+  .pj-name:focus { border-color: var(--muted); }
+  .pj-name::placeholder { color: var(--faint); }
+  .pj-lab { font-size: 15px; color: var(--muted); padding: 18px 6px 10px; }
+  .pj-instr { width: 100%; box-sizing: border-box; background: var(--card); border: 1px solid var(--border);
+    border-radius: 18px; padding: 16px 18px; font-size: 16px; color: var(--text); font-family: inherit;
+    outline: none; min-height: 150px; resize: vertical; }
+  .pj-instr:focus { border-color: var(--muted); }
+  .pj-instr::placeholder { color: var(--faint); }
+  .pj-filebtn { width: 100%; box-sizing: border-box; background: var(--card); border: 1px solid var(--border);
+    border-radius: 18px; padding: 17px 18px; font-size: 16px; font-weight: 600; color: var(--text);
+    font-family: inherit; cursor: pointer; display: flex; align-items: center; gap: 12px;
+    text-align: left; margin-bottom: 8px; }
+  .pj-filebtn:active { opacity: .8; }
+  .pj-filebtn .pj-plus { font-size: 24px; font-weight: 300; line-height: 1; }
+  .pj-filebtn .pj-svc { width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center;
+    justify-content: center; flex-shrink: 0; font-size: 14px; font-weight: 800; }
+  .pj-filebtn .pj-svc svg { display: block; }
+  .pj-filelist { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 2px 6px; }
+  .pj-filechip { background: var(--card2); border: 1px solid var(--border); border-radius: 999px;
+    padding: 7px 12px; font-size: 13px; color: var(--text); display: inline-flex; align-items: center;
+    gap: 6px; max-width: 100%; }
+  .pj-filechip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pj-filechip button { background: none; border: none; color: var(--faint); font-size: 14px;
+    cursor: pointer; padding: 0; line-height: 1; font-family: inherit; }
+  body.light #mProjects .pj-empty .pj-eic, body.light #mNewProject .pj-namerow .pj-fic { background: #f0f0f2; }
+  body.light .au-item, body.light .au-name, body.light .au-instr, body.light .au-nrow,
+  body.light .au-timewrap input[type="time"] { background: #f0f0f2; }
+  /* ══════════ Grok-style Library page (full-screen) ══════════ */
+  #mLibrary { display: none; position: fixed; inset: 0; background: var(--bg);
+    z-index: 100; overflow-y: auto; overflow-x: hidden; }
+  #mLibrary.show { display: block; }
+  .lib-inner { max-width: 640px; margin: 0 auto; padding: 14px 16px 120px; }
+  .lib-head { display: flex; align-items: center; gap: 14px; padding: 8px 0 10px; position: relative; }
+  .lib-head .lib-back { background: none; border: none; color: var(--text); font-size: 26px;
+    cursor: pointer; padding: 4px 8px 4px 0; line-height: 1; font-family: inherit; flex-shrink: 0; }
+  .lib-head h2 { font-size: 21px; font-weight: 700; margin: 0; color: var(--text);
+    position: absolute; left: 50%; transform: translateX(-50%); }
+  .lib-tabs { display: flex; align-items: center; gap: 6px; padding: 10px 0 22px; }
+  .lib-tab { background: none; border: none; font-family: inherit; cursor: pointer;
+    font-size: 17px; font-weight: 600; color: var(--muted); padding: 10px 18px;
+    border-radius: 999px; transition: background .15s, color .15s; }
+  .lib-tab.on { background: var(--card2); color: var(--text); }
+  .lib-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (min-width: 560px){ .lib-grid { grid-template-columns: 1fr 1fr 1fr; } }
+  .lib-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .lib-card .lib-ctop { display: flex; justify-content: space-between; align-items: center; }
+  .lib-card .badge { font-size: 11px; font-weight: 700; background: var(--card2);
+    border-radius: 8px; padding: 3px 8px; color: var(--text); }
+  .lib-card .cdate { font-size: 11px; color: var(--faint); }
+  .lib-card .cprompt { font-size: 13px; color: var(--text); line-height: 1.45;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .lib-card .cmeta { font-size: 11px; color: var(--faint); }
+  .lib-card .lib-re { background: var(--card2); border: 1px solid var(--border); color: var(--text);
+    font-family: inherit; font-size: 13px; font-weight: 700; border-radius: 12px;
+    padding: 9px 10px; cursor: pointer; }
+  .lib-empty { display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 120px 20px 40px; }
+  .lib-empty .lib-eic { width: 92px; height: 92px; border-radius: 50%; background: var(--card);
+    border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+    margin-bottom: 22px; }
+  .lib-empty .lib-eic svg { width: 38px; height: 38px; stroke: var(--muted); }
+  .lib-empty b { font-size: 19px; font-weight: 700; color: var(--text); }
+  .lib-empty span { font-size: 14px; color: var(--muted); margin-top: 6px; }
+  .lib-bottom { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
+    background: var(--bg); border-top: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px; padding: 12px 14px calc(14px + env(safe-area-inset-bottom)); }
+  .lib-bbtn { width: 52px; height: 52px; border-radius: 50%; background: var(--card);
+    border: 1px solid var(--border); color: var(--text); font-size: 22px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-family: inherit; }
+  .lib-search { flex: 1; background: var(--card); border: 1px solid var(--border);
+    border-radius: 999px; display: flex; align-items: center; gap: 10px; padding: 0 18px; height: 52px; }
+  .lib-search svg { width: 20px; height: 20px; stroke: var(--faint); flex-shrink: 0; }
+  .lib-search input { flex: 1; background: none; border: none; outline: none;
+    font-size: 16px; color: var(--text); font-family: inherit; }
+  .lib-search input::placeholder { color: var(--faint); }
+  .lib-menu { position: fixed; left: 14px; bottom: calc(80px + env(safe-area-inset-bottom));
+    background: var(--card2); border: 1px solid var(--border); border-radius: 16px;
+    overflow: hidden; z-index: 6; box-shadow: 0 12px 32px rgba(0,0,0,.4); display: none; min-width: 190px; }
+  .lib-menu.show { display: block; }
+  .lib-menu button { display: block; width: 100%; background: none; border: none; text-align: left;
+    padding: 13px 18px; font-size: 15px; font-weight: 600; color: var(--text);
+    cursor: pointer; font-family: inherit; }
+  .lib-menu button:active { background: var(--border); }
+  body.light .lib-tab.on, body.light .lib-eic, body.light .lib-card,
+  body.light .lib-bbtn, body.light .lib-search, body.light .lib-menu { background: #f0f0f2; }
+  /* ---------- profile setup (new Google users) ---------- */
+  #mProfileSetup { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 120;
+    overflow-y: auto; overflow-x: hidden; }
+  #mProfileSetup.show { display: block; }
+  .ps-inner { max-width: 480px; margin: 0 auto; padding: 34px 20px 44px; }
+  .ps-photo { width: 112px; height: 112px; border-radius: 50%; margin: 4px auto 8px;
+    background: var(--card2); border: 2px dashed var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 44px; font-weight: 700; color: var(--text); overflow: hidden;
+    cursor: pointer; position: relative; flex-shrink: 0; }
+  .ps-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .ps-field { margin-bottom: 14px; }
+  .ps-field label { display: block; font-size: 14px; color: var(--muted); margin-bottom: 6px; padding-left: 4px; }
+  .ps-field input { width: 100%; background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 13px 15px; font-size: 16px; color: var(--text);
+    font-family: inherit; box-sizing: border-box; }
+  .ps-field input:focus { outline: none; border-color: #3b82f6; }
+  .ps-uname-wrap { position: relative; }
+  .ps-uname-wrap .at { position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
+    color: var(--muted); font-size: 16px; pointer-events: none; }
+  .ps-uname-wrap input { padding-left: 34px; padding-right: 42px; }
+  .ps-ustatus { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); font-size: 18px; }
+  .ps-btn { width: 100%; background: #fff; color: #000; border: none; border-radius: 999px;
+    padding: 15px; font-size: 17px; font-weight: 700; cursor: pointer; margin-top: 10px; font-family: inherit; }
+  .ps-btn:active { transform: scale(.98); }
+  .ps-btn:disabled { opacity: .55; }
+  .ps-err { color: #f87171; font-size: 14px; min-height: 22px; text-align: center; margin-top: 10px; }
+  .ps-note { text-align: center; color: var(--muted); font-size: 13px; margin-top: 12px; }
+  body.light .ps-field input { background: #f0f0f2; }
   .crecard .cprompt { font-size: 13px; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3;
     -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 6px; }
   .crecard .cmeta { font-size: 11px; color: var(--faint); margin-bottom: 8px; }
@@ -1353,6 +1603,32 @@
 </div>
 
 <!-- ══════════ MODALS ══════════ -->
+<!-- ══════════ PROFILE SETUP (new Google users) ══════════ -->
+<div id="mProfileSetup">
+  <div class="ps-inner">
+    <h2 style="text-align:center;font-size:24px;font-weight:800;margin:8px 0 6px;color:var(--text)">Set up your profile</h2>
+    <p style="text-align:center;color:var(--muted);font-size:14px;margin:0 0 20px">Choose how you&rsquo;ll appear in Ayaz AI Studio.</p>
+    <div class="ps-photo" id="psPhotoPrev" role="button" tabindex="0" aria-label="Choose profile photo">?</div>
+    <input type="file" id="psPhotoInput" accept="image/*" style="display:none">
+    <p style="text-align:center;color:var(--muted);font-size:13px;margin:0 0 20px">Tap the photo to upload one</p>
+    <div class="ps-field">
+      <label for="psName">Display name</label>
+      <input id="psName" maxlength="40" placeholder="Your name" autocomplete="name">
+    </div>
+    <div class="ps-field">
+      <label for="psUsername">Username</label>
+      <div class="ps-uname-wrap">
+        <span class="at">@</span>
+        <input id="psUsername" maxlength="20" placeholder="username" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+        <span class="ps-ustatus" id="psUstatus"></span>
+      </div>
+    </div>
+    <button class="ps-btn" id="psSubmit">Complete Setup</button>
+    <div class="ps-err" id="psErr"></div>
+    <p class="ps-note">Your Google email is already verified &#10003;</p>
+  </div>
+</div>
+
 <div id="mSettings" class="setpage">
   <div class="sp-inner">
     <div class="sp-head">
@@ -1625,33 +1901,107 @@
   </div>
 </div>
 
-<div id="mAutomations" class="infomodal">
-  <div class="infocard">
-    <button class="xbtn" onclick="closeInfo('mAutomations')">✕</button>
-    <h2>⚡ Automations</h2>
-    <div class="sub">Small daily helpers, right on this device</div>
-    <div class="autoset">
-      <div><div class="t">⏰ Daily reminder</div><div class="s">Nudge me to use my fresh daily credits</div></div>
-      <label class="switch"><input type="checkbox" id="autoReminderTgl" onchange="saveAutomations()"><span class="sl"></span></label>
+<div id="mAutomations" class="setpage">
+  <div class="au-inner">
+    <div class="au-head">
+      <button class="au-x" onclick="closeAutomations()" aria-label="Close automations">✕</button>
+      <h2>Automations</h2>
+      <button class="au-add" onclick="openNewAutomation()" aria-label="New automation">+</button>
     </div>
-    <div class="autoset">
-      <div><div class="t">🕘 Reminder time</div><div class="s">When should we remind you?</div></div>
-      <input type="time" class="autotime" id="autoReminderTime" value="09:00" onchange="saveAutomations()">
+    <div id="autoList"></div>
+    <div class="au-dev">
+      <div class="au-lab">On this device</div>
+      <div class="au-notif">
+        <div class="au-nrow">
+          <span class="au-nic">⏰</span>
+          <span class="au-nt">Daily credit reminder</span>
+          <label class="switch"><input type="checkbox" id="autoReminderTgl" onchange="saveAutomations()"><span class="sl"></span></label>
+        </div>
+        <div class="au-nrow" id="autoTimeRow" style="display:none">
+          <span class="au-nic">🕘</span>
+          <span class="au-nt">Reminder time</span>
+          <input type="time" class="autotime" id="autoReminderTime" value="09:00" onchange="saveAutomations()" style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:8px 10px;color:var(--text);font-family:inherit;font-size:15px">
+        </div>
+      </div>
     </div>
-    <p style="font-size:12px;color:var(--faint);line-height:1.6;margin-top:6px">🔜 Scheduled auto-generation (e.g. "make me a wallpaper every morning") is coming soon.</p>
   </div>
 </div>
 
-<div id="mProjects" class="infomodal">
-  <div class="infocard">
-    <button class="xbtn" onclick="closeInfo('mProjects')">✕</button>
-    <h2>📁 Projects</h2>
-    <div class="sub">Save prompts & ideas, reuse them anytime</div>
-    <div id="projList"><p style="text-align:center;color:var(--muted)">No saved projects yet.</p></div>
-    <div class="row" style="margin-top:12px">
-      <button class="genbtn" onclick="saveProject('chat')">💾 Save chat idea</button>
-      <button class="genbtn" onclick="saveProject('imagine')">💾 Save imagine prompt</button>
+<div id="mNewAutomation" class="setpage">
+  <div class="au-inner">
+    <div class="au-head">
+      <button class="au-x" onclick="closeNewAutomation()" aria-label="Back">✕</button>
+      <h2>New Automation</h2>
+      <button class="au-create" onclick="saveAutomation()">Create</button>
     </div>
+    <div class="au-hero"><span class="au-heroic">🕐</span></div>
+    <input id="auName" class="au-name" placeholder="Automation Name" maxlength="60" autocomplete="off">
+    <div class="au-lab">Schedule</div>
+    <div class="au-schedwrap">
+      <button class="au-sched" onclick="toggleAuSchedMenu(event)"><span class="au-plus2">+</span><span id="auSchedTxt">Select Schedule or Trigger</span></button>
+      <div class="au-schedmenu" id="auSchedMenu">
+        <button onclick="setAuSched('Daily')">Daily</button>
+        <button onclick="setAuSched('Weekly')">Weekly</button>
+        <button onclick="setAuSched('Custom')">Custom time…</button>
+      </div>
+    </div>
+    <div class="au-timewrap" id="auTimeWrap" style="display:none">
+      <input type="time" id="auTime" value="09:00">
+    </div>
+    <div class="au-lab">Project Instructions</div>
+    <div class="au-instr">
+      <textarea id="auInstr" placeholder="Tell the agent what it should do"></textarea>
+      <div class="au-irow">
+        <button class="au-iplus" onclick="showToast('Attachments coming soon')" aria-label="Add attachment">+</button>
+        <button class="au-imode" onclick="showToast('Fast mode selected')">⚡ Fast ▾</button>
+      </div>
+    </div>
+    <div class="au-lab">Notifications</div>
+    <div class="au-notif">
+      <div class="au-nrow">
+        <span class="au-nic">🔔</span>
+        <span class="au-nt">Push</span>
+        <label class="switch"><input type="checkbox" id="auPush" checked><span class="sl"></span></label>
+      </div>
+      <div class="au-nrow">
+        <span class="au-nic">✉️</span>
+        <span class="au-nt">Email</span>
+        <label class="switch"><input type="checkbox" id="auEmail" checked><span class="sl"></span></label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="mProjects" class="setpage">
+  <div class="pj-inner">
+    <div class="pj-head">
+      <button class="pj-x" onclick="closeProjects()" aria-label="Back">←</button>
+      <h2>Projects</h2>
+      <button class="pj-add" onclick="openNewProject()" aria-label="New project">+</button>
+    </div>
+    <div id="projList"></div>
+  </div>
+</div>
+
+<div id="mNewProject" class="setpage">
+  <div class="pj-inner">
+    <div class="pj-head">
+      <button class="pj-x" onclick="closeNewProject()" aria-label="Close">✕</button>
+      <h2>New Project</h2>
+      <button class="pj-create" onclick="createProject()">Create</button>
+    </div>
+    <div class="pj-namerow">
+      <span class="pj-fic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>
+      <input id="pjName" class="pj-name" placeholder="Project Name" maxlength="60" autocomplete="off">
+    </div>
+    <div class="pj-lab">Project Instructions (Optional)</div>
+    <textarea id="pjInstr" class="pj-instr" placeholder="Add instructions about the tone, style, and persona you want Ayaz AI to adopt."></textarea>
+    <div class="pj-lab">Project Files</div>
+    <div class="pj-filelist" id="pjFileList"></div>
+    <button class="pj-filebtn" onclick="document.getElementById('pjFileInput').click()"><span class="pj-plus">+</span>Upload File</button>
+    <input type="file" id="pjFileInput" style="display:none" multiple onchange="pjAddFiles(this.files); this.value=''">
+    <button class="pj-filebtn" onclick="showToast('Google Drive coming soon')"><span class="pj-svc"><svg width="22" height="22" viewBox="0 0 24 24"><path fill="#4285F4" d="M8.5 3h7L22 14.5 18.5 21h-13L2 14.5 8.5 3z" opacity="0"/><path fill="#EA4335" d="M8.6 3.2 2.1 14.4l3.4 6.2 6.5-11.2z"/><path fill="#FBBC05" d="M8.6 3.2h6.8l6.5 11.2-3.4 6.2H5.5z" opacity="0"/><path fill="#34A853" d="M15.4 3.2H8.6l6.5 11.2h6.8z"/><path fill="#FBBC05" d="m8.6 3.2 6.5 11.2-6.5 6.2-6.5-6.2z" opacity="0"/><path fill="#188038" d="M2.1 14.4h13l3.4 6.2h-13z"/><path fill="#FBBC05" d="M8.6 3.2h6.8L8.9 14.4H2.1z"/></svg></span>Add Google Drive</button>
+    <button class="pj-filebtn" onclick="showToast('Box coming soon')"><span class="pj-svc" style="background:#0061d5;color:#fff">box</span>Add Box</button>
   </div>
 </div>
 
@@ -1673,12 +2023,31 @@
   </div>
 </div>
 
-<div id="mCreations" class="infomodal">
-  <div class="infocard">
-    <button class="xbtn" onclick="closeInfo('mCreations')">✕</button>
-    <h2>📓 My Creations</h2>
-    <div class="sub">Your generation history</div>
-    <div class="cregrid" id="creationsList"></div>
+<div id="mLibrary" class="setpage">
+  <div class="lib-inner">
+    <div class="lib-head">
+      <button class="lib-back" onclick="closeInfo('mLibrary')" aria-label="Back">←</button>
+      <h2>Library</h2>
+    </div>
+    <div class="lib-tabs">
+      <button class="lib-tab on" data-ltab="all" onclick="setLibTab('all')">All</button>
+      <button class="lib-tab" data-ltab="media" onclick="setLibTab('media')">Media</button>
+      <button class="lib-tab" data-ltab="apps" onclick="setLibTab('apps')">Apps</button>
+      <button class="lib-tab" data-ltab="files" onclick="setLibTab('files')">Files</button>
+    </div>
+    <div id="libList"></div>
+  </div>
+  <div class="lib-menu" id="libMenu">
+    <button onclick="setLibSort('new')">Newest first</button>
+    <button onclick="setLibSort('old')">Oldest first</button>
+  </div>
+  <div class="lib-bottom">
+    <button class="lib-bbtn" onclick="toggleLibMenu(event)" aria-label="Sort options">⋮</button>
+    <div class="lib-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
+      <input id="libSearchInput" placeholder="Search" autocomplete="off" oninput="libSearch(this.value)">
+    </div>
+    <button class="lib-bbtn" onclick="libNew()" aria-label="New creation">+</button>
   </div>
 </div>
 
@@ -2390,6 +2759,10 @@ function logout(){
   fetch('/api/logout', { method: 'POST', headers: authHeaders() }).catch(()=>{});
   localStorage.removeItem('aas_token');
   localStorage.removeItem('aas_email');
+  localStorage.removeItem('aas_name');
+  localStorage.removeItem('aas_username');
+  localStorage.removeItem('aas_photo');
+  localStorage.removeItem('aas_verified');
   renderAuthState();
   document.getElementById('chatList').innerHTML = '';
   renderChatEmpty();
@@ -2437,6 +2810,7 @@ function captureOAuthResult(){
         localStorage.setItem('aas_token', token);
         localStorage.setItem('aas_email', d.email || '');
         clearPendingReferral();
+        syncProfile(d.profile);
         renderAuthState();
         refreshCredits();
         loadChatHistory();
@@ -2448,6 +2822,120 @@ function captureOAuthResult(){
   }catch(e){}
 }
 let lsTyped = false;
+
+/* ---------- profile setup (new Google users) ---------- */
+function profilePhotoOk(url){
+  return typeof url === 'string' &&
+    (/^https:\/\//.test(url) || /^data:image\/(jpeg|png|webp|gif);base64,/.test(url));
+}
+function profilePhotoImg(url, alt){
+  return '<img src="' + String(url).replace(/"/g, '&quot;') + '" alt="' + (alt || 'Profile photo') +
+    '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block">';
+}
+/* Persist profile fields locally (no setup screen side-effect). */
+function storeProfile(p){
+  if(!p) return;
+  try{
+    if(p.displayName) localStorage.setItem('aas_name', p.displayName); else localStorage.removeItem('aas_name');
+    if(p.username) localStorage.setItem('aas_username', p.username); else localStorage.removeItem('aas_username');
+    if(p.photo && profilePhotoOk(p.photo)) localStorage.setItem('aas_photo', p.photo); else localStorage.removeItem('aas_photo');
+    localStorage.setItem('aas_verified', p.emailVerified ? '1' : '0');
+  }catch(e){}
+  renderDrawerProfile();
+}
+/* Full sync: store + show setup screen when the profile is incomplete. */
+function syncProfile(p){
+  storeProfile(p);
+  if(p && p.profileComplete === false) openProfileSetup(p);
+}
+function openProfileSetup(p){
+  p = p || {};
+  psPhotoData = null;
+  const email = getEmail() || '';
+  document.getElementById('psName').value = p.displayName || email.split('@')[0] || '';
+  document.getElementById('psUsername').value = '';
+  document.getElementById('psUstatus').textContent = '';
+  document.getElementById('psErr').textContent = '';
+  psSetPhoto(p.photo || null);
+  document.getElementById('mProfileSetup').classList.add('show');
+  setTimeout(function(){ var el = document.getElementById('psName'); if(el) el.focus(); }, 350);
+}
+function psSetPhoto(url){
+  const el = document.getElementById('psPhotoPrev');
+  if(url && profilePhotoOk(url)){
+    el.innerHTML = '<img src="' + String(url).replace(/"/g, '&quot;') + '" alt="Profile photo">';
+  }else{
+    el.textContent = (getEmail() || '?').charAt(0).toUpperCase();
+  }
+}
+let psPhotoData = null;
+function psErr(msg){ document.getElementById('psErr').textContent = msg || ''; }
+function psPhotoChosen(input){
+  const f = input.files && input.files[0];
+  if(!f) return;
+  if(f.size > 600 * 1024){ psErr('Photo is too large. Please pick one under 600 KB.'); input.value = ''; return; }
+  if(!/^image\//.test(f.type)){ psErr('Please choose an image file.'); input.value = ''; return; }
+  const rd = new FileReader();
+  rd.onload = function(){ psPhotoData = rd.result; psSetPhoto(rd.result); psErr(''); };
+  rd.onerror = function(){ psErr('Could not read that photo.'); };
+  rd.readAsDataURL(f);
+}
+let psUTimer = null;
+function psUsernameInput(){
+  const v = document.getElementById('psUsername').value.trim();
+  const st = document.getElementById('psUstatus');
+  st.textContent = '';
+  if(psUTimer) clearTimeout(psUTimer);
+  if(!/^[A-Za-z0-9_]{3,20}$/.test(v)) return;
+  psUTimer = setTimeout(function(){
+    fetch('/api/profile/username-available?u=' + encodeURIComponent(v), { headers: authHeaders() })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(document.getElementById('psUsername').value.trim() !== v) return; // stale
+        st.textContent = d.available ? '✓' : '✗';
+        st.style.color = d.available ? '#4ade80' : '#f87171';
+      })
+      .catch(function(){});
+  }, 400);
+}
+async function submitProfileSetup(){
+  const btn = document.getElementById('psSubmit');
+  const displayName = document.getElementById('psName').value.trim();
+  const username = document.getElementById('psUsername').value.trim();
+  psErr('');
+  if(!displayName){ psErr('Please enter your display name.'); return; }
+  if(!/^[A-Za-z0-9_]{3,20}$/.test(username)){ psErr('Username must be 3–20 characters (letters, numbers, _).'); return; }
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try{
+    const r = await fetch('/api/profile/setup', {
+      method: 'POST',
+      headers: Object.assign({ 'Content-Type': 'application/json' }, authHeaders()),
+      body: JSON.stringify({ displayName: displayName, username: username, photo: psPhotoData }),
+    });
+    const d = await r.json().catch(function(){ return {}; });
+    if(!r.ok) throw new Error(d.error || 'Could not save your profile.');
+    storeProfile(d.profile);
+    psPhotoData = null;
+    document.getElementById('mProfileSetup').classList.remove('show');
+    renderAuthState();
+    showToast('🎉 Profile ready! Welcome to Ayaz AI Studio.');
+  }catch(e){
+    psErr('❌ ' + e.message);
+  }finally{
+    btn.disabled = false; btn.textContent = 'Complete Setup';
+  }
+}
+/* On boot: a returning user with an unfinished setup (closed tab mid-setup)
+   must see the setup screen again. */
+async function bootProfileCheck(){
+  if(!getToken()) return;
+  try{
+    const r = await fetch('/api/me', { headers: authHeaders() });
+    if(!r.ok) return;
+    const d = await r.json();
+    syncProfile(d.profile);
+  }catch(e){}
+}
 function typeTagline(){
   if(lsTyped) return; lsTyped = true;
   const el = document.getElementById('lsType');
@@ -2566,8 +3054,21 @@ function renderDrawerProfile(){
   const email = getEmail();
   const loggedIn = !!getToken();
   document.getElementById('drawerEmail').textContent = loggedIn ? email : 'Not signed in';
-  document.getElementById('drawerName').textContent = loggedIn ? email.split('@')[0] : 'Ayaz AI Studio';
-  document.getElementById('drawerAvatar').textContent = loggedIn ? email.charAt(0).toUpperCase() : '?';
+  const avEl = document.getElementById('drawerAvatar');
+  if(!loggedIn){
+    document.getElementById('drawerName').textContent = 'Ayaz AI Studio';
+    avEl.textContent = '?';
+    return;
+  }
+  let name = email.split('@')[0], initial = email.charAt(0).toUpperCase();
+  try{
+    const stored = localStorage.getItem('aas_name');
+    if(stored){ name = stored; initial = stored.charAt(0).toUpperCase(); }
+    const photo = localStorage.getItem('aas_photo');
+    if(photo && profilePhotoOk(photo)){ avEl.innerHTML = profilePhotoImg(photo); }
+    else { avEl.textContent = initial; }
+  }catch(e){ avEl.textContent = initial; }
+  document.getElementById('drawerName').textContent = name;
 }
 function drawerHistoryEmpty(){
   return '<div class="hempty"><b>No chat history available</b><span>Start a new conversation with Ayaz to see it here.</span></div>';
@@ -2694,13 +3195,19 @@ async function sendBotChat(){
   document.getElementById('botSend').disabled = false;
   refreshCredits();
 }
-/* ---------- automations (simple, on-device) ---------- */
+/* ---------- automations (Grok-style, on-device) ---------- */
 function openAutomations(){
+  syncAutoReminderUI();
+  renderAutoList();
+  openInfo('mAutomations');
+}
+function closeAutomations(){ closeInfo('mAutomations'); }
+function syncAutoReminderUI(){
   const on = localStorage.getItem('aas_auto_reminder') === '1';
   const tm = localStorage.getItem('aas_auto_time') || '09:00';
   document.getElementById('autoReminderTgl').checked = on;
   document.getElementById('autoReminderTime').value = tm;
-  openInfo('mAutomations');
+  document.getElementById('autoTimeRow').style.display = on ? 'flex' : 'none';
 }
 function saveAutomations(){
   const on = document.getElementById('autoReminderTgl').checked;
@@ -2708,8 +3215,89 @@ function saveAutomations(){
   localStorage.setItem('aas_auto_reminder', on ? '1' : '0');
   localStorage.setItem('aas_auto_time', tm);
   localStorage.removeItem('aas_reminded_day');
+  document.getElementById('autoTimeRow').style.display = on ? 'flex' : 'none';
   showToast(on ? '⏰ Daily reminder set for ' + tm + '!' : '⏰ Daily reminder off.');
 }
+function getAutomations(){
+  try { return JSON.parse(localStorage.getItem('aas_automations') || '[]'); }
+  catch(e){ return []; }
+}
+function renderAutoList(){
+  const list = getAutomations();
+  const el = document.getElementById('autoList');
+  if(!list.length){
+    el.innerHTML = '<div class="au-empty">' +
+      '<div class="au-eic">🕐</div>' +
+      '<b>Start by adding automation</b>' +
+      '<p>Create scheduled tasks that triggers on certain actions</p>' +
+      '<button class="au-new" onclick="openNewAutomation()">+ New Automation</button>' +
+      '</div>';
+    return;
+  }
+  el.innerHTML = list.map(function(a){
+    const meta = [a.sched || 'Daily'];
+    if(a.time) meta.push(a.time);
+    return '<div class="au-item">' +
+      '<div class="au-ic">🕐</div>' +
+      '<div class="au-tx"><b>' + escapeHtml(a.name) + '</b>' +
+      '<span>' + escapeHtml(meta.join(' · ')) + (a.instr ? ' · ' + escapeHtml(a.instr.slice(0, 60)) : '') + '</span></div>' +
+      '<button class="au-del" onclick="delAutomation(' + a.id + ')" aria-label="Delete automation">✕</button>' +
+      '</div>';
+  }).join('');
+}
+function delAutomation(id){
+  localStorage.setItem('aas_automations', JSON.stringify(getAutomations().filter(function(a){ return a.id !== id; })));
+  renderAutoList();
+  showToast('Automation deleted.');
+}
+let auSched = '';
+function openNewAutomation(){
+  document.getElementById('auName').value = '';
+  document.getElementById('auInstr').value = '';
+  auSched = '';
+  document.getElementById('auSchedTxt').textContent = 'Select Schedule or Trigger';
+  document.getElementById('auSchedMenu').classList.remove('show');
+  document.getElementById('auTimeWrap').style.display = 'none';
+  document.getElementById('auPush').checked = true;
+  document.getElementById('auEmail').checked = true;
+  openInfo('mNewAutomation');
+}
+function closeNewAutomation(){ closeInfo('mNewAutomation'); }
+function toggleAuSchedMenu(e){
+  if(e) e.stopPropagation();
+  document.getElementById('auSchedMenu').classList.toggle('show');
+}
+function setAuSched(v){
+  auSched = v;
+  document.getElementById('auSchedTxt').textContent = v === 'Custom' ? 'Custom time' : v;
+  document.getElementById('auTimeWrap').style.display = v === 'Custom' ? 'block' : 'none';
+  document.getElementById('auSchedMenu').classList.remove('show');
+}
+function saveAutomation(){
+  const name = document.getElementById('auName').value.trim();
+  if(!name){ showToast('Please enter an automation name.'); document.getElementById('auName').focus(); return; }
+  const list = getAutomations();
+  list.push({
+    id: Date.now(),
+    name: name,
+    sched: auSched || 'Daily',
+    time: auSched === 'Custom' ? (document.getElementById('auTime').value || '09:00') : '',
+    instr: document.getElementById('auInstr').value.trim(),
+    push: document.getElementById('auPush').checked,
+    email: document.getElementById('auEmail').checked,
+    created: Date.now()
+  });
+  localStorage.setItem('aas_automations', JSON.stringify(list));
+  closeNewAutomation();
+  renderAutoList();
+  showToast('✅ Automation created!');
+}
+document.addEventListener('click', function(e){
+  const m = document.getElementById('auSchedMenu');
+  if(m && m.classList.contains('show') && !e.target.closest('.au-schedwrap')) m.classList.remove('show');
+  const lm = document.getElementById('libMenu');
+  if(lm && lm.classList.contains('show') && !e.target.closest('.lib-menu') && !e.target.closest('.lib-bbtn')) lm.classList.remove('show');
+});
 function checkAutoReminder(){
   try{
     if(localStorage.getItem('aas_auto_reminder') !== '1') return;
@@ -2723,7 +3311,8 @@ function checkAutoReminder(){
     }
   }catch(e){}
 }
-/* ---------- projects (saved prompts, on-device) ---------- */
+/* ---------- projects (Grok-style, on-device) ---------- */
+var pjFiles = [];
 function getProjects(){
   try{ return JSON.parse(localStorage.getItem('aas_projects') || '[]'); }
   catch(e){ return []; }
@@ -2735,55 +3324,77 @@ function openProjects(){
   renderProjects();
   openInfo('mProjects');
 }
-function renderProjects(){
-  const box = document.getElementById('projList');
-  const ps = getProjects();
-  if(!ps.length){ box.innerHTML = '<p style="text-align:center;color:var(--muted)">No saved projects yet.</p>'; return; }
-  box.innerHTML = ps.map(function(p, i){
-    const icon = p.type === 'imagine' ? '🎨' : '💬';
-    return '<div class="projitem"><div class="pi" onclick="loadProject(' + i + ')">' +
-      '<div class="pn">' + icon + ' ' + escapeHtml(p.name) + '</div>' +
-      '<div class="pp">' + escapeHtml(p.prompt) + '</div></div>' +
-      '<button class="pdel" onclick="deleteProject(' + i + ')" aria-label="Delete">🗑️</button></div>';
+function closeProjects(){ closeInfo('mProjects'); }
+function openNewProject(){
+  pjFiles = [];
+  renderPjFiles();
+  document.getElementById('pjName').value = '';
+  document.getElementById('pjInstr').value = '';
+  openInfo('mNewProject');
+}
+function closeNewProject(){ closeInfo('mNewProject'); }
+function pjAddFiles(files){
+  for(var i = 0; i < files.length; i++){
+    var n = files[i].name || 'file';
+    if(n.length > 40) n = n.slice(0, 37) + '…';
+    pjFiles.push(n);
+    if(pjFiles.length >= 10) break;
+  }
+  renderPjFiles();
+}
+function renderPjFiles(){
+  var box = document.getElementById('pjFileList');
+  if(!box) return;
+  box.innerHTML = pjFiles.map(function(n, i){
+    return '<span class="pj-filechip"><span>' + escapeHtml(n) + '</span>' +
+      '<button onclick="pjFiles.splice(' + i + ',1);renderPjFiles()" aria-label="Remove">✕</button></span>';
   }).join('');
 }
-function saveProject(type){
-  let prompt = '', name = '';
-  if(type === 'chat'){
-    prompt = document.getElementById('chatInput').value.trim();
-    if(!prompt){ showToast('💬 Type an idea in the Ask box first!'); return; }
-    name = prompt.slice(0, 34) + (prompt.length > 34 ? '…' : '');
-  } else {
-    const isImg = document.getElementById('tabImg').classList.contains('active');
-    prompt = (isImg ? document.getElementById('prompt').value : document.getElementById('vprompt').value).trim();
-    if(!prompt){ showToast('🎨 Type a prompt in the Imagine tab first!'); switchMainTab('imagine'); return; }
-    name = (isImg ? '🖼️ ' : '🎬 ') + prompt.slice(0, 32) + (prompt.length > 32 ? '…' : '');
-  }
-  const ps = getProjects();
-  ps.unshift({ name: name, prompt: prompt, type: type, ts: Date.now() });
+function createProject(){
+  var name = document.getElementById('pjName').value.trim();
+  var instr = document.getElementById('pjInstr').value.trim();
+  if(!name){ showToast('Give your project a name'); document.getElementById('pjName').focus(); return; }
+  var ps = getProjects();
+  ps.unshift({ name: name, instructions: instr, files: pjFiles.slice(0, 10), ts: Date.now() });
   setProjects(ps);
+  closeNewProject();
   renderProjects();
-  showToast('💾 Project saved!');
+  showToast('Project created');
 }
-function loadProject(i){
-  const ps = getProjects();
-  const p = ps[i];
-  if(!p) return;
-  closeInfo('mProjects');
-  if(p.type === 'imagine'){
-    switchMainTab('imagine');
-    const isImg = document.getElementById('tabImg').classList.contains('active');
-    document.getElementById(isImg ? 'prompt' : 'vprompt').value = p.prompt;
-    showToast('📁 Project loaded in Imagine!');
-  } else {
-    switchMainTab('ask');
-    document.getElementById('chatInput').value = p.prompt;
-    document.getElementById('chatInput').focus();
-    showToast('📁 Project loaded — hit send!');
+function renderProjects(){
+  var box = document.getElementById('projList');
+  if(!box) return;
+  var ps = getProjects();
+  if(!ps.length){
+    box.innerHTML = '<div class="pj-empty"><span class="pj-eic">' +
+      '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>' +
+      '<b>Get started by creating a new project</b>' +
+      '<p>Projects help you set common instructions and attach files for conversations.</p>' +
+      '<button class="pj-new" onclick="openNewProject()"><span style="font-size:20px;font-weight:300">+</span>New project</button></div>';
+    return;
   }
+  box.innerHTML = ps.map(function(p, i){
+    var sub = p.instructions ? p.instructions.slice(0, 60) + (p.instructions.length > 60 ? '…' : '')
+      : (p.files && p.files.length ? p.files.length + ' file(s) attached' : 'No instructions');
+    return '<div class="pj-item"><div class="pj-ic">📁</div>' +
+      '<div class="pj-tx" onclick="useProject(' + i + ')" style="cursor:pointer">' +
+      '<b>' + escapeHtml(p.name) + '</b><span>' + escapeHtml(sub) + '</span></div>' +
+      '<button class="pj-del" onclick="deleteProject(' + i + ')" aria-label="Delete">✕</button></div>';
+  }).join('');
+}
+function useProject(i){
+  var ps = getProjects();
+  var p = ps[i];
+  if(!p) return;
+  closeProjects();
+  var ctx = '[Project: ' + p.name + ']' + (p.instructions ? ' ' + p.instructions : '');
+  switchMainTab('ask');
+  var inp = document.getElementById('chatInput');
+  if(inp){ inp.value = ctx + ' — '; inp.focus(); }
+  showToast('📁 Project loaded in Ask');
 }
 function deleteProject(i){
-  const ps = getProjects();
+  var ps = getProjects();
   ps.splice(i, 1);
   setProjects(ps);
   renderProjects();
@@ -2793,8 +3404,22 @@ function closeInfo(id){ document.getElementById(id).classList.remove('show'); }
 function openSettings(){
   const email = getEmail();
   const loggedIn = !!getToken();
-  document.getElementById('spEmail').textContent = loggedIn ? email : 'Not signed in';
-  document.getElementById('spAvatar').textContent = loggedIn ? email.charAt(0).toUpperCase() : '?';
+  const emailEl = document.getElementById('spEmail');
+  const avEl = document.getElementById('spAvatar');
+  if(loggedIn){
+    let badge = '';
+    try{ if(localStorage.getItem('aas_verified') === '1') badge = '<span class="sp-verified">✓ Verified</span>'; }catch(e){}
+    emailEl.innerHTML = escapeHtml(email) + badge;
+    let done = false;
+    try{
+      const photo = localStorage.getItem('aas_photo');
+      if(photo && profilePhotoOk(photo)){ avEl.innerHTML = profilePhotoImg(photo); done = true; }
+    }catch(e){}
+    if(!done) avEl.textContent = email.charAt(0).toUpperCase();
+  }else{
+    emailEl.textContent = 'Not signed in';
+    avEl.textContent = '?';
+  }
   spSyncThemeSub();
   openInfo('mSettings');
 }
@@ -2868,7 +3493,7 @@ document.addEventListener('keydown', function(e){
   if(e.key === 'Escape'){
     toggleDrawer(false);
     toggleBotPanel(false);
-    ['mSettings','mPrivacy','mTerms','mHelp','mContact','mAbout','mFeedback','mCreations','mPricing','mApiDocs','mRefer','mAutomations','mProjects','mVerify','mCredits','mAds','mDataControls','mLicenses'].forEach(closeInfo);
+    ['mSettings','mPrivacy','mTerms','mHelp','mContact','mAbout','mFeedback','mLibrary','mPricing','mApiDocs','mRefer','mAutomations','mNewAutomation','mProjects','mNewProject','mVerify','mCredits','mAds','mDataControls','mLicenses'].forEach(closeInfo);
     closeImagineSettings();
     closeBuildCode();
     document.getElementById('modeMenu').classList.remove('show');
@@ -3108,7 +3733,9 @@ async function submitFeedback(){
   }
 }
 
-/* ---------- my creations ---------- */
+/* ---------- library (Grok style, full-screen page) ---------- */
+var libItems = [], libTab = 'all', libQuery = '', libSort = 'new';
+var LIB_FOLDER_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>';
 function fmtDate(iso){
   try{
     const d = new Date(iso);
@@ -3129,49 +3756,103 @@ function creParamsLabel(c){
 }
 function openCreations(){
   if(needAuth()) return;
-  openInfo('mCreations');
+  setLibTab('all', true);
+  libQuery = '';
+  var si = document.getElementById('libSearchInput');
+  if(si) si.value = '';
+  openInfo('mLibrary');
   loadCreations();
 }
 async function loadCreations(){
-  const listEl = document.getElementById('creationsList');
-  listEl.innerHTML = '<div class="creempty"><span class="big">📓</span>Loading your creations...</div>';
+  const listEl = document.getElementById('libList');
+  listEl.innerHTML = '<div class="lib-empty"><div class="lib-eic">' + LIB_FOLDER_SVG + '</div><b>Loading…</b></div>';
   try{
     const r = await fetch('/api/my-creations', { headers: authHeaders() });
     const d = await r.json().catch(function(){ return {}; });
     if(r.status === 401){ logout(); throw new Error('Session expired — please sign in again.'); }
     if(!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
-    renderCreations(d.creations || []);
+    libItems = d.creations || [];
+    renderLibrary();
   }catch(e){
-    listEl.innerHTML = '<div class="creempty"><span class="big">⚠️</span>' + escapeHtml(e.message) + '</div>';
+    listEl.innerHTML = '<div class="lib-empty"><div class="lib-eic">' + LIB_FOLDER_SVG + '</div><b>Couldn\'t load</b><span>' + escapeHtml(e.message) + '</span></div>';
   }
 }
-function renderCreations(items){
-  const listEl = document.getElementById('creationsList');
+function libMatchesTab(c){
+  if(libTab === 'all') return true;
+  if(libTab === 'media') return c.type === 'image' || c.type === 'video';
+  if(libTab === 'apps') return c.type === 'app';
+  if(libTab === 'files') return c.type === 'file';
+  return true;
+}
+function setLibTab(tab, silent){
+  libTab = tab;
+  document.querySelectorAll('#mLibrary .lib-tab').forEach(function(b){
+    b.classList.toggle('on', b.getAttribute('data-ltab') === tab);
+  });
+  if(!silent) renderLibrary();
+}
+function libSearch(q){
+  libQuery = (q || '').toLowerCase();
+  renderLibrary();
+}
+function setLibSort(s){
+  libSort = s;
+  document.getElementById('libMenu').classList.remove('show');
+  renderLibrary();
+}
+function toggleLibMenu(e){
+  if(e) e.stopPropagation();
+  document.getElementById('libMenu').classList.toggle('show');
+}
+function libNew(){
+  closeInfo('mLibrary');
+  switchMainTab('imagine');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function renderLibrary(){
+  const listEl = document.getElementById('libList');
+  let items = libItems.filter(libMatchesTab);
+  if(libQuery){
+    items = items.filter(function(c){
+      return (c.prompt || '').toLowerCase().indexOf(libQuery) !== -1;
+    });
+  }
+  items.sort(function(a, b){
+    const ta = new Date(a.createdAt || 0).getTime(), tb = new Date(b.createdAt || 0).getTime();
+    return libSort === 'new' ? tb - ta : ta - tb;
+  });
   if(!items.length){
-    listEl.innerHTML = '<div class="creempty"><span class="big">🎨</span>Nothing here yet.<br>Generate your first image or video and it will appear here!</div>';
+    const hint = libQuery ? 'No results for "' + escapeHtml(libQuery) + '"'
+      : libTab === 'all' ? 'Generate your first image or video and it will appear here!'
+      : 'Nothing in this section yet.';
+    listEl.innerHTML = '<div class="lib-empty"><div class="lib-eic">' + LIB_FOLDER_SVG + '</div><b>Nothing here yet</b><span>' + hint + '</span></div>';
     return;
   }
-  listEl.innerHTML = '';
+  const grid = document.createElement('div');
+  grid.className = 'lib-grid';
   items.forEach(function(c){
     const card = document.createElement('div');
-    card.className = 'crecard';
-    const icon = c.type === 'video' ? '🎬' : '🖼️';
+    card.className = 'lib-card';
+    const icon = c.type === 'video' ? '🎬' : (c.type === 'app' ? '🧩' : (c.type === 'file' ? '📄' : '🖼️'));
     const meta = creParamsLabel(c);
     card.innerHTML =
-      '<div class="ctop"><span class="badge">' + icon + ' ' + escapeHtml((c.type || '').toUpperCase()) + '</span>' +
+      '<div class="lib-ctop"><span class="badge">' + icon + ' ' + escapeHtml((c.type || '').toUpperCase()) + '</span>' +
       '<span class="cdate">' + escapeHtml(fmtDate(c.createdAt)) + '</span></div>' +
       '<div class="cprompt">' + escapeHtml(c.prompt || '') + '</div>' +
       (meta ? '<div class="cmeta">' + escapeHtml(meta) + '</div>' : '');
     const btn = document.createElement('button');
     btn.type = 'button';
+    btn.className = 'lib-re';
     btn.textContent = '🔁 Regenerate';
     btn.onclick = function(){ regenerateCreation(c.type, c.prompt); };
     card.appendChild(btn);
-    listEl.appendChild(card);
+    grid.appendChild(card);
   });
+  listEl.innerHTML = '';
+  listEl.appendChild(grid);
 }
 function regenerateCreation(type, prompt){
-  closeInfo('mCreations');
+  closeInfo('mLibrary');
   switchMainTab('imagine');
   switchTab(type === 'video' ? 'vid' : 'img');
   if(type === 'video'){
@@ -3739,9 +4420,31 @@ window.addEventListener('DOMContentLoaded', () => {
   if(getToken()){
     refreshCredits();
     loadChatHistory();
+    bootProfileCheck();
   } else {
     renderChatEmpty();
   }
+  // Profile setup screen events
+  (function(){
+    const prev = document.getElementById('psPhotoPrev');
+    const inp = document.getElementById('psPhotoInput');
+    if(prev && inp){
+      prev.addEventListener('click', function(){ inp.click(); });
+      prev.addEventListener('keydown', function(e){
+        if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); inp.click(); }
+      });
+      inp.addEventListener('change', function(){ psPhotoChosen(inp); });
+    }
+    const un = document.getElementById('psUsername');
+    if(un) un.addEventListener('input', psUsernameInput);
+    const nm = document.getElementById('psName');
+    if(nm) nm.addEventListener('keydown', function(e){
+      if(e.key === 'Enter'){ e.preventDefault(); submitProfileSetup(); }
+    });
+    if(un) un.addEventListener('keydown', function(e){
+      if(e.key === 'Enter'){ e.preventDefault(); submitProfileSetup(); }
+    });
+  })();
   showNotice();
   checkCookies();
   checkAutoReminder();
