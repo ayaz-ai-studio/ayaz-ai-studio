@@ -125,6 +125,7 @@
     box-shadow: 0 0 10px #34d399; animation: lspulse 2s ease-in-out infinite; }
   @keyframes lspulse { 50% { opacity: .45; } }
   .ls-logo { width: 108px; height: 108px; border-radius: 30px; object-fit: cover; margin-bottom: 26px;
+    opacity: 1;
     box-shadow: 0 0 0 1px rgba(255,255,255,.12), 0 12px 60px rgba(59,130,246,.45), 0 4px 24px rgba(124,58,237,.35);
     animation: lsfloaty 5s ease-in-out infinite; }
   @keyframes lsfloaty { 50% { transform: translateY(-9px); } }
@@ -187,12 +188,22 @@
   .ls-legal a { color: #a5b4fc; font-weight: 600; cursor: pointer; text-decoration: none; }
   .ls-legal a:hover { text-decoration: underline; }
   @media (max-width: 480px) {
-    .ls-feats { gap: 9px; }
-    .ls-feat { padding: 14px 6px 12px; border-radius: 16px; }
-    .ls-fic { font-size: 25px; }
-    .ls-fname { font-size: 13.5px; }
-    .ls-fdesc { font-size: 10.5px; }
-    .ls-scroll { padding: 48px 18px 110px; }
+    .ls-scroll { padding: 34px 18px 88px; }
+    .ls-badge { font-size: 11px; padding: 6px 13px; margin-bottom: 14px; }
+    .ls-logo { width: 72px; height: 72px; border-radius: 20px; margin-bottom: 14px; }
+    .ls-title { font-size: clamp(30px, 8.5vw, 44px); letter-spacing: -1.5px; margin-bottom: 8px; }
+    .ls-hero { font-size: 14px; line-height: 1.45; margin-bottom: 6px; }
+    .ls-tag { font-size: 13px; min-height: 22px; margin-bottom: 14px; }
+    .ls-feats { gap: 8px; margin-bottom: 18px; }
+    .ls-feat { padding: 10px 5px 9px; border-radius: 14px; }
+    .ls-fic { font-size: 22px; margin-bottom: 5px; }
+    .ls-fname { font-size: 12.5px; }
+    .ls-fdesc { font-size: 10px; }
+    .ls-btns { gap: 10px; margin-bottom: 20px; }
+    .ls-btn { font-size: 15px; padding: 13px 18px; }
+    .ls-stat b { font-size: 22px; }
+    .ls-stat span { font-size: 10.5px; }
+    .ls-legal { font-size: 12px; padding: 14px 18px 16px; }
   }
   @media (prefers-reduced-motion: reduce) {
     .ls-orb, .ls-logo, .ls-grad, .ls-anim, .ls-dot, .ls-cursor { animation: none !important; }
@@ -864,7 +875,7 @@
   <div class="ls-scroll">
     <div class="ls-inner">
       <div class="ls-badge ls-anim ls-d1"><span class="ls-dot"></span>Free forever plan &nbsp;·&nbsp; No credit card</div>
-      <img src="logo-icon.webp" class="ls-logo ls-anim ls-d2" alt="Ayaz AI Studio logo">
+      <img src="logo-icon.webp" class="ls-logo" alt="Ayaz AI Studio logo" onerror="if(!this.dataset.fbk){this.dataset.fbk=1;this.src='logo.webp';}">
       <h1 class="ls-title ls-anim ls-d2">Ayaz <span class="ls-grad">AI Studio</span></h1>
       <p class="ls-hero ls-anim ls-d3">Chat, create stunning images &amp; videos, and build apps — <b>all with AI, all in one place.</b></p>
       <div class="ls-tag ls-anim ls-d3"><span id="lsType"></span><span class="ls-cursor">▌</span></div>
