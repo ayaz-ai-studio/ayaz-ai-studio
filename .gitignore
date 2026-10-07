@@ -7,6 +7,8 @@ node_modules/
 # Local user accounts + usage tracking (ephemeral on free hosting anyway)
 usage.json
 users.json
+feedback.json
+creations.json
 
 # OS / editor junk
 .DS_Store

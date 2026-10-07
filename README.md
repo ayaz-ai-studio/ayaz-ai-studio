@@ -1,6 +1,12 @@
-# 🎨 Ayaz AI Studio — Phase 6 (Menu, CAPTCHA, Branding, Voice)
+# 🎨 Ayaz AI Studio — Phase 7 (Feedback, My Creations)
 
 A REAL, PUBLIC web app for free AI image + video generation. **Not a Muse artifact** — plain Node.js + Express, deployable to free hosting in minutes.
+
+## What's new in Phase 7 — Feedback 💬 + My Creations 📓
+
+- ✅ **💬 Feedback** — in the hamburger menu and footer; 5-star rating + comment box; `POST /api/feedback` (auth required, validates 1–5 stars and non-empty text); `GET /api/feedback` returns the user's own feedback newest-first; "🙏 Thank you for your feedback!" toast on success; stored in `feedback.json` (gitignored, ephemeral on free hosting)
+- ✅ **📓 My Creations (notebook)** — in the hamburger menu; generation history grid with type badge (🖼️ IMAGE / 🎬 VIDEO), prompt, date, and params (size / duration + motion); `GET /api/my-creations` (auth required, newest first, capped at 100 per user); every successful generation is logged to `creations.json` via `recordCreation()`; **"🔁 Regenerate"** button loads the prompt back into the right tab for one-tap re-runs; actual files are not stored (they stream on-demand) — documented honestly in the UI
+- ✅ **Account deletion cleanup** — deleting an account also removes its feedback entries, creations history, and usage records
 
 ## What's new in Phase 6 — Menu 🍔, CAPTCHA 🔒, Branding, Voice 🎤
 
@@ -75,6 +81,16 @@ All protected endpoints need `Authorization: Bearer <token>` (token from registe
 **Watch ad** (auth) — `POST /api/watch-ad-complete` → awards +2 images / +1 video
 - 429 when the daily ad cap (5) is reached
 - Response includes the "Congratulations!" message + updated `credits` snapshot
+
+**Feedback** (auth)
+- `POST /api/feedback` `{ "rating": 5, "text": "Amazing app!" }` → `201 { ok: true, message: "Thank you for your feedback!" }`
+  - 400: rating missing/not 1–5, or text empty (>1000 chars truncated)
+- `GET /api/feedback` → `{ "feedback": [{ "email","rating","text","createdAt" }] }` — user's own feedback, newest first
+
+**My Creations** (auth)
+- `GET /api/my-creations` → `{ "creations": [{ "type":"image"|"video", "prompt", "params", "createdAt" }] }` — newest first, capped at 100 per user
+- Every successful generation is logged automatically; account deletion wipes the history too
+- Note: the media files themselves are not stored — entries keep prompt + params so "🔁 Regenerate" can re-run them
 
 **Health** — `GET /api/health` → `{ ok, hfFallback, video, auth, adProvider, adsPerDay, adReward }`
 
@@ -180,12 +196,14 @@ You need: a GitHub account + a Render account (both free). ~10 minutes.
 
 ```
 ayaz-ai-studio-real/
-├── server.js          # Express backend: auth, image/video APIs, limits, rewarded ads
+├── server.js          # Express backend: auth, image/video APIs, limits, rewarded ads, feedback, creations
 ├── package.json       # npm start, Node >= 18
 ├── render.yaml        # Render Blueprint (auto ffmpeg install)
-├── .gitignore         # node_modules, .env, usage.json, users.json never committed
+├── .gitignore         # node_modules, .env, users/usage/feedback/creations.json never committed
 ├── users.json         # (created at runtime) hashed accounts + sessions — gitignored
 ├── usage.json         # (created at runtime) daily usage + ad watches per email — gitignored
+├── feedback.json      # (created at runtime) user feedback entries — gitignored
+├── creations.json     # (created at runtime) generation history per email — gitignored
 ├── public/
 │   └── index.html     # Mobile-friendly English UI: auth modal, credits, image/video tabs, ad modal + toast
 ├── sample-output.jpg  # Proof: real generated image

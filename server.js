@@ -248,14 +248,135 @@ app.delete('/api/account', requireAuth, (req, res) => {
   }
   delete userStore.users[email];
   if (usageStore.users && usageStore.users[email]) delete usageStore.users[email];
+  if (creationsStore.users && creationsStore.users[email]) delete creationsStore.users[email];
+  if (feedbackStore.entries) {
+    feedbackStore.entries = feedbackStore.entries.filter((e) => e.email !== email);
+  }
   saveUsers();
   saveUsage();
+  saveCreations();
+  saveFeedback();
   res.json({ ok: true, message: 'Your account has been permanently deleted.' });
 });
 
 /** GET /api/me (Authorization: Bearer <token>) -> { email, limits, used, remaining, ads } */
 app.get('/api/me', requireAuth, (req, res) => {
   res.json(creditsFor(req.authEmail));
+});
+
+/* ------------------------------------------------------------------ */
+/* Feedback                                                             */
+/*                                                                     */
+/* POST /api/feedback { rating 1-5, text } — signed-in users can rate   */
+/* the service and leave comments. Stored in feedback.json (ephemeral   */
+/* on free hosting, same caveat as users/usage).                        */
+/* GET /api/feedback — returns the signed-in user's own feedback list   */
+/* (newest first). No admin role exists yet, so this is a simple       */
+/* per-user view for now.                                               */
+/* ------------------------------------------------------------------ */
+
+const FEEDBACK_FILE = path.join(__dirname, 'feedback.json');
+const FEEDBACK_MAX_TOTAL = 2000;
+
+let feedbackStore = { entries: [] };
+try {
+  if (fs.existsSync(FEEDBACK_FILE)) {
+    const parsed = JSON.parse(fs.readFileSync(FEEDBACK_FILE, 'utf8'));
+    if (parsed && Array.isArray(parsed.entries)) feedbackStore = parsed;
+  }
+} catch (e) { console.log('feedback.json unreadable, starting fresh'); }
+
+function saveFeedback() {
+  fs.writeFile(FEEDBACK_FILE, JSON.stringify(feedbackStore), (e) => {
+    if (e) console.log('feedback save failed:', e.message);
+  });
+}
+
+/**
+ * POST /api/feedback  { rating: 1-5, text }
+ * (Authorization: Bearer <token>)
+ */
+app.post('/api/feedback', requireAuth, (req, res) => {
+  const rating = parseInt(req.body && req.body.rating, 10);
+  const text = (req.body && req.body.text || '').toString().trim().slice(0, 1000);
+  if (!rating || rating < 1 || rating > 5) {
+    return res.status(400).json({ error: 'Please choose a rating from 1 to 5 stars.' });
+  }
+  if (!text) {
+    return res.status(400).json({ error: 'Please write a few words about your experience.' });
+  }
+  feedbackStore.entries.push({
+    email: req.authEmail,
+    rating,
+    text,
+    createdAt: new Date().toISOString(),
+  });
+  if (feedbackStore.entries.length > FEEDBACK_MAX_TOTAL) {
+    feedbackStore.entries = feedbackStore.entries.slice(-FEEDBACK_MAX_TOTAL);
+  }
+  saveFeedback();
+  res.status(201).json({ ok: true, message: 'Thank you for your feedback!' });
+});
+
+/**
+ * GET /api/feedback  (Authorization: Bearer <token>)
+ * Returns the signed-in user's own feedback (newest first).
+ */
+app.get('/api/feedback', requireAuth, (req, res) => {
+  const mine = feedbackStore.entries
+    .filter((e) => e.email === req.authEmail)
+    .reverse();
+  res.json({ feedback: mine });
+});
+
+/* ------------------------------------------------------------------ */
+/* My Creations (notebook)                                              */
+/*                                                                     */
+/* Every successful generation is logged per account in                 */
+/* creations.json: { type, prompt, params, createdAt }. The actual      */
+/* image/video files are NOT stored (they stream on-demand), so each   */
+/* entry offers a "Regenerate" action that re-runs the same prompt.    */
+/* Capped at 100 entries per user (oldest dropped). Ephemeral on free  */
+/* hosting — production path is Supabase Postgres.                      */
+/* ------------------------------------------------------------------ */
+
+const CREATIONS_FILE = path.join(__dirname, 'creations.json');
+const CREATIONS_MAX_PER_USER = 100;
+
+let creationsStore = { users: {} };
+try {
+  if (fs.existsSync(CREATIONS_FILE)) {
+    const parsed = JSON.parse(fs.readFileSync(CREATIONS_FILE, 'utf8'));
+    if (parsed && parsed.users) creationsStore = parsed;
+  }
+} catch (e) { console.log('creations.json unreadable, starting fresh'); }
+
+function saveCreations() {
+  fs.writeFile(CREATIONS_FILE, JSON.stringify(creationsStore), (e) => {
+    if (e) console.log('creations save failed:', e.message);
+  });
+}
+
+/** Log one successful generation for the notebook. */
+function recordCreation(email, type, prompt, params) {
+  const list = creationsStore.users[email] || [];
+  list.push({
+    type,
+    prompt: (prompt || '').toString().slice(0, 500),
+    params: params || {},
+    createdAt: new Date().toISOString(),
+  });
+  creationsStore.users[email] = list.slice(-CREATIONS_MAX_PER_USER);
+  saveCreations();
+}
+
+/**
+ * GET /api/my-creations  (Authorization: Bearer <token>)
+ * Returns the user's generation history, newest first.
+ */
+app.get('/api/my-creations', requireAuth, (req, res) => {
+  const list = (creationsStore.users[req.authEmail] || []).slice().reverse();
+  res.json({ creations: list });
 });
 
 /* ------------------------------------------------------------------ */
@@ -428,6 +549,7 @@ app.get('/api/generate-image', requireAuth, (req, res) => {
       return res.status(502).json({ error: 'image provider returned ' + imgRes.statusCode });
     }
     const left = recordUsage(req.authEmail, 'image');
+    recordCreation(req.authEmail, 'image', prompt, { width, height, seed });
     res.setHeader('X-Images-Left', left.images);
     res.setHeader('X-Videos-Left', left.videos);
     res.setHeader('X-Images-Total', left.totalImages);
@@ -619,6 +741,7 @@ app.get('/api/generate-video', requireAuth, async (req, res) => {
     const hfVideo = await tryHFVideo(prompt);
     if (hfVideo && hfVideo.length > 10000) {
       const left = recordUsage(req.authEmail, 'video');
+      recordCreation(req.authEmail, 'video', prompt, { duration, motion, seed, source: 'huggingface' });
       res.setHeader('Content-Type', 'video/mp4');
       res.setHeader('X-Video-Source', 'huggingface');
       res.setHeader('X-Images-Left', left.images);
@@ -640,6 +763,7 @@ app.get('/api/generate-video', requireAuth, async (req, res) => {
     vidPath = tmpName('aas-vid', 'mp4');
     await runFfmpeg(imgPath, vidPath, motionFilter(motion, frames), frames);
     const left = recordUsage(req.authEmail, 'video');
+    recordCreation(req.authEmail, 'video', prompt, { duration, motion, seed, source: 'animated-still' });
     res.setHeader('Content-Type', 'video/mp4');
     res.setHeader('Content-Disposition', 'inline; filename="ayaz-ai-studio.mp4"');
     res.setHeader('X-Video-Source', 'animated-still');
