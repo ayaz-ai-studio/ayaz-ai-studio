@@ -1194,7 +1194,36 @@ app.get('/api/health', (req, res) => res.json({
   adProvider: AD_PROVIDER,
   adsPerDay: MAX_ADS_PER_DAY,
   adReward: { images: AD_REWARD_IMAGES, videos: AD_REWARD_VIDEOS },
+  tts: true,
 }));
+
+/* ------------------------------------------------------------------ */
+/* FREE Text-to-Speech (Google Translate TTS, no key needed)            */
+/*                                                                     */
+/* GET /api/tts?text=...&lang=ur — returns MP3 audio.                   */
+/* Supports: ur (Urdu), en (English), hi (Hindi), ar (Arabic), etc.     */
+/* ------------------------------------------------------------------ */
+app.get('/api/tts', requireAuth, async (req, res) => {
+  const text = (req.query.text || '').toString().slice(0, 500);
+  if (!text) return res.status(400).json({ error: 'text required' });
+  const lang = (req.query.lang || 'ur').toString().slice(0, 5).replace(/[^a-z-]/gi, '');
+
+  const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${lang}&client=tw-ob&q=${encodeURIComponent(text)}`;
+  https.get(ttsUrl, {
+    headers: { 'User-Agent': 'Mozilla/5.0' },
+    timeout: 15000,
+  }, (ttsRes) => {
+    const ct = (ttsRes.headers['content-type'] || '').toLowerCase();
+    if (ttsRes.statusCode !== 200 || !ct.includes('audio')) {
+      ttsRes.resume();
+      return res.status(502).json({ error: 'TTS failed' });
+    }
+    res.setHeader('Content-Type', 'audio/mpeg');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    ttsRes.pipe(res);
+  }).on('timeout', function() { this.destroy(); if (!res.headersSent) res.status(504).json({ error: 'TTS timeout' }); })
+    .on('error', () => { if (!res.headersSent) res.status(502).json({ error: 'TTS error' }); });
+});
 
 /* ------------------------------------------------------------------ */
 /* FREE video generation                                                */
