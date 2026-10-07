@@ -793,11 +793,11 @@ app.get('/auth/google/callback', async (req, res) => {
         googleId: profile.sub || null,
         googleName: profile.name || null,
         googlePhoto: profile.picture || null,
-        displayName: null,
+        displayName: profile.name || null,
         username: null,
         usernameLower: null,
-        photo: null,
-        profileComplete: false, // new Google users finish profile setup in-app
+        photo: profile.picture || null,
+        profileComplete: true, // auto-complete from Google data, user can edit in Settings
         createdAt: new Date().toISOString(),
         tokens: [],
         referralCode: uniqueReferralCode(),
@@ -824,6 +824,10 @@ app.get('/auth/google/callback', async (req, res) => {
           }
         }
       }
+      // Auto-generate username from email prefix
+      const emailPrefix = email.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '');
+      u.username = emailPrefix || 'user' + Date.now().toString(36);
+      u.usernameLower = u.username.toLowerCase();
       userStore.users[email] = u;
       isNew = true;
     } else {
