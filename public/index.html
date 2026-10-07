@@ -164,6 +164,15 @@
   .ls-fname { font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 4px; letter-spacing: .2px; }
   .ls-fdesc { font-size: 12px; color: #8e8e99; line-height: 1.4; }
   .ls-btns { display: flex; flex-direction: column; gap: 13px; width: 100%; max-width: 400px; margin-bottom: 34px; }
+  /* Login / Sign Up tabs on the landing screen (Grok-style pill) */
+  .ls-tabs { display: flex; gap: 6px; width: 100%; max-width: 400px; margin-bottom: 8px;
+    background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+    border-radius: 16px; padding: 5px; }
+  .ls-tabs button { flex: 1; border: none; background: none; color: #8e8e99;
+    font-size: 15.5px; font-weight: 700; padding: 11px; border-radius: 11px;
+    cursor: pointer; font-family: inherit; transition: background .2s ease, color .2s ease; }
+  .ls-tabs button.on { background: #fff; color: #000; }
+  .ls-sub { text-align: center; color: #8e8e99; font-size: 13.5px; margin-bottom: 16px; }
   .ls-btn { display: flex; align-items: center; justify-content: center; gap: 11px;
     border-radius: 999px; font-size: 16.5px; font-weight: 700; padding: 16px 20px;
     cursor: pointer; width: 100%; font-family: inherit; border: none;
@@ -1416,10 +1425,15 @@
           <div class="ls-fdesc">Apps &amp; sites in seconds</div>
         </div>
       </div>
+      <div class="ls-tabs ls-anim ls-d5">
+        <button id="lsTabLogin" class="on" onclick="setLandingTab('login')">Login</button>
+        <button id="lsTabSignup" onclick="setLandingTab('register')">Sign Up</button>
+      </div>
+      <div class="ls-sub ls-anim ls-d5" id="lsSub">Welcome back — sign in to your account</div>
       <div class="ls-btns ls-anim ls-d5">
         <button class="ls-btn ls-google" onclick="loginGoogle()"><span class="ls-g">G</span>Continue with Google</button>
         <button class="ls-btn ls-x" onclick="loginX()"><span class="ls-ic">𝕏</span>Continue with X</button>
-        <button class="ls-btn ls-email" onclick="openAuth('login')"><span class="ls-ic">✉</span>Continue with Email</button>
+        <button class="ls-btn ls-email" onclick="openAuth(landingAuthMode)"><span class="ls-ic">✉</span>Continue with Email</button>
       </div>
       <div class="ls-stats ls-anim ls-d6">
         <div class="ls-stat"><b>6</b><span>free images / day</span></div>
@@ -3027,6 +3041,18 @@ async function loadCaptcha(){
     document.getElementById('capQ').textContent = 'Check unavailable';
   }
 }
+/* Landing-screen Login / Sign Up tabs: keeps authMode in sync with "Continue with Email". */
+var landingAuthMode = 'login';
+function setLandingTab(mode){
+  landingAuthMode = mode || 'login';
+  try{ authMode = landingAuthMode; }catch(e){}
+  var isLogin = landingAuthMode === 'login';
+  document.getElementById('lsTabLogin').classList.toggle('on', isLogin);
+  document.getElementById('lsTabSignup').classList.toggle('on', !isLogin);
+  document.getElementById('lsSub').textContent = isLogin
+    ? 'Welcome back — sign in to your account'
+    : 'Create your free account — no credit card needed';
+}
 function openAuth(mode){
   document.getElementById('authErr').textContent = '';
   document.getElementById('authEmail').value = '';
@@ -3041,6 +3067,15 @@ function setAuthTab(mode){
   const isLogin = authMode === 'login';
   document.getElementById('tabLogin').classList.toggle('on', isLogin);
   document.getElementById('tabSignup').classList.toggle('on', !isLogin);
+  // Keep the landing-screen tabs in sync (they share the same mode).
+  try{
+    landingAuthMode = authMode;
+    document.getElementById('lsTabLogin').classList.toggle('on', isLogin);
+    document.getElementById('lsTabSignup').classList.toggle('on', !isLogin);
+    document.getElementById('lsSub').textContent = isLogin
+      ? 'Welcome back — sign in to your account'
+      : 'Create your free account — no credit card needed';
+  }catch(e){}
   document.getElementById('authErr').textContent = '';
   document.getElementById('authTitle').textContent = isLogin ? 'Welcome back' : 'Create your account';
   document.getElementById('authSub').textContent = isLogin
