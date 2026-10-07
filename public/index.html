@@ -195,6 +195,30 @@
     border: 1px solid rgba(91,140,255,.35); border-radius: 10px; padding: 12px; margin-top: 10px; }
   .contact-row .ic { font-size: 20px; }
   .contact-row a { color: #7aa5ff; }
+  /* ---- feedback (star rating) ---- */
+  .stars { display: flex; gap: 6px; justify-content: center; margin: 6px 0 14px; }
+  .stars button { flex: none; width: 46px; height: 46px; font-size: 26px; padding: 0;
+    background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.15);
+    border-radius: 12px; color: #5b6472; cursor: pointer; }
+  .stars button.on { color: #fbbf24; border-color: rgba(251,191,36,.5);
+    background: rgba(251,191,36,.1); }
+  .fbtextarea { width: 100%; min-height: 110px; }
+  /* ---- my creations (notebook) ---- */
+  .cregrid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  .crecard { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12);
+    border-radius: 12px; padding: 12px; }
+  .crecard .ctop { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .crecard .badge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+    background: rgba(91,140,255,.15); border: 1px solid rgba(91,140,255,.4); color: #9ec2ff; }
+  .crecard .badge.video { background: rgba(34,197,94,.12); border-color: rgba(34,197,94,.4);
+    color: #86efac; }
+  .crecard .cdate { font-size: 11px; opacity: .55; margin-left: auto; }
+  .crecard .cprompt { font-size: 13px; line-height: 1.5; opacity: .9;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .crecard .cmeta { font-size: 11px; opacity: .55; margin-top: 6px; }
+  .crecard button { margin-top: 10px; width: 100%; font-size: 14px; padding: 10px; flex: none; }
+  .creempty { text-align: center; padding: 28px 12px; opacity: .7; font-size: 14px; }
+  .creempty .big { font-size: 40px; display: block; margin-bottom: 10px; }
 </style>
 </head>
 <body>
@@ -216,6 +240,8 @@
     <button onclick="drawerGo('privacy')"><span class="ic">📄</span>Privacy Policy</button>
     <button onclick="drawerGo('terms')"><span class="ic">📋</span>Terms of Service</button>
     <button onclick="drawerGo('help')"><span class="ic">❓</span>Help / FAQ</button>
+    <button onclick="drawerGo('feedback')"><span class="ic">💬</span>Feedback</button>
+    <button onclick="drawerGo('creations')"><span class="ic">📓</span>My Creations</button>
     <button onclick="drawerGo('contact')"><span class="ic">📞</span>Contact Us</button>
     <button onclick="drawerGo('about')"><span class="ic">ℹ️</span>About</button>
   </nav>
@@ -357,6 +383,39 @@
       <h3>Our promise</h3>
       <p>No hidden charges, no surprise bills. Free means free — the daily limits reset every day, and you can always earn more with ads.</p>
       <p style="opacity:.6">Version 1.0 • Made with care</p>
+    </div>
+  </div>
+</div>
+
+<!-- FEEDBACK MODAL -->
+<div id="mFeedback" class="infomodal">
+  <div class="infocard">
+    <div class="ihead"><h2>💬 Feedback</h2><button onclick="closeInfo('mFeedback')">✕</button></div>
+    <div class="ibody iform">
+      <h3>How was your experience?</h3>
+      <p style="font-size:13px">Tap the stars to rate us, then tell us what you think.</p>
+      <div class="stars" id="fbStars">
+        <button type="button" data-star="1" onclick="setStars(1)" aria-label="1 star">★</button>
+        <button type="button" data-star="2" onclick="setStars(2)" aria-label="2 stars">★</button>
+        <button type="button" data-star="3" onclick="setStars(3)" aria-label="3 stars">★</button>
+        <button type="button" data-star="4" onclick="setStars(4)" aria-label="4 stars">★</button>
+        <button type="button" data-star="5" onclick="setStars(5)" aria-label="5 stars">★</button>
+      </div>
+      <label>Your feedback</label>
+      <textarea id="fbText" class="fbtextarea" placeholder="What do you love? What should we improve?" maxlength="1000"></textarea>
+      <div class="err" id="fbErr"></div>
+      <div class="row"><button onclick="submitFeedback()">Send Feedback</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- MY CREATIONS (NOTEBOOK) MODAL -->
+<div id="mCreations" class="infomodal">
+  <div class="infocard">
+    <div class="ihead"><h2>📓 My Creations</h2><button onclick="closeInfo('mCreations')">✕</button></div>
+    <div class="ibody">
+      <p style="font-size:13px">Your generation history. Files are not stored, but you can re-run any prompt with one tap.</p>
+      <div class="cregrid" id="creationsList"></div>
     </div>
   </div>
 </div>
@@ -507,7 +566,8 @@
 
   <footer>
     🎨 Ayaz AI Studio • Powered by free AI models<br>
-    <span style="opacity:.7">Video: AI still + cinematic motion (true AI video coming soon)</span>
+    <span style="opacity:.7">Video: AI still + cinematic motion (true AI video coming soon)</span><br>
+    <span style="opacity:.7">Enjoying it? <a onclick="drawerGo('feedback')" style="color:#7aa5ff;cursor:pointer">Send us feedback</a></span>
   </footer>
 </div>
 
@@ -593,6 +653,8 @@ function drawerGo(which){
   }
   const map = { privacy: 'mPrivacy', terms: 'mTerms', help: 'mHelp', contact: 'mContact', about: 'mAbout' };
   if(map[which]) openInfo(map[which]);
+  if(which === 'feedback'){ openFeedback(); return; }
+  if(which === 'creations'){ openCreations(); return; }
 }
 function openInfo(id){ document.getElementById(id).classList.add('show'); }
 function closeInfo(id){ document.getElementById(id).classList.remove('show'); }
@@ -660,9 +722,126 @@ async function deleteAccount(){
 document.addEventListener('keydown', function(e){
   if(e.key === 'Escape'){
     toggleDrawer(false);
-    ['mSettings','mPrivacy','mTerms','mHelp','mContact','mAbout'].forEach(closeInfo);
+    ['mSettings','mPrivacy','mTerms','mHelp','mContact','mAbout','mFeedback','mCreations'].forEach(closeInfo);
   }
 });
+
+/* ---------- feedback ---------- */
+let fbRating = 0;
+function setStars(n){
+  fbRating = n;
+  const btns = document.querySelectorAll('#fbStars button');
+  btns.forEach(function(b){
+    b.classList.toggle('on', parseInt(b.getAttribute('data-star'), 10) <= n);
+  });
+}
+function openFeedback(){
+  if(needAuth()) return;
+  fbRating = 0;
+  const btns = document.querySelectorAll('#fbStars button');
+  btns.forEach(function(b){ b.classList.remove('on'); });
+  document.getElementById('fbText').value = '';
+  document.getElementById('fbErr').textContent = '';
+  openInfo('mFeedback');
+}
+async function submitFeedback(){
+  const text = document.getElementById('fbText').value.trim();
+  const errEl = document.getElementById('fbErr');
+  errEl.textContent = '';
+  if(fbRating < 1 || fbRating > 5){ errEl.textContent = 'Please choose a star rating first.'; return; }
+  if(!text){ errEl.textContent = 'Please write a few words about your experience.'; return; }
+  try{
+    const r = await fetch('/api/feedback', {
+      method: 'POST',
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ rating: fbRating, text }),
+    });
+    const d = await r.json().catch(function(){ return {}; });
+    if(r.status === 401){ logout(); throw new Error('Session expired — please sign in again.'); }
+    if(!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+    closeInfo('mFeedback');
+    showToast('🙏 ' + (d.message || 'Thank you for your feedback!'));
+  }catch(e){
+    errEl.textContent = '❌ ' + e.message;
+  }
+}
+
+/* ---------- my creations (notebook) ---------- */
+function fmtDate(iso){
+  try{
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ', ' +
+           d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  }catch(e){ return ''; }
+}
+function creParamsLabel(c){
+  const p = c.params || {};
+  const parts = [];
+  if(c.type === 'image'){
+    if(p.width && p.height) parts.push(p.width + '×' + p.height);
+  } else {
+    if(p.duration) parts.push(p.duration + 's');
+    if(p.motion) parts.push(p.motion);
+  }
+  return parts.join(' • ');
+}
+function openCreations(){
+  if(needAuth()) return;
+  openInfo('mCreations');
+  loadCreations();
+}
+async function loadCreations(){
+  const listEl = document.getElementById('creationsList');
+  listEl.innerHTML = '<div class="creempty"><span class="big">📓</span>Loading your creations...</div>';
+  try{
+    const r = await fetch('/api/my-creations', { headers: authHeaders() });
+    const d = await r.json().catch(function(){ return {}; });
+    if(r.status === 401){ logout(); throw new Error('Session expired — please sign in again.'); }
+    if(!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+    renderCreations(d.creations || []);
+  }catch(e){
+    listEl.innerHTML = '<div class="creempty"><span class="big">⚠️</span>' + escapeHtml(e.message) + '</div>';
+  }
+}
+function renderCreations(items){
+  const listEl = document.getElementById('creationsList');
+  if(!items.length){
+    listEl.innerHTML = '<div class="creempty"><span class="big">🎨</span>Nothing here yet.<br>Generate your first image or video and it will appear here!</div>';
+    return;
+  }
+  listEl.innerHTML = '';
+  items.forEach(function(c, i){
+    const card = document.createElement('div');
+    card.className = 'crecard';
+    const badgeCls = c.type === 'video' ? 'badge video' : 'badge';
+    const icon = c.type === 'video' ? '🎬' : '🖼️';
+    const meta = creParamsLabel(c);
+    card.innerHTML =
+      '<div class="ctop"><span class="' + badgeCls + '">' + icon + ' ' + c.type.toUpperCase() + '</span>' +
+      '<span class="cdate">' + escapeHtml(fmtDate(c.createdAt)) + '</span></div>' +
+      '<div class="cprompt">' + escapeHtml(c.prompt || '') + '</div>' +
+      (meta ? '<div class="cmeta">' + escapeHtml(meta) + '</div>' : '');
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = '🔁 Regenerate';
+    btn.onclick = function(){ regenerateCreation(c.type, c.prompt); };
+    card.appendChild(btn);
+    listEl.appendChild(card);
+  });
+}
+function regenerateCreation(type, prompt){
+  closeInfo('mCreations');
+  switchTab(type === 'video' ? 'vid' : 'img');
+  if(type === 'video'){
+    document.getElementById('vprompt').value = prompt || '';
+    document.getElementById('vprompt').focus();
+  } else {
+    document.getElementById('prompt').value = prompt || '';
+    document.getElementById('prompt').focus();
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  showToast('✏️ Prompt loaded — tap Generate to re-run it.');
+}
 
 /* ---------- auth ---------- */
 function getToken(){ return localStorage.getItem('aas_token') || ''; }
