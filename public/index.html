@@ -76,6 +76,32 @@
     width: 40px; height: 40px; border-radius: 12px; cursor: pointer;
   }
   .topactions button:active { background: var(--card2); }
+  .toplogo { height: 32px; width: 32px; border-radius: 9px; object-fit: cover; flex-shrink: 0; }
+  .drawerlogo { height: 30px; width: 30px; border-radius: 8px; object-fit: cover; vertical-align: -8px; margin-right: 9px; }
+  .footlogo { height: 22px; width: 22px; border-radius: 6px; object-fit: cover; vertical-align: -5px; margin-right: 6px; }
+  /* ---------- Grok-style full-screen login ---------- */
+  #loginScreen { display: none; position: fixed; inset: 0; background: #000; z-index: 96;
+    flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
+  #loginScreen.show { display: flex; }
+  .ls-inner { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 420px; }
+  .ls-logo { width: 100px; height: 100px; border-radius: 26px; object-fit: cover; margin-bottom: 28px;
+    box-shadow: 0 8px 44px rgba(59,130,246,.30); }
+  .ls-title { font-size: 54px; font-weight: 800; color: #fff; letter-spacing: -1.5px;
+    margin-bottom: 16px; text-align: center; line-height: 1.05; }
+  .ls-tag { font-size: 20px; color: #d4d4d4; min-height: 30px; margin-bottom: 64px;
+    font-family: 'SF Mono', Menlo, Consolas, monospace; letter-spacing: .5px; }
+  .ls-cursor { animation: lsblink 1.05s steps(1) infinite; color: #d4d4d4; }
+  @keyframes lsblink { 50% { opacity: 0; } }
+  .ls-btns { display: flex; flex-direction: column; gap: 14px; width: 100%; }
+  .ls-btn { display: flex; align-items: center; justify-content: center; gap: 10px;
+    background: #2b2b2e; color: #fff; border: none; border-radius: 999px;
+    font-size: 17px; font-weight: 600; padding: 16px; cursor: pointer; width: 100%;
+    font-family: inherit; }
+  .ls-btn:active { background: #3d3d42; }
+  .ls-ic { font-weight: 800; width: 26px; text-align: center; font-size: 18px; }
+  .ls-legal { position: absolute; bottom: 36px; left: 0; right: 0; font-size: 14px;
+    color: #8e8e93; text-align: center; padding: 0 24px; }
+  .ls-legal a { color: #b0b0b5; font-weight: 600; cursor: pointer; text-decoration: none; }
   /* ---------- credits strip ---------- */
   #creditsStrip {
     display: none; gap: 8px; justify-content: center; align-items: center;
@@ -406,9 +432,25 @@
 <body>
 <div id="noticeBar"><span id="noticeText"></span><button id="noticeClose" onclick="dismissNotice()" aria-label="Dismiss">✕</button></div>
 
+<!-- ══════════ GROK-STYLE LOGIN SCREEN ══════════ -->
+<div id="loginScreen">
+  <div class="ls-inner">
+    <img src="logo-icon.webp" class="ls-logo" alt="Ayaz AI Studio logo">
+    <h1 class="ls-title">Ayaz AI Studio</h1>
+    <div class="ls-tag"><span id="lsType"></span><span class="ls-cursor">_</span></div>
+    <div class="ls-btns">
+      <button class="ls-btn" onclick="loginGoogle()"><span class="ls-ic">G</span>Continue with Google</button>
+      <button class="ls-btn" onclick="openAuth('login')"><span class="ls-ic">@</span>Continue with Email</button>
+      <button class="ls-btn" onclick="loginX()"><span class="ls-ic">𝕏</span>Continue with X</button>
+    </div>
+  </div>
+  <div class="ls-legal">By continuing you agree to <a onclick="openInfo('mTerms')">Terms</a> and <a onclick="openInfo('mPrivacy')">Privacy Policy</a></div>
+</div>
+
 <!-- ══════════ TOP BAR : Grok style ══════════ -->
 <header id="topbar">
   <button id="menuBtn" onclick="toggleDrawer(true)" aria-label="Menu">☰</button>
+  <img src="logo-icon.webp" class="toplogo" alt="Ayaz AI Studio logo">
   <nav id="mainTabs">
     <button id="tabAsk" class="active" onclick="switchMainTab('ask')">Ask</button>
     <button id="tabImagine" onclick="switchMainTab('imagine')">Imagine</button>
@@ -424,7 +466,7 @@
 <div id="drawerOverlay" onclick="toggleDrawer(false)"></div>
 <aside id="drawer">
   <div class="dhead">
-    <div class="t">🎨 Ayaz AI Studio</div>
+    <div class="t"><img src="logo-icon.webp" class="drawerlogo" alt="Ayaz AI Studio logo">Ayaz AI Studio</div>
     <div class="s" id="drawerEmail">Not signed in</div>
   </div>
   <nav>
@@ -549,7 +591,7 @@
     </div>
   </div>
   <footer>
-    <div>🎨 Ayaz AI Studio • Powered by free AI models</div>
+    <div><img src="logo-icon.webp" class="footlogo" alt="Ayaz AI Studio logo">Ayaz AI Studio • Powered by free AI models</div>
     <div class="flinkbar">
       <a onclick="drawerGo('pricing')">Pricing</a>
       <a onclick="drawerGo('apidocs')">API Docs</a>
@@ -1074,22 +1116,28 @@ function renderAuthState(){
   const email = getEmail();
   const loggedIn = !!getToken();
   document.getElementById('drawerEmail').textContent = loggedIn ? email : 'Not signed in';
+  document.getElementById('loginScreen').classList.toggle('show', !loggedIn);
   document.getElementById('studyBar').classList.toggle('show', loggedIn && document.getElementById('tabAsk').classList.contains('active'));
-  // Imagine gate
+  // Imagine view: full-screen Grok-style login covers the app when logged out
   const gate = document.getElementById('imagineGate');
   const main = document.getElementById('imagineMain');
-  if(loggedIn){
-    gate.innerHTML = '';
-    main.style.display = 'block';
-  } else {
-    main.style.display = 'none';
-    gate.innerHTML =
-      '<div class="card gatecard"><span class="big">🎨</span><h3>Sign in to start creating</h3>' +
-      '<p>Free forever — 6 images + 3 videos daily.<br>Chat, Study Mode and Imagine are all free.</p>' +
-      '<div class="rowb"><button class="primary" onclick="openAuth(\'login\')">Sign In</button>' +
-      '<button class="ghostb" onclick="openAuth(\'register\')">Create Account</button></div></div>';
-  }
+  gate.innerHTML = '';
+  main.style.display = loggedIn ? 'block' : 'none';
   renderCreditsStrip();
+}
+/* ---------- Grok-style login screen ---------- */
+function loginGoogle(){ showToast('🔜 Google sign-in is coming soon!'); }
+function loginX(){ showToast('🔜 X sign-in is coming soon!'); }
+let lsTyped = false;
+function typeTagline(){
+  if(lsTyped) return; lsTyped = true;
+  const el = document.getElementById('lsType');
+  const txt = 'Create anything';
+  let i = 0;
+  const iv = setInterval(() => {
+    el.textContent = txt.slice(0, ++i);
+    if(i >= txt.length) clearInterval(iv);
+  }, 75);
 }
 function needAuth(){
   if(!getToken()){
@@ -1957,6 +2005,7 @@ window.addEventListener('DOMContentLoaded', () => {
   captureReferral();
   initTheme();
   renderAuthState();
+  typeTagline();
   renderStyles();
   initRefUpload();
   initChatAttach();
