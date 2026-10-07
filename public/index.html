@@ -3173,6 +3173,7 @@ function logout(){
   localStorage.removeItem('aas_username');
   localStorage.removeItem('aas_photo');
   localStorage.removeItem('aas_verified');
+  localStorage.removeItem('aas_profile_done');
   renderAuthState();
   document.getElementById('chatList').innerHTML = '';
   renderChatEmpty();
@@ -3256,6 +3257,11 @@ function storeProfile(p){
 /* Full sync: store + show setup screen when the profile is incomplete. */
 function syncProfile(p){
   storeProfile(p);
+  // If user already completed setup on this device, don't show again
+  // (server storage is ephemeral on Render free tier and gets wiped on deploy)
+  try{
+    if(localStorage.getItem('aas_profile_done') === '1') return;
+  }catch(e){}
   if(p && p.profileComplete === false) openProfileSetup(p);
 }
 function openProfileSetup(p){
@@ -3326,6 +3332,7 @@ async function submitProfileSetup(){
     if(!r.ok) throw new Error(d.error || 'Could not save your profile.');
     storeProfile(d.profile);
     psPhotoData = null;
+    try{ localStorage.setItem('aas_profile_done', '1'); }catch(e){}
     document.getElementById('mProfileSetup').classList.remove('show');
     renderAuthState();
     showToast('🎉 Profile ready! Welcome to Ayaz AI Studio.');
