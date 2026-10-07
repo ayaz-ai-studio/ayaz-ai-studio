@@ -878,6 +878,50 @@
   body.light #mProjects .pj-empty .pj-eic, body.light #mNewProject .pj-namerow .pj-fic { background: #f0f0f2; }
   body.light .au-item, body.light .au-name, body.light .au-instr, body.light .au-nrow,
   body.light .au-timewrap input[type="time"] { background: #f0f0f2; }
+  /* ---------- premium upgrade page (Grok-style full page) ---------- */
+  #mPricing { display: none; position: fixed; inset: 0; background: var(--bg);
+    z-index: 100; overflow-y: auto; overflow-x: hidden; }
+  #mPricing.show { display: block; }
+  .pm-inner { max-width: 560px; margin: 0 auto; padding: 14px 16px 48px; }
+  .pm-head { display: flex; align-items: center; padding: 8px 0 20px; }
+  .pm-head .pm-x { background: none; border: none; color: var(--text); font-size: 26px;
+    cursor: pointer; padding: 4px; line-height: 1; font-family: inherit; }
+  .pm-title { font-size: 22px; font-weight: 800; color: var(--text); text-align: center;
+    margin: 0 0 8px; }
+  .pm-sub { font-size: 15px; color: var(--muted); text-align: center; margin: 0 0 18px; }
+  .pm-tabs { display: flex; background: var(--card); border: 1px solid var(--border);
+    border-radius: 999px; padding: 5px; margin: 0 8px 18px; }
+  .pm-tab { flex: 1; background: none; border: none; color: var(--muted); font-size: 15px;
+    font-weight: 700; padding: 10px 0; border-radius: 999px; cursor: pointer; font-family: inherit; }
+  .pm-tab.on { background: var(--card2); color: var(--text); box-shadow: inset 0 0 0 1px var(--border); }
+  .pm-card { background: var(--card); border: 1px solid var(--border); border-radius: 24px;
+    padding: 26px 22px 22px; margin-bottom: 12px; }
+  .pm-apps { display: flex; justify-content: center; gap: 14px; margin-bottom: 26px; flex-wrap: wrap; }
+  .pm-app { width: 62px; height: 62px; border-radius: 16px; background: #fff;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .pm-app svg { display: block; }
+  .pm-feat-t { font-size: 20px; font-weight: 800; color: var(--text); margin: 0 0 8px; }
+  .pm-feat-d { font-size: 14px; color: var(--muted); line-height: 1.55; margin: 0 0 20px; }
+  .pm-inc { font-size: 15px; color: var(--muted); margin: 0 0 14px; }
+  .pm-feat { display: flex; align-items: center; gap: 13px; padding: 9px 0;
+    font-size: 15px; font-weight: 600; color: var(--text); }
+  .pm-feat .pm-fic { width: 26px; text-align: center; flex-shrink: 0; color: var(--text);
+    display: inline-flex; align-items: center; justify-content: center; }
+  .pm-feat .pm-fic svg { display: block; }
+  .pm-offer { background: var(--card); border: 1px solid var(--border); border-radius: 20px;
+    padding: 20px 22px; margin-bottom: 14px; }
+  .pm-offer b { display: block; font-size: 16px; font-weight: 800; color: #60a5fa; margin-bottom: 8px; }
+  .pm-offer p { font-size: 14px; color: var(--text); margin: 0 0 4px; line-height: 1.6; }
+  .pm-offer p span { color: var(--muted); }
+  .pm-claim { width: 100%; box-sizing: border-box; background: #fff; color: #111;
+    border: none; border-radius: 999px; padding: 17px; font-size: 17px; font-weight: 800;
+    cursor: pointer; font-family: inherit; margin-bottom: 16px; }
+  .pm-claim:active { transform: scale(.98); opacity: .9; }
+  .pm-legal { text-align: center; font-size: 14px; color: var(--muted); }
+  .pm-legal a { color: var(--muted); text-decoration: none; cursor: pointer; }
+  .pm-legal a:active { opacity: .7; }
+  body.light .pm-tabs, body.light .pm-card, body.light .pm-offer { background: #f0f0f2; }
+  body.light .pm-tab.on { background: #fff; }
   /* ══════════ Grok-style Library page (full-screen) ══════════ */
   #mLibrary { display: none; position: fixed; inset: 0; background: var(--bg);
     z-index: 100; overflow-y: auto; overflow-x: hidden; }
@@ -1830,26 +1874,44 @@
   </div>
 </div>
 
-<div id="mPricing" class="infomodal">
-  <div class="infocard">
-    <button class="xbtn" onclick="closeInfo('mPricing')">✕</button>
-    <h2>💎 Pricing</h2>
-    <div class="sub">Simple and honest</div>
-    <h3>Free — $0 forever</h3>
-    <ul>
-      <li>6 AI images / day</li>
-      <li>3 AI videos / day</li>
-      <li>50 AI chats / day</li>
-      <li>Bonus credits by watching ads</li>
-    </ul>
-    <h3>Pro — coming soon</h3>
-    <ul>
-      <li>Higher daily limits</li>
-      <li>Priority generation queue</li>
-      <li>HD quality outputs</li>
-      <li>No ads</li>
-    </ul>
-    <p style="margin-top:10px">Join the newsletter (below) to get notified at launch.</p>
+<div id="mPricing" class="setpage">
+  <div class="pm-inner">
+    <div class="pm-head">
+      <button class="pm-x" onclick="closeInfo('mPricing')" aria-label="Close">✕</button>
+    </div>
+    <h2 class="pm-title">Access to premium intelligence</h2>
+    <p class="pm-sub">Upgrade to <span id="pmTierName">Ayaz Pro</span> to get:</p>
+    <div class="pm-tabs">
+      <button class="pm-tab on" data-ptab="pro" onclick="switchProTab('pro')">Ayaz Pro</button>
+      <button class="pm-tab" data-ptab="plus" onclick="switchProTab('plus')">Plus</button>
+      <button class="pm-tab" data-ptab="heavy" onclick="switchProTab('heavy')">Heavy</button>
+    </div>
+    <div class="pm-card">
+      <div class="pm-apps">
+        <span class="pm-app" aria-label="GitHub">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="#111"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.55v-2.17c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.25 5.67.41.35.77 1.05.77 2.12v3.15c0 .3.21.66.8.55A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+        </span>
+        <span class="pm-app" aria-label="Notion">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><rect x="1.5" y="1.5" width="21" height="21" rx="4" stroke="#111" stroke-width="2.4"/><text x="12" y="16.6" text-anchor="middle" font-family="Georgia,serif" font-size="12.5" font-weight="700" fill="#111">N</text></svg>
+        </span>
+        <span class="pm-app" aria-label="Gmail">
+          <svg width="34" height="34" viewBox="0 0 24 24"><path fill="#EA4335" d="M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/><path fill="#fff" d="M4.8 7.2 12 12.6l7.2-5.4.9 1.2L12 14.4 3.9 8.4z" opacity=".95"/><path fill="#FBBC05" d="M12 12.6 3.6 6.5A1 1 0 0 1 4 6h16a1 1 0 0 1 .4.1z" opacity=".9"/></svg>
+        </span>
+        <span class="pm-app" aria-label="Drive">
+          <svg width="32" height="32" viewBox="0 0 24 24"><path fill="#188038" d="M8.2 3.5 2.6 13.2l3 5.3 5.6-9.7z"/><path fill="#34A853" d="M8.2 3.5h9.1l-5.6 9.7H2.6z" opacity=".95"/><path fill="#FBBC04" d="M17.3 3.5l5.6 9.7-5.6 9.7h-5.6l5.6-9.7z" opacity=".9"/><path fill="#1A73E8" d="M8.2 20.5h9.1l-5.6-9.7H2.6z" opacity=".85"/></svg>
+        </span>
+        <span class="pm-app" aria-label="Slack">
+          <svg width="30" height="30" viewBox="0 0 24 24"><path fill="#36C5F0" d="M9.5 2.5a2.5 2.5 0 0 1 2.5 2.5v2.5H9.5a2.5 2.5 0 0 1 0-5z"/><path fill="#2EB67D" d="M14.5 2.5a2.5 2.5 0 0 1 0 5H12V5a2.5 2.5 0 0 1 2.5-2.5z"/><path fill="#ECB22E" d="M21.5 9.5a2.5 2.5 0 0 1-2.5 2.5h-2.5V9.5a2.5 2.5 0 0 1 5 0z"/><path fill="#E01E5A" d="M21.5 14.5a2.5 2.5 0 0 1-5 0V12h2.5a2.5 2.5 0 0 1 2.5 2.5z"/><path fill="#36C5F0" d="M14.5 21.5a2.5 2.5 0 0 1-2.5-2.5v-2.5h2.5a2.5 2.5 0 0 1 0 5z"/><path fill="#2EB67D" d="M9.5 21.5a2.5 2.5 0 0 1 0-5H12v2.5a2.5 2.5 0 0 1-2.5 2.5z"/><path fill="#ECB22E" d="M2.5 14.5a2.5 2.5 0 0 1 2.5-2.5h2.5v2.5a2.5 2.5 0 0 1-5 0z"/><path fill="#E01E5A" d="M2.5 9.5a2.5 2.5 0 0 1 5 0V12H5a2.5 2.5 0 0 1-2.5-2.5z"/></svg>
+        </span>
+      </div>
+      <h3 class="pm-feat-t">Access to Ayaz Bot</h3>
+      <p class="pm-feat-d">AI teammates that sign in to your tools and come back with finished work</p>
+      <p class="pm-inc">Also includes:</p>
+      <div id="pmFeatList"></div>
+    </div>
+    <div class="pm-offer" id="pmOffer"></div>
+    <button class="pm-claim" onclick="claimProOffer()">Claim limited-time offer</button>
+    <div class="pm-legal"><a onclick="closeInfo('mPricing');openInfo('mTerms')">Terms</a> | <a onclick="closeInfo('mPricing');openInfo('mPrivacy')">Privacy Policy</a></div>
   </div>
 </div>
 
@@ -3401,6 +3463,84 @@ function deleteProject(i){
 }
 function openInfo(id){ document.getElementById(id).classList.add('show'); }
 function closeInfo(id){ document.getElementById(id).classList.remove('show'); }
+/* ---------- premium upgrade page (Grok-style) ---------- */
+var PRO_TIERS = {
+  pro: { name: 'Ayaz Pro',
+    feats: [
+      ['circle-slash', 'Everything in Free'],
+      ['rocket', '30 image generations per day'],
+      ['film', '10 video generations per day'],
+      ['sparkles', 'HD quality outputs'],
+      ['zap', 'Priority generation queue'],
+      ['bot', 'Ayaz Bot assistant access'],
+      ['smile', 'Smarter answers in Expert mode'],
+      ['hammer', 'Create apps with a single prompt'],
+      ['ban', 'No ads']
+    ],
+    offer: { save: 'Limited time offer – Save 67%',
+      line1: 'Get 3 months for Rs 2,499.00',
+      line2: 'Rs 833.33/month, paid upfront. Renews at Rs 2,999.00/month.' } },
+  plus: { name: 'Plus',
+    feats: [
+      ['circle-slash', 'Everything in Ayaz Pro'],
+      ['rocket', '100 image generations per day'],
+      ['film', '30 video generations per day'],
+      ['sparkles', '4K ultra quality outputs'],
+      ['zap', 'Fastest priority queue'],
+      ['bot', 'Ayaz Bot with tool integrations'],
+      ['smile', 'Expert mode + longer memory'],
+      ['hammer', 'Create apps & sites with one prompt'],
+      ['key', 'API access for developers']
+    ],
+    offer: { save: 'Limited time offer – Save 60%',
+      line1: 'Get 3 months for Rs 4,999.00',
+      line2: 'Rs 1,666.33/month, paid upfront. Renews at Rs 5,999.00/month.' } },
+  heavy: { name: 'Heavy',
+    feats: [
+      ['circle-slash', 'Everything in Plus'],
+      ['infinity', 'Unlimited image generations'],
+      ['film', 'Unlimited video generations'],
+      ['sparkles', 'Highest quality + early models'],
+      ['zap', 'Dedicated generation queue'],
+      ['bot', 'Ayaz Bot team workspaces'],
+      ['smile', 'Custom instructions & personas'],
+      ['hammer', 'Build & deploy full projects'],
+      ['users', '5 team seats included']
+    ],
+    offer: { save: 'Limited time offer – Save 55%',
+      line1: 'Get 3 months for Rs 9,999.00',
+      line2: 'Rs 3,333.00/month, paid upfront. Renews at Rs 11,999.00/month.' } }
+};
+var PRO_ICONS = {
+  'circle-slash': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="5.5" y1="5.5" x2="18.5" y2="18.5"/></svg>',
+  'rocket': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>',
+  'film': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18"/><path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 17h5M17 7h5"/></svg>',
+  'sparkles': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>',
+  'zap': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+  'bot': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M12 8V4M8 4h8"/><circle cx="9" cy="13" r="1" fill="currentColor"/><circle cx="15" cy="13" r="1" fill="currentColor"/></svg>',
+  'smile': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>',
+  'hammer': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 12-8.5 8.5a2.12 2.12 0 1 1-3-3L12 9"/><path d="M17.64 15 22 10.64"/><path d="m20.91 11.7-1.25-1.25c-.6-.6-.93-1.4-.93-2.25v-.86L16.01 4.6a5.56 5.56 0 0 0-3.94-1.64H9l.92.82A6.18 6.18 0 0 1 12 8.4v1.56l2 2h2.47l2.26 1.91"/></svg>',
+  'ban': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="5.5" y1="5.5" x2="18.5" y2="18.5"/></svg>',
+  'key': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>',
+  'infinity': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.178 8c5.096 0 5.096 8 0 8-5.095 0-7.133-8-12.739-8-4.585 0-4.585 8 0 8 5.606 0 7.644-8 12.74-8z"/></svg>',
+  'users': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>'
+};
+function switchProTab(tier){
+  var t = PRO_TIERS[tier] || PRO_TIERS.pro;
+  document.getElementById('pmTierName').textContent = t.name;
+  var tabs = document.querySelectorAll('.pm-tab');
+  for(var i = 0; i < tabs.length; i++){ tabs[i].classList.toggle('on', tabs[i].getAttribute('data-ptab') === tier); }
+  var html = '';
+  t.feats.forEach(function(f){
+    html += '<div class="pm-feat"><span class="pm-fic">' + (PRO_ICONS[f[0]] || '') + '</span><span>' + f[1] + '</span></div>';
+  });
+  document.getElementById('pmFeatList').innerHTML = html;
+  document.getElementById('pmOffer').innerHTML = '<b>' + t.offer.save + '</b><p>' + t.offer.line1 + '</p><p><span>' + t.offer.line2 + '</span></p>';
+}
+function claimProOffer(){
+  showToast('Ayaz Pro is coming soon — your free plan stays active!');
+}
+switchProTab('pro');
 function openSettings(){
   const email = getEmail();
   const loggedIn = !!getToken();
