@@ -1276,6 +1276,56 @@ const TTS_VOICES = {
   en_f: 'en-US-AriaNeural',      // English female
 };
 
+/**
+ * GET /api/tts-smart — Smart Desi TTS
+ * Takes Roman Urdu/Hindi text, auto-converts to proper script via Gemini,
+ * then synthesizes with Microsoft Neural Pakistani/Indian voices.
+ * Query: ?text=...&lang=ur (ur, ur_f, hi, hi_f)
+ */
+app.get('/api/tts-smart', requireAuth, async (req, res) => {
+  const rawText = (req.query.text || '').toString().slice(0, 500);
+  if (!rawText) return res.status(400).json({ error: 'text required' });
+  const lang = (req.query.lang || 'ur').toString().slice(0, 6).replace(/[^a-z_]/gi, '');
+
+  try {
+    // Step 1: Convert Roman to proper script via Gemini
+    const isHindi = lang.startsWith('hi');
+    const convertPrompt = isHindi
+      ? `Convert this Roman Hindi/Hinglish text to proper Devanagari Hindi script with natural pauses (use ... for pauses and । for sentence ends). Return ONLY the converted text, nothing else:\n\n${rawText}`
+      : `Convert this Roman Urdu text to proper Urdu script (Nastaliq style) with natural pauses (use ... for pauses and ، for commas). Return ONLY the converted text, nothing else:\n\n${rawText}`;
+    let desiText = rawText;
+    try {
+      desiText = await geminiText(convertPrompt, '', 15000);
+      desiText = desiText.trim().slice(0, 500) || rawText;
+    } catch (e) { /* fall back to original text */ }
+
+    // Step 2: Synthesize via Edge-TTS with desi voice
+    const voice = TTS_VOICES[lang] || TTS_VOICES['ur'];
+    const tmpFile = tmpName('tts-smart', 'mp3');
+    const edgeProc = spawn('python3', ['-m', 'edge_tts', '--voice', voice, '--text', desiText, '--write-media', tmpFile], { timeout: 25000 });
+
+    let edgeFailed = false;
+    edgeProc.on('error', () => { edgeFailed = true; });
+    edgeProc.on('close', (code) => {
+      if (code === 0 && !edgeFailed && fs.existsSync(tmpFile)) {
+        const stat = fs.statSync(tmpFile);
+        if (stat.size > 1000) {
+          res.setHeader('Content-Type', 'audio/mpeg');
+          res.setHeader('X-TTS-Source', 'edge-tts-smart');
+          res.setHeader('X-TTS-Text', encodeURIComponent(desiText.slice(0, 200)));
+          const stream = fs.createReadStream(tmpFile);
+          stream.on('close', () => { try { fs.unlinkSync(tmpFile); } catch (e) {} });
+          return stream.pipe(res);
+        }
+      }
+      try { fs.unlinkSync(tmpFile); } catch (e) {}
+      res.status(502).json({ error: 'smart TTS failed' });
+    });
+  } catch (e) {
+    res.status(502).json({ error: 'smart TTS error: ' + e.message });
+  }
+});
+
 app.get('/api/tts', requireAuth, async (req, res) => {
   const text = (req.query.text || '').toString().slice(0, 500);
   if (!text) return res.status(400).json({ error: 'text required' });
