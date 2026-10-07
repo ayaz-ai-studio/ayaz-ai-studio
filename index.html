@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Ayaz AI Studio</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    color: #fff; min-height: 100vh; padding: 20px 16px 40px;
+  }
+  .wrap { max-width: 560px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 24px; }
+  header h1 { font-size: 28px; background: linear-gradient(90deg, #ff9a9e, #fecfef, #a18cd1);
+    -webkit-background-clip: text; background-clip: text; color: transparent; }
+  header p { opacity: .7; font-size: 14px; margin-top: 6px; }
+  .card { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
+    border-radius: 16px; padding: 18px; backdrop-filter: blur(8px); }
+  textarea { width: 100%; min-height: 90px; border-radius: 12px; border: 1px solid rgba(255,255,255,.2);
+    background: rgba(0,0,0,.3); color: #fff; padding: 12px; font-size: 16px; resize: vertical; }
+  textarea:focus { outline: none; border-color: #a18cd1; }
+  .row { display: flex; gap: 10px; margin-top: 12px; }
+  select, button { font-size: 16px; border-radius: 12px; border: none; padding: 12px 16px; }
+  select { background: rgba(0,0,0,.3); color: #fff; border: 1px solid rgba(255,255,255,.2); flex: 1; }
+  button { background: linear-gradient(90deg, #667eea, #764ba2); color: #fff; font-weight: 700;
+    cursor: pointer; flex: 2; }
+  button:disabled { opacity: .5; cursor: wait; }
+  #status { text-align: center; margin: 16px 0; font-size: 14px; opacity: .8; min-height: 20px; }
+  .spinner { display: none; text-align: center; margin: 20px 0; }
+  .spinner.show { display: block; }
+  .spinner div { width: 40px; height: 40px; margin: 0 auto; border: 4px solid rgba(255,255,255,.2);
+    border-top-color: #a18cd1; border-radius: 50%; animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #result { display: none; margin-top: 8px; text-align: center; }
+  #result img, #result video { max-width: 100%; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,.5); }
+  #result a { display: inline-block; margin-top: 12px; color: #a18cd1; font-size: 14px; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+  .tabs button { flex: 1; font-size: 16px; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,.2);
+    background: rgba(255,255,255,.06); color: #fff; cursor: pointer; font-weight: 600; }
+  .tabs button.active { background: linear-gradient(90deg, #667eea, #764ba2); border-color: transparent; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  .note { font-size: 12px; opacity: .6; margin-top: 10px; text-align: center; }
+  .userbar { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
+    border-radius: 16px; padding: 14px; margin-bottom: 16px; backdrop-filter: blur(8px); }
+  .userbar .row { margin-top: 0; }
+  .userbar input { flex: 2; font-size: 16px; border-radius: 12px; padding: 12px;
+    border: 1px solid rgba(255,255,255,.2); background: rgba(0,0,0,.3); color: #fff; }
+  .userbar input:focus { outline: none; border-color: #a18cd1; }
+  .userbar button { flex: 1; }
+  .credits { display: flex; gap: 8px; margin-top: 10px; }
+  .credits div { flex: 1; text-align: center; font-size: 13px; background: rgba(0,0,0,.3);
+    border-radius: 10px; padding: 8px; border: 1px solid rgba(255,255,255,.1); }
+  .credits b { display: block; font-size: 18px; }
+  .limits-strip { text-align: center; font-size: 12px; opacity: .65; margin-bottom: 14px;
+    background: rgba(255,255,255,.04); border-radius: 10px; padding: 8px; }
+  .samples { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .samples button { flex: 1 1 30%; font-size: 12px; padding: 8px; background: rgba(255,255,255,.1); }
+  footer { text-align: center; margin-top: 28px; font-size: 12px; opacity: .5; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🎨 Ayaz AI Studio</h1>
+    <p>Free AI image + video generation — koi sign-up nahi, bas naam likhein aur banayein</p>
+  </header>
+
+  <div class="userbar">
+    <div class="row">
+      <input id="username" placeholder="Apna naam likhein..." maxlength="30">
+      <button onclick="saveUser()">✔ Save</button>
+    </div>
+    <div class="credits">
+      <div>🖼️ Images<b id="cImg">–</b><span>roz ki limit 6</span></div>
+      <div>🎬 Videos<b id="cVid">–</b><span>roz ki limit 3</span></div>
+    </div>
+  </div>
+
+  <div class="limits-strip">
+    🎁 <b>100% FREE</b> — roz 6 pictures + 3 videos • limit har roz reset hoti hai
+  </div>
+
+  <div class="tabs">
+    <button id="tabImg" class="active" onclick="switchTab('img')">🖼️ Image</button>
+    <button id="tabVid" onclick="switchTab('vid')">🎬 Video</button>
+  </div>
+
+  <!-- IMAGE PANEL -->
+  <div id="panelImg" class="panel active">
+  <div class="card">
+    <textarea id="prompt" placeholder="Apni tasveer describe karein... (e.g. a beautiful Pakistani village at sunset, photorealistic)"></textarea>
+    <div class="row">
+      <select id="size">
+        <option value="512x512">Square 512</option>
+        <option value="768x768">Square 768</option>
+        <option value="512x768">Portrait</option>
+        <option value="768x512">Landscape</option>
+      </select>
+      <button id="go" onclick="generate()">✨ Generate</button>
+    </div>
+    <div class="samples">
+      <button onclick="setPrompt('a majestic lion in a Pakistani haveli courtyard, cinematic')">🦁 Lion</button>
+      <button onclick="setPrompt('a beautiful Pakistani village at sunset, photorealistic')">🏡 Village</button>
+      <button onclick="setPrompt('a cute goat wearing sunglasses, funny, digital art')">🐐 Goat</button>
+    </div>
+  </div>
+  </div>
+
+  <!-- VIDEO PANEL -->
+  <div id="panelVid" class="panel">
+  <div class="card">
+    <textarea id="vprompt" placeholder="Apni video describe karein... (e.g. a lion walking in a haveli courtyard, cinematic)"></textarea>
+    <div class="row">
+      <select id="vdur">
+        <option value="3">3 sec</option>
+        <option value="5" selected>5 sec</option>
+        <option value="8">8 sec</option>
+      </select>
+      <select id="vmotion">
+        <option value="zoomin" selected>Zoom in</option>
+        <option value="zoomout">Zoom out</option>
+        <option value="panleft">Pan left</option>
+        <option value="panright">Pan right</option>
+      </select>
+    </div>
+    <div class="row">
+      <button id="vgo" onclick="generateVideo()">🎬 Generate Video</button>
+    </div>
+    <div class="samples">
+      <button onclick="setVPrompt('a majestic lion walking slowly, cinematic')">🦁 Lion</button>
+      <button onclick="setVPrompt('ocean waves at sunset, peaceful')">🌊 Ocean</button>
+      <button onclick="setVPrompt('a cute goat in a green meadow, funny')">🐐 Goat</button>
+    </div>
+    <div class="note">Free mode: AI still + cinematic motion (3–8s). True AI video needs paid APIs.</div>
+  </div>
+  </div>
+
+  <div id="status"></div>
+  <div class="spinner" id="spin"><div></div></div>
+  <div id="result">
+    <img id="img" alt="Generated image" style="display:none">
+    <video id="vid" controls playsinline style="display:none"></video>
+    <br><a id="dl" href="#" download="ayaz-ai-studio">⬇ Download</a>
+  </div>
+
+  <footer>
+    🎨 Ayaz AI Studio • Free AI models se powered<br>
+    <span style="opacity:.7">Video: AI tasveer + cinematic motion (asli AI video jald aa rahi hai)</span>
+  </footer>
+</div>
+
+<script>
+/* ---------- user + credits ---------- */
+function getUser(){ return (localStorage.getItem('aas_user') || '').trim(); }
+function saveUser(){
+  const v = document.getElementById('username').value.trim().slice(0,30);
+  if(!v){ document.getElementById('status').textContent = 'Pehle apna naam likhein!'; return; }
+  localStorage.setItem('aas_user', v);
+  document.getElementById('status').textContent = '✅ Khush aamdeed, ' + v + '!';
+  refreshCredits();
+}
+async function refreshCredits(){
+  const u = getUser();
+  if(!u){ document.getElementById('cImg').textContent = '–'; document.getElementById('cVid').textContent = '–'; return; }
+  try{
+    const r = await fetch('/api/me?username=' + encodeURIComponent(u));
+    const d = await r.json();
+    document.getElementById('cImg').textContent = d.remaining.images + '/' + d.limits.images;
+    document.getElementById('cVid').textContent = d.remaining.videos + '/' + d.limits.videos;
+  }catch(e){ /* silent */ }
+}
+function needUser(){
+  if(!getUser()){
+    document.getElementById('status').textContent = '⚠️ Pehle upar apna naam likh kar Save dabayein!';
+    document.getElementById('username').focus();
+    return true;
+  }
+  return false;
+}
+window.addEventListener('DOMContentLoaded', () => {
+  const u = getUser();
+  if(u){ document.getElementById('username').value = u; refreshCredits(); }
+});
+function updateCreditsFromHeaders(r){
+  const i = r.headers.get('X-Images-Left'), v = r.headers.get('X-Videos-Left');
+  if(i !== null) document.getElementById('cImg').textContent = i + '/6';
+  if(v !== null) document.getElementById('cVid').textContent = v + '/3';
+}
+/* ---------- tabs / results ---------- */
+function switchTab(which){
+  const isImg = which === 'img';
+  document.getElementById('tabImg').classList.toggle('active', isImg);
+  document.getElementById('tabVid').classList.toggle('active', !isImg);
+  document.getElementById('panelImg').classList.toggle('active', isImg);
+  document.getElementById('panelVid').classList.toggle('active', !isImg);
+  document.getElementById('result').style.display = 'none';
+  document.getElementById('status').textContent = '';
+}
+function setPrompt(t){ document.getElementById('prompt').value = t; }
+function setVPrompt(t){ document.getElementById('vprompt').value = t; }
+function showResult(kind, objUrl, filename){
+  const img = document.getElementById('img');
+  const vid = document.getElementById('vid');
+  if(kind === 'video'){
+    img.style.display = 'none';
+    vid.style.display = 'block';
+    vid.src = objUrl;
+    document.getElementById('dl').download = filename + '.mp4';
+  } else {
+    vid.style.display = 'none'; vid.pause(); vid.removeAttribute('src'); vid.load();
+    img.style.display = 'block';
+    img.src = objUrl;
+    document.getElementById('dl').download = filename + '.png';
+  }
+  document.getElementById('dl').href = objUrl;
+  document.getElementById('dl').textContent = kind === 'video' ? '⬇ Download video' : '⬇ Download image';
+  document.getElementById('result').style.display = 'block';
+}
+async function generate(){
+  const prompt = document.getElementById('prompt').value.trim();
+  if(!prompt){ document.getElementById('status').textContent = 'Pehle kuch likhein!'; return; }
+  if(needUser()) return;
+  const [w,h] = document.getElementById('size').value.split('x');
+  const btn = document.getElementById('go');
+  btn.disabled = true;
+  document.getElementById('spin').classList.add('show');
+  document.getElementById('result').style.display = 'none';
+  document.getElementById('status').textContent = 'AI tasveer bana raha hai... (10-30 second lag sakte hain)';
+  try{
+    const url = `/api/generate-image?prompt=${encodeURIComponent(prompt)}&width=${w}&height=${h}&seed=${Math.floor(Math.random()*999999)}&username=${encodeURIComponent(getUser())}`;
+    const r = await fetch(url);
+    if(!r.ok){ const e = await r.json().catch(()=>({})); throw new Error(e.error || ('HTTP '+r.status)); }
+    const blob = await r.blob();
+    updateCreditsFromHeaders(r);
+    showResult('image', URL.createObjectURL(blob), 'ayaz-ai-studio');
+    document.getElementById('status').textContent = '✅ Ho gaya!';
+  }catch(e){
+    document.getElementById('status').textContent = '❌ ' + e.message;
+    refreshCredits();
+  }
+  btn.disabled = false;
+  document.getElementById('spin').classList.remove('show');
+}
+async function generateVideo(){
+  const prompt = document.getElementById('vprompt').value.trim();
+  if(!prompt){ document.getElementById('status').textContent = 'Pehle kuch likhein!'; return; }
+  if(needUser()) return;
+  const duration = document.getElementById('vdur').value;
+  const motion = document.getElementById('vmotion').value;
+  const btn = document.getElementById('vgo');
+  btn.disabled = true;
+  document.getElementById('spin').classList.add('show');
+  document.getElementById('result').style.display = 'none';
+  document.getElementById('status').textContent = 'AI video ban rahi hai... (30-90 second lag sakte hain, sabar karein)';
+  try{
+    const url = `/api/generate-video?prompt=${encodeURIComponent(prompt)}&duration=${duration}&motion=${motion}&seed=${Math.floor(Math.random()*999999)}&username=${encodeURIComponent(getUser())}`;
+    const r = await fetch(url);
+    if(!r.ok){ const e = await r.json().catch(()=>({})); throw new Error(e.error || ('HTTP '+r.status)); }
+    const blob = await r.blob();
+    if(!blob.type.startsWith('video')) throw new Error('server ne video nahi bheji');
+    updateCreditsFromHeaders(r);
+    showResult('video', URL.createObjectURL(blob), 'ayaz-ai-studio');
+    const src = r.headers.get('X-Video-Source');
+    document.getElementById('status').textContent = src === 'huggingface' ? '✅ Ho gaya! (AI video)' : '✅ Ho gaya! (cinematic motion)';
+  }catch(e){
+    document.getElementById('status').textContent = '❌ ' + e.message;
+    refreshCredits();
+  }
+  btn.disabled = false;
+  document.getElementById('spin').classList.remove('show');
+}
+</script>
+</body>
+</html>
