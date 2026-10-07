@@ -766,7 +766,7 @@
     <div class="ls-btns">
       <button class="ls-btn" onclick="loginGoogle()"><span class="ls-ic">G</span>Continue with Google</button>
       <button class="ls-btn" onclick="openAuth('login')"><span class="ls-ic">@</span>Continue with Email</button>
-      <button class="ls-btn" onclick="loginX()"><span class="ls-ic">𝕏</span>Continue with X</button>
+      <!-- X login hidden: no X account configured yet. Re-enable when OAuth app is created. -->
     </div>
   </div>
   <div class="ls-legal">By continuing you agree to <a onclick="openInfo('mTerms')">Terms</a> and <a onclick="openInfo('mPrivacy')">Privacy Policy</a></div>
@@ -2004,8 +2004,44 @@ function renderAuthState(){
   loadDrawerHistory();
 }
 /* ---------- Grok-style login screen ---------- */
-function loginGoogle(){ showToast('🔜 Google sign-in is coming soon!'); }
-function loginX(){ showToast('🔜 X sign-in is coming soon!'); }
+function loginGoogle(){
+  const ref = getPendingReferral();
+  window.location.href = '/auth/google' + (ref ? '?ref=' + encodeURIComponent(ref) : '');
+}
+function loginX(){ /* hidden: X OAuth not configured (no X developer app). Re-enable when ready. */ showToast('🔜 X sign-in is coming soon!'); }
+/* ---------- Google OAuth result (?token= / ?oauth_error=) ---------- */
+function captureOAuthResult(){
+  try{
+    const q = new URLSearchParams(location.search);
+    const token = q.get('token');
+    const err = q.get('oauth_error');
+    const welcome = q.get('welcome');
+    if(!token && !err) return;
+    // Clean the URL so the token / error never lingers in history
+    history.replaceState(null, '', location.pathname);
+    if(err){
+      setTimeout(function(){ showToast('❌ ' + err); }, 400);
+      return;
+    }
+    // token present: validate it via /api/me, then sign in locally
+    (async function(){
+      try{
+        const r = await fetch('/api/me', { headers: { 'Authorization': 'Bearer ' + token } });
+        const d = await r.json().catch(function(){ return {}; });
+        if(!r.ok) throw new Error(d.error || 'Sign-in failed');
+        localStorage.setItem('aas_token', token);
+        localStorage.setItem('aas_email', d.email || '');
+        clearPendingReferral();
+        renderAuthState();
+        refreshCredits();
+        loadChatHistory();
+        showToast(welcome ? '🎉 Welcome to Ayaz AI Studio!' : '✅ Signed in with Google!');
+      }catch(e){
+        showToast('❌ Google sign-in failed: ' + e.message);
+      }
+    })();
+  }catch(e){}
+}
 let lsTyped = false;
 function typeTagline(){
   if(lsTyped) return; lsTyped = true;
@@ -3250,6 +3286,7 @@ function togglePw(inputId, btn){
 /* ---------- init ---------- */
 window.addEventListener('DOMContentLoaded', () => {
   captureReferral();
+  captureOAuthResult();
   initTheme();
   renderAuthState();
   typeTagline();
