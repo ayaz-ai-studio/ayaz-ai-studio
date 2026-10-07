@@ -1565,7 +1565,7 @@ function pollNovAI(taskId, attempts, resolve) {
   if (attempts > 40) return resolve(null);
   https.get({
     hostname: 'aiapi-pro.com',
-    path: `/v1/video/generations/${taskId}`,
+    path: `/v1/video/generations/${taskId}?model=cogvideox-flash`,
     headers: { 'Authorization': `Bearer ${NOVAI_API_KEY}` },
     timeout: 15000,
   }, (res) => {
