@@ -614,6 +614,144 @@
     background: var(--card2); border: 1px solid var(--border); color: var(--text);
   }
   .pwtoggle:active { background: var(--border); }
+  /* ---------- Build tab ---------- */
+  #buildView { align-items: center; }
+  #buildInner { max-width: 560px; width: 100%; margin: 0 auto; padding: 14px 14px 12px;
+    display: flex; flex-direction: column; flex: 1; min-height: 0; }
+  .buildhero { text-align: center; padding: 34px 10px 8px; }
+  .buildhero .bic {
+    width: 76px; height: 76px; margin: 0 auto 14px; border-radius: 50%;
+    background: var(--card2); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center; font-size: 34px;
+  }
+  .buildhero h2 { font-size: 21px; font-weight: 700; }
+  .buildhero p { color: var(--faint); font-size: 13.5px; margin-top: 6px; }
+  .sectrow { display: flex; align-items: center; justify-content: space-between; margin: 16px 0 10px; }
+  .sectrow .secttl { margin: 0; }
+  #imSettingsBtn {
+    background: var(--card2); border: 1px solid var(--border); color: var(--text);
+    width: 38px; height: 38px; border-radius: 12px; font-size: 18px; cursor: pointer; flex-shrink: 0;
+  }
+  #imSettingsBtn:active { background: var(--border); }
+  .tmplrow { display: flex; gap: 10px; overflow-x: auto; padding: 4px 2px 10px; scrollbar-width: none; }
+  .tmplrow::-webkit-scrollbar { display: none; }
+  .tmplcard {
+    flex-shrink: 0; display: flex; align-items: center; gap: 10px; text-align: left;
+    background: var(--card); border: 1px solid var(--border); border-radius: 18px;
+    padding: 13px 18px 13px 14px; cursor: pointer; font-family: inherit; color: var(--text);
+    min-width: 190px;
+  }
+  .tmplcard:active { background: var(--card2); transform: scale(.98); }
+  .tmplcard .tic { font-size: 24px; }
+  .tmplcard b { display: block; font-size: 14px; font-weight: 700; }
+  .tmplcard i { display: block; font-size: 11.5px; color: var(--faint); font-style: normal; margin-top: 2px; }
+  #buildBarWrap { margin-top: auto; padding: 10px 0 4px; }
+  #buildBar {
+    max-width: 760px; margin: 0 auto; background: var(--card);
+    border: 1px solid var(--border); border-radius: 24px; padding: 8px;
+  }
+  #buildBar .cbrow1 { display: flex; gap: 6px; align-items: center; }
+  #buildInput {
+    flex: 1; background: none; border: none; color: var(--text);
+    font-size: 16px; padding: 12px 10px; font-family: inherit; outline: none; min-width: 0;
+  }
+  #buildInput::placeholder { color: var(--faint); }
+  /* ---------- featured templates (Imagine) ---------- */
+  .featgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 6px; }
+  .featcard {
+    position: relative; border: none; border-radius: 16px; min-height: 128px; cursor: pointer;
+    overflow: hidden; text-align: left; font-family: inherit; color: #fff; padding: 0;
+  }
+  .featcard:active { transform: scale(.98); }
+  .featcard .flabel {
+    position: absolute; left: 0; right: 0; bottom: 0; padding: 22px 12px 10px;
+    background: linear-gradient(transparent, rgba(0,0,0,.72));
+  }
+  .featcard .flabel b { display: block; font-size: 14.5px; font-weight: 700; }
+  .featcard .flabel i { display: block; font-size: 11.5px; font-style: normal; opacity: .85; margin-top: 1px; }
+  .featcard .fic { position: absolute; top: 10px; left: 12px; font-size: 22px;
+    text-shadow: 0 2px 8px rgba(0,0,0,.5); }
+  /* ---------- refresh button spin ---------- */
+  #refreshBtn.spinning { animation: rspin .9s linear infinite; }
+  @keyframes rspin { to { transform: rotate(360deg); } }
+  #buildMic.listening { color: #ef4444; animation: blink 1s infinite; }
+  /* ---------- bottom sheet (Imagine Settings / Build code preview) ---------- */
+  .sheetmodal { display: none; position: fixed; inset: 0; z-index: 120;
+    background: rgba(0,0,0,.6); align-items: flex-end; justify-content: center; }
+  .sheetmodal.show { display: flex; }
+  .sheetcard {
+    background: var(--card); border: 1px solid var(--border); border-bottom: none;
+    border-radius: 22px 22px 0 0; width: 100%; max-width: 560px; max-height: 88vh;
+    overflow-y: auto; padding: 10px 20px 30px; animation: sheetup .28s ease;
+  }
+  @keyframes sheetup { from { transform: translateY(60px); opacity: .4; } to { transform: none; opacity: 1; } }
+  .sheetgrab { width: 44px; height: 5px; border-radius: 3px; background: var(--border); margin: 6px auto 12px; }
+  .sheetcard h2 { font-size: 19px; text-align: center; margin-bottom: 2px; }
+  .sheetsub { text-align: center; color: var(--faint); font-size: 12.5px; margin-bottom: 14px; }
+  .setsect { font-size: 12px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase;
+    color: var(--faint); margin: 18px 0 8px; }
+  .setrow {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    background: var(--card2); border: 1px solid var(--border); border-radius: 14px;
+    padding: 12px 14px; margin-bottom: 8px;
+  }
+  .setrow .sl { font-size: 14.5px; font-weight: 600; }
+  .setrow .sl small { display: block; font-weight: 400; color: var(--faint); font-size: 12px; margin-top: 2px; }
+  .setrow select {
+    background: var(--bg); color: var(--text); border: 1px solid var(--border);
+    border-radius: 10px; padding: 9px 10px; font-size: 14px; font-family: inherit; max-width: 130px;
+  }
+  .switch { position: relative; width: 50px; height: 29px; flex-shrink: 0; cursor: pointer; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .switch .tk {
+    position: absolute; inset: 0; border-radius: 999px; background: var(--border); transition: .2s;
+  }
+  .switch .tk::before {
+    content: ''; position: absolute; width: 23px; height: 23px; left: 3px; top: 3px;
+    background: #fff; border-radius: 50%; transition: .2s;
+  }
+  .switch input:checked + .tk { background: #2563eb; }
+  .switch input:checked + .tk::before { transform: translateX(21px); }
+  .segctl { display: flex; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 12px; padding: 3px; gap: 2px; }
+  .segctl button {
+    border: none; background: none; color: var(--faint); font-size: 13.5px; font-weight: 700;
+    padding: 8px 16px; border-radius: 9px; cursor: pointer; font-family: inherit;
+  }
+  .segctl button.on { background: #2563eb; color: #fff; }
+  input[type="range"].durslider { -webkit-appearance: none; appearance: none; width: 130px; height: 6px;
+    border-radius: 3px; background: var(--border); outline: none; }
+  input[type="range"].durslider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none;
+    width: 22px; height: 22px; border-radius: 50%; background: #2563eb; cursor: pointer; }
+  input[type="range"].durslider::-moz-range-thumb { width: 22px; height: 22px; border: none;
+    border-radius: 50%; background: #2563eb; cursor: pointer; }
+  .durval { font-size: 14px; font-weight: 700; min-width: 38px; text-align: right; }
+  .sheetclose {
+    width: 100%; margin-top: 18px; padding: 14px; border-radius: 14px; border: none;
+    background: #2563eb; color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit;
+  }
+  /* ---------- build code preview ---------- */
+  #codeFrame { width: 100%; height: 300px; border: 1px solid var(--border);
+    border-radius: 14px; background: #fff; margin: 12px 0; }
+  #codeView { width: 100%; min-height: 160px; max-height: 260px; overflow: auto;
+    background: #0d1117; color: #c9d1d9; border-radius: 14px; padding: 14px;
+    font-family: ui-monospace, monospace; font-size: 12px; white-space: pre-wrap; word-break: break-all; }
+  .coderow { display: flex; gap: 8px; margin-top: 10px; }
+  .coderow button {
+    flex: 1; padding: 13px; border-radius: 12px; border: none; font-size: 15px;
+    font-weight: 700; cursor: pointer; font-family: inherit;
+  }
+  #copyCodeBtn { background: #2563eb; color: #fff; }
+  #dlCodeBtn { background: var(--card2); color: var(--text); border: 1px solid var(--border); }
+  .buildnote { text-align: center; color: var(--faint); font-size: 12.5px; margin-top: 12px; }
+  /* ---------- watermark overlay ---------- */
+  #result { position: relative; }
+  #wmOverlay {
+    display: none; position: absolute; bottom: 14px; right: 14px;
+    background: rgba(0,0,0,.55); color: #fff; font-size: 12px; font-weight: 700;
+    padding: 5px 11px; border-radius: 8px; pointer-events: none;
+  }
+  #wmOverlay.show { display: block; }
 </style>
 </head>
 <body>
@@ -641,8 +779,10 @@
   <nav id="mainTabs">
     <button id="tabAsk" class="active" onclick="switchMainTab('ask')">Ask</button>
     <button id="tabImagine" onclick="switchMainTab('imagine')">Imagine</button>
+    <button id="tabBuild" onclick="switchMainTab('build')">Build</button>
   </nav>
   <div class="topactions">
+    <button id="refreshBtn" onclick="refreshAll()" title="Refresh" aria-label="Refresh">🔄</button>
     <button id="newChatBtn" onclick="clearChat()" title="New chat" aria-label="New chat">✎</button>
     <button id="themeBtn" onclick="toggleTheme()" title="Toggle theme" aria-label="Toggle theme">☀️</button>
   </div>
@@ -733,6 +873,12 @@
   <div id="imagineInner">
     <div id="imagineGate"></div>
     <div id="imagineMain" style="display:none">
+      <div class="sectrow">
+        <div class="secttl">🌟 Featured Templates</div>
+        <button id="imSettingsBtn" onclick="openImagineSettings()" title="Imagine Settings" aria-label="Imagine Settings">⚙️</button>
+      </div>
+      <div class="featgrid" id="featGrid"></div>
+
       <div class="secttl">✨ Trending styles</div>
       <div id="stylesRow"></div>
 
@@ -796,6 +942,7 @@
       <div id="result">
         <img id="img" alt="Generated image" style="display:none">
         <video id="vid" controls playsinline style="display:none"></video>
+        <div id="wmOverlay">Ayaz AI Studio</div>
         <br><a id="dl" class="dl" href="#" download="ayaz-ai-studio">⬇ Download</a>
         <div class="sharerow" id="shareRow" style="display:none">
           <button type="button" class="sharebtn" onclick="shareTo('twitter')">𝕏 Post</button>
@@ -835,6 +982,30 @@
   </footer>
 </main>
 
+<!-- ══════════ BUILD VIEW ══════════ -->
+<main id="buildView" class="mainview">
+  <div id="buildInner">
+    <div class="buildhero" id="buildHero">
+      <div class="bic">🔨</div>
+      <h2>Build apps and sites</h2>
+      <p>Describe what you want — AI writes the code, you preview & copy it.</p>
+    </div>
+    <div class="secttl">Create from Template</div>
+    <div class="tmplrow" id="tmplRow"></div>
+    <div id="buildBarWrap">
+      <div class="buildnote">💡 Tip: ask for "a todo app", "a landing page for a bakery", "a poll app"...</div>
+      <div id="buildBar" style="margin-top:8px">
+        <div class="cbrow1">
+          <button class="cbtn" onclick="showToast('📎 Templates cover common app types for now!')" title="Templates" aria-label="Templates">+</button>
+          <input id="buildInput" placeholder="Type to Build..." autocomplete="off" maxlength="2000">
+          <button class="cbtn" id="buildMic" onclick="startVoice('buildInput','buildMic')" title="Voice input" aria-label="Voice input">🎤</button>
+          <button class="cbtn" id="buildSend" onclick="sendBuild()" title="Build" aria-label="Build">➤</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
 <!-- ══════════ AYAZ BOT floating widget ══════════ -->
 <button id="botFab" onclick="toggleBotPanel()" title="Chat with Ayaz Bot" aria-label="Chat with Ayaz Bot">🤖</button>
 <div id="botPanel" role="dialog" aria-label="Ayaz Bot chat">
@@ -848,6 +1019,91 @@
   <div class="botinput">
     <input id="botInput" placeholder="Ask Ayaz Bot..." autocomplete="off" maxlength="2000">
     <button id="botSend" onclick="sendBotChat()" title="Send" aria-label="Send">➤</button>
+  </div>
+</div>
+
+<!-- ══════════ IMAGINE SETTINGS bottom sheet ══════════ -->
+<div id="mImagineSettings" class="sheetmodal" onclick="if(event.target===this)closeImagineSettings()">
+  <div class="sheetcard">
+    <div class="sheetgrab"></div>
+    <h2>Imagine Settings</h2>
+    <div class="sheetsub">Fine-tune how images & videos are generated</div>
+
+    <div class="setsect">Video</div>
+    <div class="setrow">
+      <div class="sl">Aspect ratio<small>Video frame shape</small></div>
+      <select id="setVidRatio">
+        <option value="1:1">1:1 Square</option>
+        <option value="2:3">2:3 Portrait</option>
+        <option value="3:2">3:2 Landscape</option>
+        <option value="16:9" selected>16:9 Wide</option>
+      </select>
+    </div>
+    <div class="setrow">
+      <div class="sl">Duration<small>Video length</small></div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <input type="range" class="durslider" id="setVidDur" min="3" max="10" step="1" value="5" oninput="document.getElementById('durVal').textContent=this.value+'s'">
+        <span class="durval" id="durVal">5s</span>
+      </div>
+    </div>
+    <div class="setrow">
+      <div class="sl">Resolution<small>Output quality</small></div>
+      <select id="setVidRes">
+        <option value="480p">480p</option>
+        <option value="720p" selected>720p</option>
+      </select>
+    </div>
+    <div class="setrow">
+      <div class="sl">Video with Audio<small>Add ambient sound</small></div>
+      <label class="switch"><input type="checkbox" id="setVidAudio"><span class="tk"></span></label>
+    </div>
+
+    <div class="setsect">Image</div>
+    <div class="setrow">
+      <div class="sl">Aspect ratio<small>Image frame shape</small></div>
+      <select id="setImgRatio">
+        <option value="1:1" selected>1:1 Square</option>
+        <option value="2:3">2:3 Portrait</option>
+        <option value="3:2">3:2 Landscape</option>
+        <option value="16:9">16:9 Wide</option>
+      </select>
+    </div>
+    <div class="setrow">
+      <div class="sl">Image Gen Mode<small>Speed vs quality</small></div>
+      <div class="segctl" id="setImgMode">
+        <button data-m="speed" class="on" onclick="setImgGenMode('speed')">Speed</button>
+        <button data-m="quality" onclick="setImgGenMode('quality')">Quality</button>
+      </div>
+    </div>
+
+    <div class="setsect">General</div>
+    <div class="setrow">
+      <div class="sl">Add Watermark<small>Brand your creations</small></div>
+      <label class="switch"><input type="checkbox" id="setWatermark"><span class="tk"></span></label>
+    </div>
+    <div class="setrow">
+      <div class="sl">Autoplay videos<small>Play videos automatically</small></div>
+      <label class="switch"><input type="checkbox" id="setAutoplay" checked><span class="tk"></span></label>
+    </div>
+
+    <button class="sheetclose" onclick="saveImagineSettings()">Done</button>
+  </div>
+</div>
+
+<!-- ══════════ BUILD CODE PREVIEW bottom sheet ══════════ -->
+<div id="mBuildCode" class="sheetmodal" onclick="if(event.target===this)closeBuildCode()">
+  <div class="sheetcard">
+    <div class="sheetgrab"></div>
+    <h2>🔨 Your App</h2>
+    <div class="sheetsub" id="buildCodeSub">AI-generated code — preview & copy</div>
+    <iframe id="codeFrame" title="App preview" sandbox="allow-scripts"></iframe>
+    <div class="secttl" style="margin-top:4px">Source code</div>
+    <div id="codeView"></div>
+    <div class="coderow">
+      <button id="copyCodeBtn" onclick="copyBuildCode()">📋 Copy Code</button>
+      <button id="dlCodeBtn" onclick="downloadBuildCode()">⬇ Download .html</button>
+    </div>
+    <button class="sheetclose" onclick="closeBuildCode()">Close</button>
   </div>
 </div>
 
@@ -1203,15 +1459,16 @@ function showToast(msg){
   t._h = setTimeout(() => t.classList.remove('show'), 4000);
 }
 
-/* ---------- main tabs : Ask / Imagine ---------- */
+/* ---------- main tabs : Ask / Imagine / Build ---------- */
 function switchMainTab(which){
-  const isAsk = which === 'ask';
-  document.getElementById('tabAsk').classList.toggle('active', isAsk);
-  document.getElementById('tabImagine').classList.toggle('active', !isAsk);
-  document.getElementById('askView').classList.toggle('active', isAsk);
-  document.getElementById('imagineView').classList.toggle('active', !isAsk);
-  document.getElementById('studyBar').classList.toggle('show', isAsk && !!getToken());
-  if(isAsk){ scrollChatToBottom(); }
+  ['ask','imagine','build'].forEach(function(t){
+    const on = (t === which);
+    document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle('active', on);
+    document.getElementById(t + 'View').classList.toggle('active', on);
+  });
+  document.getElementById('studyBar').classList.toggle('show', which === 'ask' && !!getToken());
+  if(which === 'ask'){ scrollChatToBottom(); }
+  if(which === 'build'){ renderBuildTemplates(); }
 }
 
 /* ---------- trending styles ---------- */
@@ -1256,6 +1513,258 @@ function styledPrompt(base){
   base = (base || '').trim();
   if(activeStyle) base += activeStyle.prompt;
   return base;
+}
+
+function styledPrompt(base){
+  base = (base || '').trim();
+  if(activeStyle) base += activeStyle.prompt;
+  return base;
+}
+
+/* ---------- featured templates (Imagine) ---------- */
+const FEATURED_TEMPLATES = [
+  { id: 'photoedit', icon: '📷', name: 'Photo Edit', sub: 'Transform your photos',
+    bg: 'linear-gradient(135deg,#0ea5e9 0%,#1e3a8a 100%)' },
+  { id: 'reimagine', icon: '🎨', name: 'Reimagine', sub: 'Anime / cartoon styles',
+    bg: 'linear-gradient(135deg,#f472b6 0%,#7c3aed 100%)' },
+  { id: 'resize', icon: '📐', name: 'Smart Resize', sub: 'Perfect sizes',
+    bg: 'linear-gradient(135deg,#22d3ee 0%,#0e7490 100%)' },
+  { id: 'bgchange', icon: '🖼️', name: 'BG Removal & Change', sub: 'New backgrounds',
+    bg: 'linear-gradient(135deg,#fbbf24 0%,#b45309 100%)' },
+];
+function renderFeatTemplates(){
+  const g = document.getElementById('featGrid');
+  if(!g) return;
+  g.innerHTML = FEATURED_TEMPLATES.map(function(t){
+    return '<button class="featcard" style="background:' + t.bg + '" onclick="featGo(\'' + t.id + '\')">' +
+      '<span class="fic">' + t.icon + '</span>' +
+      '<span class="flabel"><b>' + escapeHtml(t.name) + '</b><i>' + escapeHtml(t.sub) + '</i></span></button>';
+  }).join('');
+}
+function featGo(id){
+  if(id === 'photoedit'){
+    if(needAuth()) return;
+    document.getElementById('refFile').click();
+    showToast('📷 Pick a photo, then describe how to transform it.');
+    return;
+  }
+  if(id === 'reimagine'){
+    const row = document.getElementById('stylesRow');
+    if(row){ row.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+    showToast('🎨 Pick a style below — it will be added to your prompt.');
+    return;
+  }
+  if(id === 'resize'){
+    const sel = document.getElementById('size');
+    const order = ['512x512', '768x768', '512x768', '768x512', '768x432'];
+    let i = order.indexOf(sel.value);
+    i = (i + 1) % order.length;
+    if(!sel.querySelector('option[value="768x432"]')){
+      const o = document.createElement('option');
+      o.value = '768x432'; o.textContent = 'Wide 16:9';
+      sel.appendChild(o);
+    }
+    sel.value = order[i];
+    showToast('📐 Size: ' + sel.options[sel.selectedIndex].text);
+    document.getElementById('prompt').focus();
+    return;
+  }
+  if(id === 'bgchange'){
+    if(needAuth()) return;
+    document.getElementById('prompt').value = 'change the background to a beautiful sunset beach, keep the subject the same, photorealistic';
+    showToast('🖼️ Describe the new background, then hit Generate.');
+    document.getElementById('prompt').focus();
+    return;
+  }
+}
+
+/* ---------- Build tab ---------- */
+const BUILD_TEMPLATES = [
+  { id: 'vector', icon: '➕', name: 'Vector field', sub: 'Animated canvas art',
+    prompt: 'a vector field flow visualization: animated particles flowing along a colorful vector field on a full-screen HTML canvas, with controls for particle count and speed' },
+  { id: 'poll', icon: '📊', name: 'Poll app', sub: 'Vote & see results',
+    prompt: 'a poll app: users can vote on options, see live animated result bars with percentages, and add their own poll options, all in one page' },
+  { id: 'landing', icon: '✨', name: 'AI Landing page', sub: 'Modern hero design',
+    prompt: 'a modern landing page for an AI startup: hero section with gradient headline, features grid, testimonials, pricing cards, and a footer, responsive and beautiful' },
+  { id: 'store', icon: '🛒', name: 'Mini store', sub: 'Products & cart',
+    prompt: 'a mini online store: product cards with images, prices, a working cart with add/remove and total, and a checkout summary, all in one page' },
+];
+function renderBuildTemplates(){
+  const row = document.getElementById('tmplRow');
+  if(!row || row.children.length) return;
+  row.innerHTML = BUILD_TEMPLATES.map(function(t){
+    return '<button class="tmplcard" onclick="buildFromTemplate(\'' + t.id + '\')">' +
+      '<span class="tic">' + t.icon + '</span><span><b>' + escapeHtml(t.name) + '</b><i>' + escapeHtml(t.sub) + '</i></span></button>';
+  }).join('');
+}
+function buildFromTemplate(id){
+  const t = BUILD_TEMPLATES.find(function(x){ return x.id === id; });
+  if(!t) return;
+  document.getElementById('buildInput').value = t.prompt;
+  document.getElementById('buildHero').style.display = 'none';
+  showToast('🔨 Template loaded — hit ➤ to build!');
+  document.getElementById('buildInput').focus();
+}
+let buildSending = false, lastBuildCode = '';
+function extractHtmlCode(reply){
+  const m = reply.match(/```html\s*([\s\S]*?)```/i) || reply.match(/```\s*([\s\S]*?)```/);
+  if(m) return m[1].trim();
+  if(/<html[\s>]/i.test(reply)) return reply.trim();
+  return '';
+}
+async function sendBuild(){
+  if(buildSending) return;
+  if(needAuth()) return;
+  const inp = document.getElementById('buildInput');
+  const idea = inp.value.trim();
+  if(!idea){ showToast('💡 Describe the app or site you want to build!'); return; }
+  buildSending = true;
+  document.getElementById('buildHero').style.display = 'none';
+  showToast('🔨 Building your app... (10-30 seconds)');
+  try{
+    const r = await fetch('/api/chat', {
+      method: 'POST',
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({
+        message: 'Generate a COMPLETE single-file HTML app for this idea: "' + idea + '". ' +
+          'Rules: output ONLY the full HTML code inside one ```html code block. No explanations before or after. ' +
+          'Include inline CSS and JavaScript. Make it beautiful, modern, responsive, and fully working.',
+        mode: 'smart',
+      }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if(r.status === 401){ logout(); throw new Error('Session expired — please sign in again.'); }
+    if(!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+    const code = extractHtmlCode(d.reply || '');
+    if(!code) throw new Error('AI did not return code — try rephrasing your idea.');
+    lastBuildCode = code;
+    document.getElementById('buildCodeSub').textContent = 'Built: ' + idea.slice(0, 60);
+    document.getElementById('codeFrame').srcdoc = code;
+    document.getElementById('codeView').textContent = code;
+    document.getElementById('mBuildCode').classList.add('show');
+    refreshCredits();
+  }catch(e){
+    showToast('❌ ' + e.message);
+  }
+  buildSending = false;
+}
+function closeBuildCode(){ document.getElementById('mBuildCode').classList.remove('show'); }
+function copyBuildCode(){
+  if(!lastBuildCode) return;
+  navigator.clipboard.writeText(lastBuildCode).then(
+    function(){ showToast('📋 Code copied!'); },
+    function(){ showToast('❌ Copy failed — select the code manually.'); }
+  );
+}
+function downloadBuildCode(){
+  if(!lastBuildCode) return;
+  const blob = new Blob([lastBuildCode], { type: 'text/html' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'ayaz-build.html';
+  a.click();
+  showToast('⬇ Downloaded ayaz-build.html');
+}
+
+/* ---------- refresh button ---------- */
+function refreshAll(){
+  const b = document.getElementById('refreshBtn');
+  if(b) b.classList.add('spinning');
+  try{
+    refreshCredits();
+    loadChatHistory();
+    renderStyles();
+    renderOffers();
+    renderFeatTemplates();
+    if(document.getElementById('buildView').classList.contains('active')) renderBuildTemplates();
+  }catch(e){ /* silent */ }
+  setTimeout(function(){ if(b) b.classList.remove('spinning'); }, 900);
+  showToast('🔄 Refreshed!');
+}
+
+/* ---------- Imagine Settings (bottom sheet) ---------- */
+const IMG_SET_KEY = 'aas_imagine_settings';
+function defaultImgSettings(){
+  return { vidRatio: '16:9', vidDur: 5, vidRes: '720p', vidAudio: false,
+           imgRatio: '1:1', imgMode: 'speed', watermark: false, autoplay: true };
+}
+function loadImgSettings(){
+  let s = defaultImgSettings();
+  try{
+    const raw = localStorage.getItem(IMG_SET_KEY);
+    if(raw) s = Object.assign(s, JSON.parse(raw));
+  }catch(e){ /* ignore */ }
+  return s;
+}
+function saveImagineSettings(){
+  const s = {
+    vidRatio: document.getElementById('setVidRatio').value,
+    vidDur: parseInt(document.getElementById('setVidDur').value, 10) || 5,
+    vidRes: document.getElementById('setVidRes').value,
+    vidAudio: document.getElementById('setVidAudio').checked,
+    imgRatio: document.getElementById('setImgRatio').value,
+    imgMode: (document.querySelector('#setImgMode button.on') || {}).dataset
+      ? document.querySelector('#setImgMode button.on').dataset.m : 'speed',
+    watermark: document.getElementById('setWatermark').checked,
+    autoplay: document.getElementById('setAutoplay').checked,
+  };
+  localStorage.setItem(IMG_SET_KEY, JSON.stringify(s));
+  applyImagineSettings(s);
+  closeImagineSettings();
+  showToast('⚙️ Imagine settings saved!');
+}
+function setImgGenMode(m){
+  document.querySelectorAll('#setImgMode button').forEach(function(b){
+    b.classList.toggle('on', b.dataset.m === m);
+  });
+}
+function openImagineSettings(){
+  const s = loadImgSettings();
+  document.getElementById('setVidRatio').value = s.vidRatio;
+  document.getElementById('setVidDur').value = s.vidDur;
+  document.getElementById('durVal').textContent = s.vidDur + 's';
+  document.getElementById('setVidRes').value = s.vidRes;
+  document.getElementById('setVidAudio').checked = s.vidAudio;
+  document.getElementById('setImgRatio').value = s.imgRatio;
+  setImgGenMode(s.imgMode);
+  document.getElementById('setWatermark').checked = s.watermark;
+  document.getElementById('setAutoplay').checked = s.autoplay;
+  document.getElementById('mImagineSettings').classList.add('show');
+}
+function closeImagineSettings(){ document.getElementById('mImagineSettings').classList.remove('show'); }
+const RATIO_TO_SIZE = { '1:1': '768x768', '2:3': '512x768', '3:2': '768x512', '16:9': '768x432' };
+const RATIO_TO_CSS = { '1:1': '1 / 1', '2:3': '2 / 3', '3:2': '3 / 2', '16:9': '16 / 9' };
+function applyImagineSettings(s){
+  s = s || loadImgSettings();
+  // image aspect ratio -> sync the size select
+  const sizeSel = document.getElementById('size');
+  const want = RATIO_TO_SIZE[s.imgRatio] || '768x768';
+  if(!sizeSel.querySelector('option[value="' + want + '"]')){
+    const o = document.createElement('option');
+    o.value = want;
+    o.textContent = 'Wide 16:9';
+    sizeSel.appendChild(o);
+  }
+  sizeSel.value = want;
+  // video duration -> sync the duration select (add options 3..10)
+  const durSel = document.getElementById('vdur');
+  for(let d = 3; d <= 10; d++){
+    if(!durSel.querySelector('option[value="' + d + '"]')){
+      const o = document.createElement('option');
+      o.value = String(d); o.textContent = d + ' sec';
+      durSel.appendChild(o);
+    }
+  }
+  durSel.value = String(Math.min(10, Math.max(3, s.vidDur)));
+  // autoplay -> result video element
+  document.getElementById('vid').autoplay = !!s.autoplay;
+  // watermark overlay visibility preference (applied on each result)
+  // video frame aspect -> applied to result video element
+  const vid = document.getElementById('vid');
+  vid.style.aspectRatio = RATIO_TO_CSS[s.vidRatio] || '16 / 9';
+}
+function imagineQualitySuffix(){
+  return loadImgSettings().imgMode === 'quality' ? ', masterpiece quality, ultra-detailed, sharp focus' : '';
 }
 
 /* ---------- reference photo upload (Imagine) ---------- */
@@ -1907,6 +2416,8 @@ document.addEventListener('keydown', function(e){
     toggleDrawer(false);
     toggleBotPanel(false);
     ['mSettings','mPrivacy','mTerms','mHelp','mContact','mAbout','mFeedback','mCreations','mPricing','mApiDocs','mRefer','mAutomations','mProjects','mVerify'].forEach(closeInfo);
+    closeImagineSettings();
+    closeBuildCode();
     document.getElementById('modeMenu').classList.remove('show');
     closeAuth();
     closeForgot();
@@ -1918,6 +2429,10 @@ document.addEventListener('keydown', function(e){
   if(e.key === 'Enter' && document.activeElement === document.getElementById('botInput') && !e.shiftKey){
     e.preventDefault();
     sendBotChat();
+  }
+  if(e.key === 'Enter' && document.activeElement === document.getElementById('buildInput') && !e.shiftKey){
+    e.preventDefault();
+    sendBuild();
   }
 });
 
@@ -2538,10 +3053,13 @@ function setVPrompt(t){ document.getElementById('vprompt').value = t; }
 function showResult(kind, objUrl, filename){
   const img = document.getElementById('img');
   const vid = document.getElementById('vid');
+  const wm = document.getElementById('wmOverlay');
+  const s = loadImgSettings();
   if(kind === 'video'){
     img.style.display = 'none';
     vid.style.display = 'block';
     vid.src = objUrl;
+    if(s.autoplay){ vid.play().catch(function(){}); }
     document.getElementById('dl').download = filename + '.mp4';
   } else {
     vid.style.display = 'none'; vid.pause(); vid.removeAttribute('src'); vid.load();
@@ -2549,6 +3067,7 @@ function showResult(kind, objUrl, filename){
     img.src = objUrl;
     document.getElementById('dl').download = filename + '.png';
   }
+  if(wm) wm.classList.toggle('show', !!(s.watermark && kind === 'image'));
   document.getElementById('dl').href = objUrl;
   document.getElementById('dl').textContent = kind === 'video' ? '⬇ Download video' : '⬇ Download image';
   document.getElementById('result').style.display = 'block';
@@ -2559,7 +3078,7 @@ async function generate(){
   const raw = document.getElementById('prompt').value.trim();
   if(!raw){ document.getElementById('status').textContent = 'Please describe your image first!'; return; }
   if(needAuth()) return;
-  let prompt = styledPrompt(raw);
+  let prompt = styledPrompt(raw) + imagineQualitySuffix();
   if(refImageId) prompt += '. Transform the attached reference photo accordingly, keeping the subject recognizable.';
   const [w,h] = document.getElementById('size').value.split('x');
   const btn = document.getElementById('go');
@@ -2593,13 +3112,14 @@ async function generateVideo(){
   if(refImageId) prompt += '. Transform the attached reference photo accordingly, keeping the subject recognizable.';
   const duration = document.getElementById('vdur').value;
   const motion = document.getElementById('vmotion').value;
+  const vset = loadImgSettings();
   const btn = document.getElementById('vgo');
   btn.disabled = true;
   document.getElementById('spin').classList.add('show');
   document.getElementById('result').style.display = 'none';
   document.getElementById('status').textContent = 'Creating your video... (30-90 seconds, please wait)';
   try{
-    const url = `/api/generate-video?prompt=${encodeURIComponent(prompt)}&duration=${duration}&motion=${motion}&seed=${Math.floor(Math.random()*999999)}`;
+    const url = `/api/generate-video?prompt=${encodeURIComponent(prompt)}&duration=${duration}&motion=${motion}&seed=${Math.floor(Math.random()*999999)}&res=${encodeURIComponent(vset.vidRes)}&audio=${vset.vidAudio ? 1 : 0}`;
     const r = await fetch(url, { headers: authHeaders() });
     if(!r.ok){ const e = await r.json().catch(()=>({})); throw new Error(e.error || ('HTTP '+r.status)); }
     const blob = await r.blob();
@@ -2734,6 +3254,8 @@ window.addEventListener('DOMContentLoaded', () => {
   renderAuthState();
   typeTagline();
   renderStyles();
+  renderFeatTemplates();
+  applyImagineSettings();
   renderOffers();
   setChatMode('fast');
   initRefUpload();
