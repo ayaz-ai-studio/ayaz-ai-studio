@@ -16,3 +16,6 @@ chat.json
 .DS_Store
 Thumbs.db
 *.log
+
+# Media generation artifacts (keep the final logo files)
+media-generation-*

@@ -1,6 +1,16 @@
-# 🎨 Ayaz AI Studio — Phase 9 (Grok-style Redesign: Ask & Imagine)
+# 🎨 Ayaz AI Studio — Phase 10 (Grok-style Login Screen + Official Logo)
 
 A REAL, PUBLIC web app for free AI chat, tutoring, image + video generation. **Not a Muse artifact** — plain Node.js + Express, deployable to free hosting in minutes.
+
+## What's new in Phase 10 — Grok-style Login Screen 🔑 + Official Logo 🅰️
+
+- ✅ **Official logo** — custom AI-generated "A" lettermark with neural-network styling (`public/logo.webp` full lockup, `public/logo-icon.webp` square icon for small placements). Shown in the top bar (32px), hamburger drawer header, footer, and the login screen (100px).
+- ✅ **Grok-style full-screen login** — when signed out, the app opens on a pure-black launch screen exactly like Grok's: big logo, large "Ayaz AI Studio" title, typewriter tagline ("Create anything_" with blinking cursor), and three rounded dark-gray buttons:
+  - **G Continue with Google** → "coming soon" toast (real Google OAuth needs Cloud Console setup)
+  - **@ Continue with Email** → opens the existing email login/register modal (with CAPTCHA)
+  - **𝕏 Continue with X** → "coming soon" toast
+  - Bottom legal line: "By continuing you agree to Terms and Privacy Policy" (both open the real in-app modals)
+- ✅ Email/password login flow unchanged and fully working behind the new screen.
 
 ## What's new in Phase 9 — Grok-style Redesign 🚀
 
