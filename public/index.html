@@ -1777,7 +1777,7 @@
 <div id="mBuildCode" class="sheetmodal" onclick="if(event.target===this)closeBuildCode()">
   <div class="sheetcard">
     <div class="sheetgrab"></div>
-    <h2>🔨 Your App</h2>
+    <h2>Your App</h2>
     <div class="sheetsub" id="buildCodeSub">AI-generated code — preview & copy</div>
     <iframe id="codeFrame" title="App preview" sandbox="allow-scripts"></iframe>
     <div class="secttl" style="margin-top:4px">Source code</div>
@@ -2971,7 +2971,7 @@ function initRefUpload(){
 }
 function clearRef(){
   refImageId = null;
-  document.getElementById('refBox').innerHTML = '<span id="refLabel">📤 Upload a photo to edit / restyle it</span>';
+  document.getElementById('refBox').innerHTML = '<span class="refLabel">📤 Upload a photo to edit / restyle it</span>';
   const pa = document.getElementById('photoAccess');
   if(pa) pa.style.display = '';
 }
