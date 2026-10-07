@@ -982,7 +982,7 @@ app.get('/api/my-creations', requireAuth, (req, res) => {
 /* ------------------------------------------------------------------ */
 
 const DAILY_IMAGE_LIMIT = 6;
-const DAILY_VIDEO_LIMIT = 3;
+const DAILY_VIDEO_LIMIT = 2;
 
 /* ------------------------------------------------------------------ */
 /* Rewarded ads (simulated for now)                                     */
@@ -998,7 +998,7 @@ const DAILY_VIDEO_LIMIT = 3;
 const AD_PROVIDER = process.env.AD_PROVIDER || 'simulated';
 const MAX_ADS_PER_DAY = 5;      // max rewarded-ad watches per user per day
 const AD_REWARD_IMAGES = 2;     // +images per completed ad watch
-const AD_REWARD_VIDEOS = 1;     // +videos per completed ad watch
+const AD_REWARD_VIDEOS = 2;     // +videos per completed ad watch
 
 /* Populated by db.init() at boot (Postgres or JSON files). */
 let usageStore = { users: {} };
