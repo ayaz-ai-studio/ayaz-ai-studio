@@ -654,6 +654,12 @@
   .authcard .switch a { color: var(--blue); cursor: pointer; }
   .authcard .flink { text-align: center; margin-top: 8px; }
   .authcard .flink a { font-size: 13px; color: var(--blue); cursor: pointer; }
+  .authcard .authtabs { display: flex; gap: 6px; margin-bottom: 16px; background: var(--bg2);
+    border-radius: 14px; padding: 4px; }
+  .authcard .authtabs button { flex: 1; border: none; background: none; color: var(--muted);
+    font-size: 15px; font-weight: 700; padding: 10px; border-radius: 10px; cursor: pointer; }
+  .authcard .authtabs button.on { background: #fff; color: #000; }
+  body.light .authcard .authtabs button.on { background: #111; color: #fff; }
   .capbrand { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--faint);
     text-align: center; margin: 12px 0 6px; }
   .caprow { display: flex; gap: 8px; align-items: center; }
@@ -2433,6 +2439,10 @@
 <div id="authModal" class="authmodal">
   <div class="authcard">
     <button class="xbtn" onclick="closeAuth()">✕</button>
+    <div class="authtabs">
+      <button id="tabLogin" class="on" onclick="setAuthTab('login')">Login</button>
+      <button id="tabSignup" onclick="setAuthTab('register')">Sign Up</button>
+    </div>
     <h2 id="authTitle">Welcome back</h2>
     <div class="sub" id="authSub">Sign in to your Ayaz AI Studio account</div>
     <div class="err" id="authErr"></div>
@@ -2448,7 +2458,7 @@
     </div>
     <input id="capAns" type="text" inputmode="numeric" placeholder="Answer the math question above" autocomplete="off" style="margin-top:10px">
     <button class="primary" id="authGo" onclick="submitAuth()">Sign In</button>
-    <div class="flink"><a onclick="openForgot()">Forgot password?</a></div>
+    <div class="flink" id="authFlink"><a onclick="openForgot()">Forgot password?</a></div>
     <div class="switch" id="authSwitch">New here? <a onclick="openAuth('register')">Create an account</a></div>
   </div>
 </div>
@@ -3018,21 +3028,29 @@ async function loadCaptcha(){
   }
 }
 function openAuth(mode){
-  authMode = mode || 'login';
   document.getElementById('authErr').textContent = '';
   document.getElementById('authEmail').value = '';
   document.getElementById('authPass').value = '';
+  setAuthTab(mode || 'login');
+  document.getElementById('authModal').classList.add('show');
+  loadCaptcha();
+}
+/* Switch between Login / Sign Up tabs inside the auth modal (keeps typed email). */
+function setAuthTab(mode){
+  authMode = mode || 'login';
   const isLogin = authMode === 'login';
+  document.getElementById('tabLogin').classList.toggle('on', isLogin);
+  document.getElementById('tabSignup').classList.toggle('on', !isLogin);
+  document.getElementById('authErr').textContent = '';
   document.getElementById('authTitle').textContent = isLogin ? 'Welcome back' : 'Create your account';
   document.getElementById('authSub').textContent = isLogin
     ? 'Sign in to your Ayaz AI Studio account'
     : 'Free forever plan — 6 images + 3 videos daily';
   document.getElementById('authGo').textContent = isLogin ? 'Sign In' : 'Create Account';
+  document.getElementById('authFlink').style.display = isLogin ? '' : 'none';
   document.getElementById('authSwitch').innerHTML = isLogin
     ? 'New here? <a onclick="openAuth(\'register\')">Create an account</a>'
     : 'Already have an account? <a onclick="openAuth(\'login\')">Sign in</a>';
-  document.getElementById('authModal').classList.add('show');
-  loadCaptcha();
 }
 function closeAuth(){ document.getElementById('authModal').classList.remove('show'); }
 /* ---------- email verification ---------- */
