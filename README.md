@@ -1,6 +1,27 @@
-# 🎨 Ayaz AI Studio — Phase 13 (Ayaz Bot Widget)
+# 🎨 Ayaz AI Studio — Phase 14 (Build Tab + Imagine Templates + Settings)
 
 A REAL, PUBLIC web app for free AI chat, tutoring, image + video generation. **Not a Muse artifact** — plain Node.js + Express, deployable to free hosting in minutes.
+
+## What's new in Phase 14 — 🔨 Build Tab, Featured Templates, Imagine Settings
+
+**🔨 Build tab (third main tab: Ask | Imagine | Build):**
+- ✅ Center hero with 🔨 icon + "Build apps and sites" text.
+- ✅ "Create from Template" horizontal scrollable cards: ➕ Vector field, 📊 Poll app, ✨ AI Landing page, 🛒 Mini store — tap to load the prompt.
+- ✅ Bottom "Type to Build..." bar with +, mic (voice), and ➤ send; Enter-to-send.
+- ✅ AI generates a **complete single-file HTML app** via `POST /api/chat` (mode: smart); the code block is extracted and shown in a bottom-sheet with a **live iframe preview**, **Copy Code** button, and **Download .html** button.
+
+**🌟 Featured Templates (Imagine tab, Grok style):**
+- ✅ 2×2 grid with gradient cards: 📷 Photo Edit (opens photo upload), 🎨 Reimagine (scrolls to trending styles), 📐 Smart Resize (cycles size options), 🖼️ BG Removal & Change (prefills a background-change prompt).
+
+**⚙️ Imagine Settings (bottom sheet, Grok style):**
+- ✅ Gear button at the top of the Imagine tab opens a dark bottom sheet with:
+  - **Video:** aspect ratio (1:1/2:3/3:2/16:9), duration slider (3–10s), resolution (480p/720p), video-with-audio toggle.
+  - **Image:** aspect ratio (1:1/2:3/3:2/16:9), Image Gen Mode segmented control (Speed/Quality — Quality adds a detail suffix to prompts).
+  - **General:** Add Watermark toggle (brand overlay on image results), Autoplay videos toggle.
+- ✅ Settings persist in `localStorage` (`aas_imagine_settings`) and are applied automatically: image aspect → size select, duration → duration select, autoplay → result video, watermark → overlay on results. Extra video params (`res`, `audio`) are passed to `/api/generate-video`.
+
+**🔄 Refresh button (header):**
+- ✅ Top-right 🔄 button with spin animation — refreshes credits, chat history, trending styles, offer cards, and featured templates in one tap.
 
 ## What's new in Phase 13 — 🤖 Ayaz Bot Widget (Grok Bot style)
 
