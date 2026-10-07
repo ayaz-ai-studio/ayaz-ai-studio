@@ -37,11 +37,14 @@ A REAL, PUBLIC web app for free AI image + video generation. **Not a Muse artifa
 All protected endpoints need `Authorization: Bearer <token>` (token from register/login).
 
 **Auth**
-- `POST /api/register` `{ "email":"a@b.com", "password":"secret123" }` → `201 { token, email, credits }`
-  - 400: invalid email / password < 6 chars · 409: email already registered
-- `POST /api/login` `{ "email":"a@b.com", "password":"secret123" }` → `{ token, email, credits }`
-  - 401: invalid email or password
+- `GET /api/captcha` → `{ "id":"...", "question":"7 + 5" }` — math CAPTCHA (one-time use, expires in 5 min)
+- `POST /api/register` `{ "email":"a@b.com", "password":"secret123", "captchaId":"...", "captchaAnswer":"12" }` → `201 { token, email, credits }`
+  - 400: invalid email / password < 6 chars / wrong CAPTCHA (`code: "captcha_failed"`) · 409: email already registered
+- `POST /api/login` `{ "email":"a@b.com", "password":"secret123", "captchaId":"...", "captchaAnswer":"12" }` → `{ token, email, credits }`
+  - 400: wrong CAPTCHA · 401: invalid email or password
 - `POST /api/logout` (auth) → `{ ok: true }` — invalidates the current session token
+- `POST /api/change-password` (auth) `{ "currentPassword":"...", "newPassword":"..." }` → `{ ok: true }` — new password min 6 chars, must differ; other sessions are revoked
+- `DELETE /api/account` (auth) `{ "password":"..." }` → `{ ok: true }` — permanently deletes the account + its usage data (password confirmation required)
 - `GET /api/me` (auth) → full credit snapshot:
 ```json
 { "email":"a@b.com", "limits":{"images":6,"videos":3}, "totals":{"images":8,"videos":4},

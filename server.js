@@ -97,6 +97,53 @@ function requireAuth(req, res, next) {
   next();
 }
 
+/* ------------------------------------------------------------------ */
+/* Simple math CAPTCHA (anti-bot for login/register)                    */
+/*                                                                     */
+/* GET /api/captcha -> { id, question }. The client must send           */
+/* { captchaId, captchaAnswer } with /api/login and /api/register.      */
+/* Captchas are one-time use and expire after 5 minutes. In-memory      */
+/* (ephemeral on free hosting — fine for a bot-speed-bump).             */
+/* ------------------------------------------------------------------ */
+const captchaStore = {};
+const CAPTCHA_TTL_MS = 5 * 60 * 1000;
+
+function newCaptcha() {
+  const a = 1 + Math.floor(Math.random() * 9);
+  const b = 1 + Math.floor(Math.random() * 9);
+  const variants = [
+    { q: a + ' + ' + b, a: a + b },
+    { q: a + ' × ' + b, a: a * b },
+    { q: (a + b) + ' − ' + a, a: b },
+  ];
+  const pick = variants[Math.floor(Math.random() * variants.length)];
+  const id = crypto.randomBytes(8).toString('hex');
+  captchaStore[id] = { answer: pick.a, createdAt: Date.now() };
+  // prune expired entries
+  const now = Date.now();
+  for (const k of Object.keys(captchaStore)) {
+    if (now - captchaStore[k].createdAt > CAPTCHA_TTL_MS) delete captchaStore[k];
+  }
+  return { id, question: pick.q };
+}
+
+function verifyCaptcha(id, answer) {
+  const rec = id && captchaStore[id];
+  if (!rec) return false;
+  delete captchaStore[id]; // one-time use
+  if (Date.now() - rec.createdAt > CAPTCHA_TTL_MS) return false;
+  return parseInt(answer, 10) === rec.answer;
+}
+
+function checkCaptcha(req) {
+  const body = req.body || {};
+  return verifyCaptcha(body.captchaId, body.captchaAnswer);
+}
+
+app.get('/api/captcha', (req, res) => {
+  res.json(newCaptcha());
+});
+
 /**
  * POST /api/register  { email, password }
  * Creates an account, returns { token, email }.
@@ -106,6 +153,7 @@ app.post('/api/register', (req, res) => {
   const password = (req.body && req.body.password || '').toString();
   if (!validEmail(email)) return res.status(400).json({ error: 'Please enter a valid email address.' });
   if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters.' });
+  if (!checkCaptcha(req)) return res.status(400).json({ error: 'Incorrect security answer. Please try again.', code: 'captcha_failed' });
   if (userStore.users[email]) return res.status(409).json({ error: 'An account with this email already exists. Please sign in.' });
   const { salt, hash } = hashPassword(password);
   const token = newToken();
@@ -126,6 +174,7 @@ app.post('/api/register', (req, res) => {
 app.post('/api/login', (req, res) => {
   const email = normEmail(req.body && req.body.email);
   const password = (req.body && req.body.password || '').toString();
+  if (!checkCaptcha(req)) return res.status(400).json({ error: 'Incorrect security answer. Please try again.', code: 'captcha_failed' });
   const u = userStore.users[email];
   if (!u || !verifyPassword(password, u.salt, u.hash)) {
     return res.status(401).json({ error: 'Invalid email or password.' });
@@ -149,6 +198,59 @@ app.post('/api/logout', requireAuth, (req, res) => {
     saveUsers();
   }
   res.json({ ok: true });
+});
+
+/**
+ * POST /api/change-password  { currentPassword, newPassword }
+ * (Authorization: Bearer <token>)
+ * Verifies the current password, sets the new one (min 6 chars),
+ * and invalidates all OTHER sessions for security.
+ */
+app.post('/api/change-password', requireAuth, (req, res) => {
+  const email = req.authEmail;
+  const u = userStore.users[email];
+  const currentPassword = (req.body && req.body.currentPassword || '').toString();
+  const newPassword = (req.body && req.body.newPassword || '').toString();
+  if (!u) return res.status(404).json({ error: 'Account not found.' });
+  if (!verifyPassword(currentPassword, u.salt, u.hash)) {
+    return res.status(401).json({ error: 'Current password is incorrect.' });
+  }
+  if (newPassword.length < 6) {
+    return res.status(400).json({ error: 'New password must be at least 6 characters.' });
+  }
+  if (currentPassword === newPassword) {
+    return res.status(400).json({ error: 'New password must be different from the current one.' });
+  }
+  const { salt, hash } = hashPassword(newPassword);
+  u.salt = salt;
+  u.hash = hash;
+  // Keep only the current session, revoke all others for safety.
+  const hdr = req.headers.authorization || '';
+  const token = (hdr.match(/^Bearer\s+(\S+)$/i) || [])[1];
+  u.tokens = (u.tokens || []).filter((x) => x.token === token);
+  saveUsers();
+  res.json({ ok: true, message: 'Password changed successfully.' });
+});
+
+/**
+ * DELETE /api/account  { password }
+ * (Authorization: Bearer <token>)
+ * Permanently deletes the account and its usage history.
+ * Requires the password as confirmation.
+ */
+app.delete('/api/account', requireAuth, (req, res) => {
+  const email = req.authEmail;
+  const u = userStore.users[email];
+  const password = (req.body && req.body.password || '').toString();
+  if (!u) return res.status(404).json({ error: 'Account not found.' });
+  if (!verifyPassword(password, u.salt, u.hash)) {
+    return res.status(401).json({ error: 'Password is incorrect. Account was not deleted.' });
+  }
+  delete userStore.users[email];
+  if (usageStore.users && usageStore.users[email]) delete usageStore.users[email];
+  saveUsers();
+  saveUsage();
+  res.json({ ok: true, message: 'Your account has been permanently deleted.' });
 });
 
 /** GET /api/me (Authorization: Bearer <token>) -> { email, limits, used, remaining, ads } */
