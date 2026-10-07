@@ -678,6 +678,48 @@
   .crecard .ctop { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
   .crecard .badge { font-size: 11px; font-weight: 700; background: var(--card2); border-radius: 8px; padding: 3px 8px; }
   .crecard .cdate { font-size: 11px; color: var(--faint); }
+  /* ══════════ Grok-style Settings page (full-screen) ══════════ */
+  #mSettings { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 100;
+    overflow-y: auto; overflow-x: hidden; }
+  #mSettings.show { display: block; }
+  .sp-inner { max-width: 560px; margin: 0 auto; padding: 14px 16px 40px; }
+  .sp-head { display: flex; align-items: center; gap: 14px; padding: 8px 0 16px; }
+  .sp-head button { background: none; border: none; color: var(--text); font-size: 24px;
+    cursor: pointer; padding: 4px; line-height: 1; }
+  .sp-head h2 { font-size: 21px; font-weight: 700; margin: 0; color: var(--text); }
+  .sp-profile { background: var(--card); border-radius: 18px; padding: 16px;
+    display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+  .sp-avatar { width: 56px; height: 56px; border-radius: 50%; background: var(--card2);
+    border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+    font-size: 24px; font-weight: 700; color: var(--text); flex-shrink: 0; }
+  .sp-email { font-size: 17px; font-weight: 600; color: var(--text); word-break: break-all; }
+  .sp-promo { background: #1d4ed8; border-radius: 18px; padding: 14px 16px; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 12px; }
+  .sp-promo .sp-picon { font-size: 26px; color: #bfdbfe; flex-shrink: 0; }
+  .sp-promo .sp-pt { flex: 1; min-width: 0; }
+  .sp-promo .sp-pt b { display: block; font-size: 16px; color: #fff; }
+  .sp-promo .sp-pt span { font-size: 13px; color: #bfdbfe; }
+  .sp-promo .sp-pt span b { display: inline; font-size: 13px; }
+  .sp-promo button { background: transparent; border: 1.5px solid #fff; color: #fff;
+    font-size: 14px; font-weight: 700; border-radius: 999px; padding: 9px 18px;
+    cursor: pointer; flex-shrink: 0; font-family: inherit; white-space: nowrap; }
+  .sp-promo button:active { transform: scale(.96); }
+  .sp-sect { font-size: 15px; color: var(--muted); padding: 14px 6px 8px; }
+  .sp-cards { display: flex; flex-direction: column; gap: 8px; }
+  .sp-item { background: var(--card); border: none; border-radius: 18px; padding: 16px;
+    display: flex; align-items: center; gap: 14px; cursor: pointer; text-align: left;
+    font-family: inherit; width: 100%; }
+  .sp-item:active { transform: scale(.99); opacity: .85; }
+  .sp-ic { font-size: 24px; width: 32px; text-align: center; flex-shrink: 0; color: var(--muted); }
+  .sp-t { flex: 1; min-width: 0; }
+  .sp-t b { display: block; font-size: 17px; font-weight: 600; color: var(--text); }
+  .sp-t i { display: block; font-style: normal; font-size: 14px; color: var(--muted); margin-top: 2px; }
+  .sp-item.signout .sp-t b { color: #f87171; }
+  .sp-item.signout .sp-ic { color: #f87171; }
+  .sp-ver { text-align: center; padding: 26px 0 8px; color: var(--faint); font-size: 14px; }
+  .sp-ver img { height: 26px; width: 26px; border-radius: 7px; vertical-align: -7px; margin-right: 6px; }
+  body.light .sp-profile, body.light .sp-item { background: #f0f0f2; }
+  body.light .sp-sect { color: #777; }
   .crecard .cprompt { font-size: 13px; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3;
     -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 6px; }
   .crecard .cmeta { font-size: 11px; color: var(--faint); margin-bottom: 8px; }
@@ -993,7 +1035,7 @@
     <button id="tabImagine" onclick="switchMainTab('imagine')">Imagine</button>
     <button id="tabBuild" onclick="switchMainTab('build')">Build</button>
   </nav>
-  <button id="topRightBtn" onclick="onTopRightBtn()" title="Account" aria-label="Account">👓</button>
+  <button id="topRightBtn" onclick="onTopRightBtn()" title="Settings" aria-label="Settings">⚙️</button>
 </header>
 
 <div id="drawerOverlay" onclick="toggleDrawer(false)"></div>
@@ -1314,12 +1356,72 @@
 </div>
 
 <!-- ══════════ MODALS ══════════ -->
-<div id="mSettings" class="infomodal">
+<div id="mSettings" class="setpage">
+  <div class="sp-inner">
+    <div class="sp-head">
+      <button onclick="closeSettings()" aria-label="Close settings">✕</button>
+      <h2>Settings</h2>
+    </div>
+    <div class="sp-profile">
+      <div class="sp-avatar" id="spAvatar">?</div>
+      <div class="sp-email" id="spEmail">Not signed in</div>
+    </div>
+    <div class="sp-promo">
+      <span class="sp-picon">◈</span>
+      <div class="sp-pt"><b>2 months free Ayaz Pro</b><span>Early access to <b>new features</b></span></div>
+      <button onclick="closeSettings();drawerGo('pricing')">Claim offer</button>
+    </div>
+    <div class="sp-sect">App</div>
+    <div class="sp-cards">
+      <button class="sp-item" onclick="spToggleTheme()"><span class="sp-ic">◐</span><span class="sp-t"><b>Appearance</b><i id="spThemeSub">Dark</i></span></button>
+      <button class="sp-item" onclick="spSoon('Haptics')"><span class="sp-ic">📳</span><span class="sp-t"><b>Haptics</b></span></button>
+      <button class="sp-item" onclick="spSoon('Widget')"><span class="sp-ic">📱</span><span class="sp-t"><b>Widget</b></span></button>
+      <button class="sp-item" onclick="spSoon('App Language')"><span class="sp-ic">🌐</span><span class="sp-t"><b>App Language</b></span></button>
+      <button class="sp-item" onclick="spSoon('Advanced')"><span class="sp-ic">🔧</span><span class="sp-t"><b>Advanced</b></span></button>
+    </div>
+    <div class="sp-sect">Ayaz</div>
+    <div class="sp-cards">
+      <button class="sp-item" onclick="spSoon('Customize Ayaz')"><span class="sp-ic">🎚️</span><span class="sp-t"><b>Customize Ayaz</b></span></button>
+      <button class="sp-item" onclick="spSoon('Connectors')"><span class="sp-ic">🧩</span><span class="sp-t"><b>Connectors</b></span></button>
+      <button class="sp-item" onclick="spSoon('Skills')"><span class="sp-ic">🎯</span><span class="sp-t"><b>Skills</b></span></button>
+    </div>
+    <div class="sp-sect"></div>
+    <div class="sp-cards">
+      <button class="sp-item" onclick="spSoon('Kids Mode')"><span class="sp-ic">⭐</span><span class="sp-t"><b>Kids Mode</b></span></button>
+    </div>
+    <div class="sp-sect"></div>
+    <div class="sp-cards">
+      <button class="sp-item" onclick="spSoon('Voice')"><span class="sp-ic">🎙️</span><span class="sp-t"><b>Voice</b><i>Ara</i></span></button>
+    </div>
+    <div class="sp-sect">Bots</div>
+    <div class="sp-cards">
+      <button class="sp-item" onclick="spSoon('Bot settings')"><span class="sp-ic">💬</span><span class="sp-t"><b>Bot settings</b></span></button>
+    </div>
+    <div class="sp-sect">Data &amp; Information</div>
+    <div class="sp-cards">
+      <button class="sp-item" onclick="spSoon('Shared Conversations')"><span class="sp-ic">🔗</span><span class="sp-t"><b>Shared Conversations</b></span></button>
+      <button class="sp-item" onclick="openDataControls()"><span class="sp-ic">🗄️</span><span class="sp-t"><b>Data Controls</b></span></button>
+    </div>
+    <div class="sp-sect"></div>
+    <div class="sp-cards">
+      <button class="sp-item" onclick="openInfo('mLicenses')"><span class="sp-ic">📄</span><span class="sp-t"><b>Open Source Licenses</b></span></button>
+      <button class="sp-item" onclick="closeSettings();openInfo('mTerms')"><span class="sp-ic">📑</span><span class="sp-t"><b>Terms of Use</b></span></button>
+      <button class="sp-item" onclick="closeSettings();openInfo('mPrivacy')"><span class="sp-ic">🔒</span><span class="sp-t"><b>Privacy Policy</b></span></button>
+      <button class="sp-item" onclick="closeSettings();openFeedback()"><span class="sp-ic">🛟</span><span class="sp-t"><b>Report a Problem</b></span></button>
+    </div>
+    <div class="sp-sect"></div>
+    <div class="sp-cards">
+      <button class="sp-item signout" onclick="spSignOut()"><span class="sp-ic">↩️</span><span class="sp-t"><b>Sign out</b></span></button>
+    </div>
+    <div class="sp-ver"><img src="logo-icon.webp" alt="Ayaz">Ayaz AI Studio · 1.0.0</div>
+  </div>
+</div>
+
+<div id="mDataControls" class="infomodal">
   <div class="infocard">
-    <button class="xbtn" onclick="closeInfo('mSettings')">✕</button>
-    <h2>⚙️ Settings</h2>
-    <div class="sub">Manage your account</div>
-    <p id="settingsEmail" style="margin-bottom:14px">Not signed in</p>
+    <button class="xbtn" onclick="closeInfo('mDataControls')">✕</button>
+    <h2>🗄️ Data Controls</h2>
+    <div class="sub">Manage your account security &amp; data</div>
     <div class="setrow">
       <div class="lbl">Change password</div>
       <div class="pwrow">
@@ -1347,6 +1449,22 @@
       <div class="err" id="delErr"></div>
       <div class="btnrow"><button class="danger" onclick="deleteAccount()">Delete My Account</button></div>
     </div>
+  </div>
+</div>
+
+<div id="mLicenses" class="infomodal">
+  <div class="infocard">
+    <button class="xbtn" onclick="closeInfo('mLicenses')">✕</button>
+    <h2>📄 Open Source Licenses</h2>
+    <div class="sub">Software that powers Ayaz AI Studio</div>
+    <p>Ayaz AI Studio is built with open-source software. We gratefully use:</p>
+    <ul>
+      <li><b>Node.js</b> — MIT License</li>
+      <li><b>ffmpeg</b> — LGPL / GPL</li>
+      <li><b>Pollinations.AI</b> — open text &amp; image models</li>
+      <li><b>Google Gemini</b> — via the Generative Language API</li>
+    </ul>
+    <p>Full license texts are available on request at <b>support@ayaz-ai-studio.com</b>.</p>
   </div>
 </div>
 
@@ -1721,15 +1839,9 @@ function updateTopbarRight(){
     return;
   }
   btn.onclick = onTopRightBtn;
-  const loggedIn = !!getToken();
-  if(loggedIn){
-    const email = getEmail() || '?';
-    btn.textContent = email.charAt(0).toUpperCase();
-  } else {
-    btn.textContent = '👓';
-  }
-  btn.title = 'Account';
-  btn.setAttribute('aria-label', 'Account');
+  btn.textContent = '⚙️';
+  btn.title = 'Settings';
+  btn.setAttribute('aria-label', 'Settings');
 }
 function newBuild(){
   const inp = document.getElementById('buildInput');
@@ -2705,7 +2817,21 @@ function openInfo(id){ document.getElementById(id).classList.add('show'); }
 function closeInfo(id){ document.getElementById(id).classList.remove('show'); }
 function openSettings(){
   const email = getEmail();
-  document.getElementById('settingsEmail').textContent = email ? 'Signed in as: ' + email : 'Not signed in';
+  const loggedIn = !!getToken();
+  document.getElementById('spEmail').textContent = loggedIn ? email : 'Not signed in';
+  document.getElementById('spAvatar').textContent = loggedIn ? email.charAt(0).toUpperCase() : '?';
+  spSyncThemeSub();
+  openInfo('mSettings');
+}
+function closeSettings(){ closeInfo('mSettings'); }
+function spSyncThemeSub(){
+  const el = document.getElementById('spThemeSub');
+  if(el) el.textContent = document.body.classList.contains('light') ? 'Light' : 'Dark';
+}
+function spToggleTheme(){ toggleTheme(); spSyncThemeSub(); }
+function spSoon(name){ showToast('⏳ ' + name + ' — coming soon!'); }
+function spSignOut(){ closeInfo('mSettings'); logout(); }
+function openDataControls(){
   document.getElementById('pwCur').value = '';
   document.getElementById('pwNew').value = '';
   document.getElementById('pwNew2').value = '';
@@ -2713,7 +2839,7 @@ function openSettings(){
   document.getElementById('pwOk').textContent = '';
   document.getElementById('delPw').value = '';
   document.getElementById('delErr').textContent = '';
-  openInfo('mSettings');
+  openInfo('mDataControls');
 }
 async function changePassword(){
   const cur = document.getElementById('pwCur').value;
@@ -2756,7 +2882,7 @@ async function deleteAccount(){
     });
     const d = await r.json().catch(() => ({}));
     if(!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
-    closeInfo('mSettings');
+    closeInfo('mDataControls');
     logout();
     showToast('🗑️ ' + (d.message || 'Account deleted.'));
   }catch(e){
@@ -2767,7 +2893,7 @@ document.addEventListener('keydown', function(e){
   if(e.key === 'Escape'){
     toggleDrawer(false);
     toggleBotPanel(false);
-    ['mSettings','mPrivacy','mTerms','mHelp','mContact','mAbout','mFeedback','mCreations','mPricing','mApiDocs','mRefer','mAutomations','mProjects','mVerify','mCredits','mAds'].forEach(closeInfo);
+    ['mSettings','mPrivacy','mTerms','mHelp','mContact','mAbout','mFeedback','mCreations','mPricing','mApiDocs','mRefer','mAutomations','mProjects','mVerify','mCredits','mAds','mDataControls','mLicenses'].forEach(closeInfo);
     closeImagineSettings();
     closeBuildCode();
     document.getElementById('modeMenu').classList.remove('show');
