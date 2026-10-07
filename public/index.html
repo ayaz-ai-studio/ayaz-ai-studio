@@ -819,7 +819,8 @@
     padding: 15px 22px 15px 18px; cursor: pointer; font-family: inherit; color: #fff;
   }
   .tmplcard:active { transform: scale(.96); }
-  .tmplcard .tic { font-size: 20px; }
+  .tmplcard .tic { font-size: 20px; display: inline-flex; align-items: center; justify-content: center; }
+  .tmplcard .tic svg { display: block; }
   .tmplcard b { display: block; font-size: 15px; font-weight: 600; white-space: nowrap; }
   .tmplcard i { display: none; }
   .tmplcard.dashed { border: 1.5px dashed #4a4a4a; background: transparent; border-radius: 50%;
@@ -1955,9 +1956,9 @@ function featGo(id){
 /* ---------- Build tab ---------- */
 const BUILD_TEMPLATES = [
   { id: 'refresh', icon: '⟳', name: 'Surprise me', sub: '', dashed: true, prompt: '' },
-  { id: 'grapher', icon: '➕', name: 'Function grapher', sub: 'Plot math functions',
+  { id: 'grapher', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>', name: 'Function grapher', sub: 'Plot math functions',
     prompt: 'a function grapher app: an interactive canvas where users type a math function like sin(x) and see it plotted live with zoom and pan controls, dark theme, all in one page' },
-  { id: 'portfolio', icon: '🌐', name: 'Portfolio', sub: 'Personal website',
+  { id: 'portfolio', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>', name: 'Portfolio', sub: 'Personal website',
     prompt: 'a personal portfolio website: hero with name and photo placeholder, projects grid, skills section, contact form, smooth animations, responsive and beautiful, all in one page' },
 ];
 function renderBuildTemplates(){
