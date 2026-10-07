@@ -1,6 +1,17 @@
-# 🎨 Ayaz AI Studio — Phase 15 (Real Google OAuth Login)
+# 🎨 Ayaz AI Studio — Phase 16 (Premium Landing Redesign)
 
 A REAL, PUBLIC web app for free AI chat, tutoring, image + video generation. **Not a Muse artifact** — plain Node.js + Express, deployable to free hosting in minutes.
+
+## What's new in Phase 16 — ✨ Premium landing / login redesign
+
+- ✅ **Premium first impression** — the login screen is now a full landing experience: animated aurora gradient orbs (blue/violet/teal), subtle grid backdrop, floating glowing logo.
+- ✅ **Hero section** — "Free forever plan · No credit card" badge, big bold headline with animated gradient text on "AI Studio", professional tagline, and a cycling typewriter ("Create anything" → "Chat with AI" → "Imagine images & videos" → "Build apps in seconds").
+- ✅ **Feature showcase** — three glassmorphic cards for **Ask** 💬, **Imagine** 🎨, **Build** ⚡ with hover lift effects.
+- ✅ **Social proof stats** — 6 free images/day, 3 free videos/day, 50 free chats/day in gradient numerals.
+- ✅ **Premium buttons** — Google (white pill), X (glass), Email (outline) with hover lift + shadows; all original handlers kept (`loginGoogle()`, `loginX()`, `openAuth('login')`).
+- ✅ **Animations** — staggered fade-in-up on load, floating logo, animated gradient headline, pulsing badge dot; `prefers-reduced-motion` respected.
+- ✅ **Mobile-first** — responsive headline via `clamp()`, compact cards on small screens, scrollable layout with fade-out legal footer.
+- ✅ **Zero functionality changed** — OAuth, email auth, typewriter element id, and login show/hide logic untouched.
 
 ## What's new in Phase 15 — 🔐 Real "Continue with Google" OAuth
 
