@@ -1826,6 +1826,7 @@
       </div>
     </div>
     <button class="ps-btn" id="psSubmit" onclick="submitProfileSetup()">Complete Setup</button>
+    <button class="ps-btn ps-skip" onclick="skipProfileSetup()" style="background:none;border:1px solid rgba(255,255,255,.2);margin-top:8px;">Skip for now</button>
     <div class="ps-err" id="psErr"></div>
     <p class="ps-note">Your Google email is already verified &#10003;</p>
   </div>
@@ -3366,6 +3367,11 @@ function psUsernameInput(){
       })
       .catch(function(){});
   }, 400);
+}
+function skipProfileSetup(){
+  try{ localStorage.setItem('aas_profile_done', '1'); }catch(e){}
+  document.getElementById('mProfileSetup').classList.remove('show');
+  showToast('You can complete your profile later from Settings.');
 }
 async function submitProfileSetup(){
   const btn = document.getElementById('psSubmit');
