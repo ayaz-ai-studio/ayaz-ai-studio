@@ -473,6 +473,11 @@
   }
   #botPanel.show { display: flex; }
   #botPanel.open { transform: translateY(0) scale(1); opacity: 1; }
+  /* BUG-5 FIX: on mobile keep the panel clear of the bottom chat input / send button */
+  @media (max-width: 768px) {
+    #botPanel { top: calc(70px + env(safe-area-inset-top, 0px)); right: 8px;
+      width: calc(100vw - 16px); height: 400px; max-height: calc(100dvh - 280px); }
+  }
   .bothead { display: flex; align-items: center; gap: 10px; padding: 13px 14px;
     border-bottom: 1px solid var(--border); background: var(--card); flex-shrink: 0; }
   .bothead .bav { width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; overflow: hidden;
@@ -525,6 +530,7 @@
     cursor: pointer; position: relative; overflow: hidden;
     display: flex; flex-direction: column; justify-content: space-between; padding: 10px;
     color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.8);
+    background: #18181b; /* BUG-11 FIX: dark fallback so white text stays readable in light theme if image fails */
   }
   .stylecard:active { transform: scale(.96); }
   .stylecard .sico { font-size: 38px; line-height: 1; margin-top: 4px; text-align: center;
@@ -1737,6 +1743,7 @@
         <option value="2:3">2:3 Portrait</option>
         <option value="3:2">3:2 Landscape</option>
         <option value="16:9" selected>16:9 Wide</option>
+        <option value="9:16">9:16 Vertical (Reels/TikTok)</option>
       </select>
     </div>
     <div class="setrow">
@@ -2956,7 +2963,7 @@ function openImagineSettings(){
 }
 function closeImagineSettings(){ document.getElementById('mImagineSettings').classList.remove('show'); }
 const RATIO_TO_SIZE = { '1:1': '768x768', '2:3': '512x768', '3:2': '768x512', '16:9': '768x432' };
-const RATIO_TO_CSS = { '1:1': '1 / 1', '2:3': '2 / 3', '3:2': '3 / 2', '16:9': '16 / 9' };
+const RATIO_TO_CSS = { '1:1': '1 / 1', '2:3': '2 / 3', '3:2': '3 / 2', '16:9': '16 / 9', '9:16': '9 / 16' };
 function applyImagineSettings(s){
   s = s || loadImgSettings();
   // image aspect ratio -> sync the size select

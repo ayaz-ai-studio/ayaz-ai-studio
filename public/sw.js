@@ -1,7 +1,8 @@
-/* Ayaz AI Studio service worker — basic PWA support */
-const CACHE_NAME = 'ayaz-ai-studio-v1';
+/* Ayaz AI Studio service worker — PWA support (network-first for HTML) */
+/* BUG-9 FIX: bump cache version + serve index.html ("/") network-first so
+   deploys reach users immediately without needing ?v= query hacks. */
+const CACHE_NAME = 'ayaz-ai-studio-v2';
 const STATIC_ASSETS = [
-  '/',
   '/manifest.json',
   '/icon-192.png',
   '/icon-512.png'
@@ -29,8 +30,9 @@ self.addEventListener('fetch', (event) => {
   if (req.method !== 'GET') return;
 
   const url = new URL(req.url);
+  // BUG-9 FIX: only truly immutable assets are cache-first.
+  // "/" serves index.html (changes every deploy) -> network-first.
   const isStatic =
-    url.pathname === '/' ||
     url.pathname.endsWith('.png') ||
     url.pathname.endsWith('.webp') ||
     url.pathname === '/manifest.json';
