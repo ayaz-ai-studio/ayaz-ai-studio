@@ -1495,7 +1495,7 @@ function isClientErrorFastFail(err) {
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 
-/** Call Google Gemini (gemini-2.0-flash). Resolves text or throws. */
+/** Call Google Gemini (gemini-flash-latest). Resolves text or throws. */
 function geminiText(prompt, systemPrompt, timeoutMs = 30000) {
   return new Promise((resolve, reject) => {
     const key = GEMINI_API_KEY;
@@ -1508,7 +1508,7 @@ function geminiText(prompt, systemPrompt, timeoutMs = 30000) {
       contents: [{ parts: [{ text: (systemPrompt || '') + '\n\n' + prompt }] }],
       generationConfig: { maxOutputTokens: 1000 },
     });
-    const path = '/v1beta/models/gemini-2.0-flash:generateContent?key=' + encodeURIComponent(key);
+    const path = '/v1beta/models/gemini-flash-latest:generateContent?key=' + encodeURIComponent(key);
     const req = https.request({
       hostname: 'generativelanguage.googleapis.com',
       path: path,
