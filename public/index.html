@@ -1619,12 +1619,15 @@
           <div class="row">
             <button class="genbtn" id="vgo" onclick="generateVideo()">🎬 Generate Video</button>
           </div>
+          <div class="row">
+            <button class="genbtn" id="lipSyncBtn" onclick="openLipSync()" style="background:linear-gradient(135deg,#7c3aed,#db2777)">🗣️ Talking Photo</button>
+          </div>
           <div class="qstatus" id="vQueueStatus">Videos in queue: …/100</div>
           <div class="row">
             <button class="genbtn qbtn" id="qVidBtn" onclick="requestVideo()">📩 Request Agent Video <span class="qtag">720p</span></button>
           </div>
           <div class="note">Agent-made: higher quality, processed manually (normal quality for now).</div>
-          <div class="note">Free mode: AI still + cinematic motion (3–8s). True AI video needs paid APIs.</div>
+          <div class="note">Free mode: Real AI video via NovAI (5s clips). HD quality!</div>
         </div>
       </div>
 
@@ -2032,8 +2035,8 @@
       <button class="ss-back" onclick="closeInfo('mSsetVoice')" aria-label="Back">&#8592;</button>
       <h2>Voice</h2>
     </div>
-    <p class="ss-desc">Choose the voice used when Ayaz reads replies aloud. Tap &#9654; to preview.</p>
-    <div class="ss-card" id="ssVoiceList"><div class="ss-row"><div class="ss-lab"><small>Loading voices&hellip;</small></div></div></div>
+    <p class="ss-desc">Choose the voice used when Ayaz reads replies aloud. Tap &#9654; to preview. Real Pakistani/Indian neural voices.</p>
+    <div class="ss-card" id="ssVoiceList"></div>
   </div>
 </div>
 
@@ -2117,7 +2120,7 @@
       <li><b>Pollinations.AI</b> — open text &amp; image models</li>
       <li><b>Google Gemini</b> — via the Generative Language API</li>
     </ul>
-    <p>Full license texts are available on request at <b>support@ayaz-ai-studio.com</b>.</p>
+    <p>Full license texts are available on request at <b>alising09876@gmail.com</b>.</p>
   </div>
 </div>
 
@@ -2142,7 +2145,7 @@
     <h3>Your rights</h3>
     <p>You can download your data, or permanently delete your account (and everything tied to it) anytime from Settings.</p>
     <h3>Contact</h3>
-    <p>Questions? Email <b>support@ayaz-ai-studio.com</b>.</p>
+    <p>Questions? Email <b>alising09876@gmail.com</b>.</p>
   </div>
 </div>
 
@@ -2193,7 +2196,7 @@
     <button class="xbtn" onclick="closeInfo('mContact')">✕</button>
     <h2>📞 Contact Us</h2>
     <div class="sub">We'd love to hear from you</div>
-    <p>📧 Email: <b>support@ayaz-ai-studio.com</b></p>
+    <p>📧 Email: <b>alising09876@gmail.com</b></p>
     <p style="margin-top:10px">🐞 Found a bug? Have a feature idea? Send it via Menu → Feedback, or email us directly.</p>
     <p style="margin-top:10px">⏱️ We usually reply within 1–2 business days.</p>
   </div>
@@ -2278,6 +2281,41 @@
     <h2>🎁 Refer & Earn</h2>
     <div class="sub">Invite friends, earn bonus credits</div>
     <div id="refBody"><p style="text-align:center;color:var(--muted)">Loading...</p></div>
+  </div>
+</div>
+
+<div id="mLipSync" class="infomodal">
+  <div class="infocard">
+    <button class="xbtn" onclick="closeInfo('mLipSync')">✕</button>
+    <h2>🗣️ Talking Photo</h2>
+    <div class="sub">Make any photo talk — human or animal — with real desi voice</div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-top:12px">
+      <div>
+        <div class="lbl" style="margin-bottom:6px">📷 Photo</div>
+        <input type="file" id="lsImgFile" accept="image/*" class="ss-input" style="margin-bottom:6px">
+        <input id="lsImgUrl" class="ss-input" placeholder="...or paste image URL" autocomplete="off">
+      </div>
+      <div>
+        <div class="lbl" style="margin-bottom:6px">💬 What should it say?</div>
+        <textarea id="lsText" class="ss-textarea" style="min-height:80px" maxlength="500" placeholder="Assalam-o-Alaikum! Main aap se baat kar raha hun!"></textarea>
+      </div>
+      <div class="row" style="gap:8px">
+        <div style="flex:1">
+          <div class="lbl" style="margin-bottom:6px">🎙️ Voice</div>
+          <select id="lsVoice" class="ss-input"></select>
+        </div>
+        <div style="flex:1">
+          <div class="lbl" style="margin-bottom:6px">🦁 Mode</div>
+          <select id="lsMode" class="ss-input">
+            <option value="human">👨 Human (HD)</option>
+            <option value="animal">🦁 Animal</option>
+          </select>
+        </div>
+      </div>
+      <button class="genbtn" id="lsGo" onclick="generateLipSync()">🗣️ Generate Talking Photo</button>
+      <div id="lsStatus" style="text-align:center;font-size:13px;color:var(--muted)"></div>
+      <video id="lsVid" controls playsinline style="display:none;width:100%;border-radius:12px"></video>
+    </div>
   </div>
 </div>
 
@@ -3601,7 +3639,7 @@ function toggleBotPanel(force){
   } else {
     p.classList.remove('open');
     setTimeout(function(){ p.classList.remove('show'); }, 220);
-    if('speechSynthesis' in window) window.speechSynthesis.cancel();
+    if(_speakAudio){ _speakAudio.pause(); _speakAudio = null; }
   }
 }
 function botExpand(){
@@ -4111,64 +4149,64 @@ function saveSsetKids(){
   showToast(on ? '⭐ Kids Mode on — family-friendly replies' : '⭐ Kids Mode off');
 }
 function isKidsMode(){ return localStorage.getItem('aas_kids') === '1'; }
-/* --- Voice --- */
-var ssetVoices = [];
-function loadSsetVoices(){
-  try{
-    if('speechSynthesis' in window){
-      const vs = window.speechSynthesis.getVoices();
-      if(vs && vs.length) ssetVoices = vs;
-    }
-  }catch(e){}
-}
+/* --- Voice (backend neural voices: /api/tts) --- */
+var BACKEND_VOICES = [
+  { id: 'ur',      label: 'Urdu (Pakistan) Male',   name: 'Asad' },
+  { id: 'ur_f',    label: 'Urdu (Pakistan) Female', name: 'Uzma' },
+  { id: 'ur_in',   label: 'Urdu (India) Male',     name: 'Salman' },
+  { id: 'ur_in_f', label: 'Urdu (India) Female',   name: 'Gul' },
+  { id: 'hi',      label: 'Hindi Male',            name: 'Madhur' },
+  { id: 'hi_f',    label: 'Hindi Female',          name: 'Swara' },
+  { id: 'ar',      label: 'Arabic Male',           name: 'Hamed' },
+  { id: 'ar_f',    label: 'Arabic Female',         name: 'Zariyah' },
+  { id: 'en',      label: 'English Male',          name: 'Guy' },
+  { id: 'en_f',    label: 'English Female',        name: 'Aria' },
+];
+var ssetVoices = BACKEND_VOICES;
+function loadSsetVoices(){ /* backend voices are static — nothing to load */ }
 function renderSsetVoices(){
-  loadSsetVoices();
-  const saved = localStorage.getItem('aas_voice') || '';
+  const saved = localStorage.getItem('aas_voice') || 'ur';
   const box = document.getElementById('ssVoiceList');
-  if(!ssetVoices.length){
-    box.innerHTML = '<div class="ss-row"><div class="ss-lab"><small>No voices found yet — they appear after first use.</small></div></div>';
-    return;
-  }
-  box.innerHTML = ssetVoices.slice(0, 24).map(function(v, i){
-    const sel = (saved && v.voiceURI === saved) || (!saved && v.default);
-    return '<div class="ss-voice"><button class="ss-opt' + (sel ? ' on' : '') + '" style="flex:1;margin:0;min-width:0" onclick="setSsetVoice(' + i + ')">' +
-      '<span class="radio"></span><span class="vn"><b>' + escapeHtml(v.name) + '</b><small>' + escapeHtml(v.lang) + '</small></span></button>' +
-      '<button class="ss-play" onclick="previewSsetVoice(' + i + ')">▶ Preview</button></div>';
+  if(!box) return;
+  box.innerHTML = BACKEND_VOICES.map(function(v){
+    const sel = saved === v.id;
+    return '<div class="ss-voice"><button class="ss-opt' + (sel ? ' on' : '') + '" style="flex:1;margin:0;min-width:0" onclick="setSsetVoice(\'' + v.id + '\')">' +
+      '<span class="radio"></span><span class="vn"><b>' + escapeHtml(v.label) + '</b><small>' + escapeHtml(v.name) + '</small></span></button>' +
+      '<button class="ss-play" onclick="previewSsetVoice(\'' + v.id + '\')">▶ Preview</button></div>';
   }).join('');
 }
-function setSsetVoice(i){
-  const v = ssetVoices[i]; if(!v) return;
-  try{ localStorage.setItem('aas_voice', v.voiceURI); }catch(e){}
+function setSsetVoice(id){
+  try{ localStorage.setItem('aas_voice', id); }catch(e){}
   renderSsetVoices();
+  const v = BACKEND_VOICES.filter(function(x){ return x.id === id; })[0];
   const sub = document.getElementById('spVoiceSub');
-  if(sub) sub.textContent = v.name.split(' ').slice(0, 2).join(' ');
-  showToast('🎙️ Voice set: ' + v.name);
+  if(sub && v) sub.textContent = v.name;
+  if(v) showToast('🎙️ Voice set: ' + v.label + ' (' + v.name + ')');
 }
-function previewSsetVoice(i){
-  const v = ssetVoices[i];
-  if(!v || !('speechSynthesis' in window)){ showToast('🔊 Preview not available.'); return; }
+var _previewAudio = null;
+async function previewSsetVoice(id){
+  const v = BACKEND_VOICES.filter(function(x){ return x.id === id; })[0];
+  if(!v){ showToast('🔊 Preview not available.'); return; }
   try{
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance('Hi! I am ' + getBotName() + '. This is how I sound.');
-    u.voice = v; u.lang = v.lang;
-    window.speechSynthesis.speak(u);
+    if(_previewAudio){ _previewAudio.pause(); _previewAudio = null; }
+    showToast('🔊 Loading preview...');
+    const r = await fetch('/api/tts?text=' + encodeURIComponent('Assalam-o-Alaikum! Main ' + v.name + ' hun. Ye meri awaz hai.') + '&lang=' + encodeURIComponent(v.id), { headers: authHeaders() });
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const blob = await r.blob();
+    _previewAudio = new Audio(URL.createObjectURL(blob));
+    _previewAudio.play();
   }catch(e){ showToast('🔊 Preview failed.'); }
 }
 function getSsetVoice(){
-  if(!('speechSynthesis' in window)) return null;
-  loadSsetVoices();
-  const saved = localStorage.getItem('aas_voice');
-  if(saved){
-    const f = ssetVoices.filter(function(v){ return v.voiceURI === saved; });
-    if(f.length) return f[0];
-  }
-  return null;
+  const saved = localStorage.getItem('aas_voice') || 'ur';
+  const f = BACKEND_VOICES.filter(function(v){ return v.id === saved; });
+  return f.length ? f[0] : BACKEND_VOICES[0];
 }
 function initSsetVoiceSub(){
   const sub = document.getElementById('spVoiceSub');
   if(!sub) return;
   const sv = getSsetVoice();
-  sub.textContent = sv ? sv.name.split(' ').slice(0, 2).join(' ') : 'Default';
+  sub.textContent = sv ? sv.name : 'Asad';
 }
 /* --- Bot settings --- */
 function getBotName(){ return localStorage.getItem('aas_botname') || 'Ayaz Bot'; }
@@ -4899,13 +4937,13 @@ function startVoice(targetId, btnId){
   try { rec.start(); }
   catch(err){ showToast('🎤 Voice input failed to start.'); rec.onend(); }
 }
-/* speak: read the last AI reply aloud (Grok-style Speak button) */
-function speakLast(){
-  if(!('speechSynthesis' in window)){ showToast('🔊 Speech is not supported in this browser.'); return; }
+/* speak: read the last AI reply aloud via backend /api/tts (Grok-style Speak button) */
+var _speakAudio = null;
+async function speakLast(){
   if(!ssetSkillOn('voice')){ showToast('🎯 Voice Output is off — enable it in Settings → Skills.'); return; }
   const btn = document.getElementById('speakBtn');
-  if(window.speechSynthesis.speaking){
-    window.speechSynthesis.cancel();
+  if(_speakAudio && !_speakAudio.paused){
+    _speakAudio.pause(); _speakAudio = null;
     btn.classList.remove('speaking');
     document.getElementById('speakLabel').textContent = 'Speak';
     return;
@@ -4915,16 +4953,26 @@ function speakLast(){
   let text = ais[ais.length - 1].innerText || '';
   text = text.replace(/⚠️|✨/g, '').trim().slice(0, 600);
   if(!text){ showToast('💬 Nothing to speak yet.'); return; }
-  const u = new SpeechSynthesisUtterance(text);
   const sv = getSsetVoice();
-  if(sv){ u.voice = sv; u.lang = sv.lang; } else { u.lang = 'en-US'; }
-  u.onend = u.onerror = function(){
-    btn.classList.remove('speaking');
-    document.getElementById('speakLabel').textContent = 'Speak';
-  };
+  const lang = sv ? sv.id : 'ur';
   btn.classList.add('speaking');
   document.getElementById('speakLabel').textContent = 'Stop';
-  window.speechSynthesis.speak(u);
+  try{
+    const r = await fetch('/api/tts?text=' + encodeURIComponent(text) + '&lang=' + encodeURIComponent(lang), { headers: authHeaders() });
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const blob = await r.blob();
+    _speakAudio = new Audio(URL.createObjectURL(blob));
+    _speakAudio.onended = _speakAudio.onerror = function(){
+      btn.classList.remove('speaking');
+      document.getElementById('speakLabel').textContent = 'Speak';
+      _speakAudio = null;
+    };
+    _speakAudio.play();
+  }catch(e){
+    btn.classList.remove('speaking');
+    document.getElementById('speakLabel').textContent = 'Speak';
+    showToast('🔊 Speech failed: ' + e.message);
+  }
 }
 /* ---------- ASK : chat ---------- */
 let studyMode = false;
@@ -5269,8 +5317,7 @@ async function generateVideo(){
     const objUrl = URL.createObjectURL(blob);
     lastGen = { kind: 'video', prompt: raw, blobUrl: objUrl };
     showResult('video', objUrl, 'ayaz-ai-studio');
-    const src = r.headers.get('X-Video-Source');
-    document.getElementById('status').textContent = src === 'huggingface' ? '✅ Done! (AI video)' : '✅ Done! (cinematic motion)';
+    document.getElementById('status').textContent = '✅ Done! (AI video)';
   }catch(e){
     document.getElementById('status').textContent = '❌ ' + e.message;
     if(/limit/i.test(e.message)) showToast('⚡ Limit reached! Watch an ad for extra credits.');
@@ -5320,6 +5367,93 @@ function captureReferral(){
 }
 function getPendingReferral(){ return localStorage.getItem('aas_pending_ref') || ''; }
 function clearPendingReferral(){ localStorage.removeItem('aas_pending_ref'); }
+/* ---------- Talking Photo / Lip-Sync ---------- */
+function openLipSync(){
+  if(needAuth()) return;
+  const sel = document.getElementById('lsVoice');
+  if(sel){
+    sel.innerHTML = BACKEND_VOICES.map(function(v){
+      return '<option value="' + v.id + '">' + escapeHtml(v.label + ' — ' + v.name) + '</option>';
+    }).join('');
+    sel.value = localStorage.getItem('aas_voice') || 'ur';
+  }
+  document.getElementById('lsStatus').textContent = '';
+  const lv = document.getElementById('lsVid');
+  lv.style.display = 'none'; lv.removeAttribute('src'); lv.load();
+  openInfo('mLipSync');
+}
+function lsBlobToDataURL(blob){
+  return new Promise(function(resolve, reject){
+    const fr = new FileReader();
+    fr.onload = function(){ resolve(fr.result); };
+    fr.onerror = reject;
+    fr.readAsDataURL(blob);
+  });
+}
+async function generateLipSync(){
+  const statusEl = document.getElementById('lsStatus');
+  const vidEl = document.getElementById('lsVid');
+  const btn = document.getElementById('lsGo');
+  try{
+    const text = document.getElementById('lsText').value.trim();
+    if(!text){ showToast('💬 Please enter the text to speak.'); return; }
+    const lang = document.getElementById('lsVoice').value || 'ur';
+    const mode = document.getElementById('lsMode').value || 'human';
+
+    btn.disabled = true;
+
+    // Step 1: resolve image -> public https URL
+    let imageUrl = document.getElementById('lsImgUrl').value.trim();
+    const fileInput = document.getElementById('lsImgFile');
+    if(fileInput.files && fileInput.files[0]){
+      statusEl.textContent = '📤 Uploading photo...';
+      const dataUrl = await lsBlobToDataURL(fileInput.files[0]);
+      const up = await fetch('/api/upload', {
+        method: 'POST',
+        headers: authHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ image: dataUrl })
+      });
+      const ud = await up.json().catch(function(){ return {}; });
+      if(!up.ok) throw new Error(ud.error || 'Image upload failed');
+      imageUrl = ud.url || '';
+    }
+    if(!imageUrl){ showToast('📷 Please upload a photo or paste an image URL.'); btn.disabled = false; return; }
+    if(imageUrl.charAt(0) === '/') imageUrl = location.origin + imageUrl;
+
+    // Step 2: generate desi voice audio via /api/tts-smart
+    statusEl.textContent = '🎙️ Generating voice...';
+    const ar = await fetch('/api/tts-smart?text=' + encodeURIComponent(text) + '&lang=' + encodeURIComponent(lang), { headers: authHeaders() });
+    if(!ar.ok){
+      const e = await ar.json().catch(function(){ return {}; });
+      throw new Error(e.error || 'Voice generation failed (HTTP ' + ar.status + ')');
+    }
+    const audioBlob = await ar.blob();
+    const audioDataUrl = await lsBlobToDataURL(audioBlob);
+
+    // Step 3: lip-sync
+    statusEl.textContent = '🗣️ Animating lips... (1–3 min, please wait)';
+    const lr = await fetch('/api/lipsync', {
+      method: 'POST',
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ image_url: imageUrl, audio_url: audioDataUrl, lang: lang, mode: mode })
+    });
+    if(!lr.ok){
+      const e = await lr.json().catch(function(){ return {}; });
+      throw new Error(e.error || 'Lip-sync failed (HTTP ' + lr.status + ')');
+    }
+    const vblob = await lr.blob();
+    if(!vblob.type || vblob.type.indexOf('video') !== 0) throw new Error('Server did not return a video');
+    vidEl.src = URL.createObjectURL(vblob);
+    vidEl.style.display = 'block';
+    statusEl.textContent = '✅ Done! Your photo is talking!';
+    updateCreditsFromHeaders(lr);
+    refreshCredits();
+  }catch(e){
+    statusEl.textContent = '❌ ' + e.message;
+  }
+  btn.disabled = false;
+}
+
 function openRefer(){
   if(needAuth()) return;
   openInfo('mRefer');
@@ -5328,8 +5462,11 @@ function openRefer(){
 async function loadReferrals(){
   const box = document.getElementById('refBody');
   box.innerHTML = '<p style="text-align:center;color:var(--muted)">Loading...</p>';
+  const ctrl = new AbortController();
+  const timer = setTimeout(function(){ ctrl.abort(); }, 15000);
   try{
-    const r = await fetch('/api/referrals', { headers: authHeaders() });
+    const r = await fetch('/api/referrals', { headers: authHeaders(), signal: ctrl.signal });
+    clearTimeout(timer);
     const d = await r.json().catch(() => ({}));
     if(r.status === 401){ logout(); throw new Error('Session expired — please sign in again.'); }
     if(!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
@@ -5350,7 +5487,10 @@ async function loadReferrals(){
       '<button class="sharebtn" onclick="shareReferral(\'whatsapp\')">WhatsApp</button>' +
       '</div>';
   }catch(e){
-    box.innerHTML = '<p style="color:#f87171">❌ ' + escapeHtml(e.message) + '</p>';
+    clearTimeout(timer);
+    const msg = (e && e.name === 'AbortError') ? 'Request timed out — please try again.' : e.message;
+    box.innerHTML = '<p style="color:#f87171">❌ ' + escapeHtml(msg) + '</p>' +
+      '<p style="text-align:center;margin-top:10px"><button class="sharebtn" onclick="loadReferrals()">🔄 Retry</button></p>';
   }
 }
 function copyReferral(){
@@ -5436,10 +5576,7 @@ window.addEventListener('DOMContentLoaded', () => {
   applyDevMode();
   applyBotBranding();
   initSsetVoiceSub();
-  if('speechSynthesis' in window){
-    loadSsetVoices();
-    try{ window.speechSynthesis.onvoiceschanged = function(){ loadSsetVoices(); initSsetVoiceSub(); }; }catch(e){}
-  }
+  renderSsetVoices();
   // Grok-exact: show chat send button while typing
   const chatInpEl = document.getElementById('chatInput');
   if(chatInpEl){
