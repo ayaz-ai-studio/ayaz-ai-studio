@@ -1532,6 +1532,30 @@ function downloadVideoUrl(url, resolve) {
 }
 
 /**
+ * PRIORITY 4: Pollinations.ai video (1-2/day free, no key needed).
+ * Simple GET-based API.
+ */
+function tryPollinationsVideo(prompt) {
+  return new Promise((resolve) => {
+    const url = `https://gen.pollinations.ai/video/${encodeURIComponent(prompt.slice(0, 200))}?model=seedance&nologo=true`;
+    https.get(url, { timeout: 120000 }, (res) => {
+      const ct = (res.headers['content-type'] || '').toLowerCase();
+      if (res.statusCode !== 200 || !ct.startsWith('video/')) {
+        res.resume();
+        return resolve(null);
+      }
+      const chunks = [];
+      res.on('data', (c) => chunks.push(c));
+      res.on('end', () => {
+        const buf = Buffer.concat(chunks);
+        resolve(buf.length > 10000 ? buf : null);
+      });
+    }).on('timeout', function() { this.destroy(); resolve(null); })
+      .on('error', () => resolve(null));
+  });
+}
+
+/**
  * GET /api/generate-video?prompt=...&duration=5&motion=zoomin&seed=...
  * (Authorization: Bearer <token>)
  * duration: 3–8 seconds (default 5). motion: zoomin|zoomout|panleft|panright.
@@ -1596,6 +1620,22 @@ app.get('/api/generate-video', requireAuth, async (req, res) => {
       res.setHeader('X-Images-Total', left.totalImages);
       res.setHeader('X-Videos-Total', left.totalVideos);
       return res.send(sfVideo);
+    }
+  } catch (e) { /* fall through */ }
+
+  // PRIORITY 4: Pollinations.ai video (1-2/day free, no key)
+  try {
+    const pollVideo = await tryPollinationsVideo(prompt);
+    if (pollVideo && pollVideo.length > 10000) {
+      const left = recordUsage(req.authEmail, 'video');
+      recordCreation(req.authEmail, 'video', prompt, { duration, motion, seed, source: 'pollinations-video' });
+      res.setHeader('Content-Type', 'video/mp4');
+      res.setHeader('X-Video-Source', 'pollinations-video');
+      res.setHeader('X-Images-Left', left.images);
+      res.setHeader('X-Videos-Left', left.videos);
+      res.setHeader('X-Images-Total', left.totalImages);
+      res.setHeader('X-Videos-Total', left.totalVideos);
+      return res.send(pollVideo);
     }
   } catch (e) { /* fall through */ }
 
