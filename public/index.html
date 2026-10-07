@@ -110,6 +110,30 @@
     background: rgba(0,0,0,.35); border: 1px dashed rgba(255,255,255,.25);
     border-radius: 12px; padding: 10px; color: #9ec2ff; }
   .crow button { flex: none; width: 52px; font-size: 20px; padding: 0; }
+  /* ---- captcha branding ---- */
+  .capbrand { text-align: center; font-size: 11px; letter-spacing: 1px; opacity: .55;
+    margin-bottom: 8px; text-transform: uppercase; }
+  .capbrand b { color: #9ec2ff; font-weight: 700; }
+  /* ---- notification bar ---- */
+  #noticeBar { display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 140;
+    background: linear-gradient(90deg, #1e3a8a, #2563eb);
+    border-bottom: 1px solid rgba(255,255,255,.15);
+    color: #fff; font-size: 14px; padding: 12px 52px 12px 16px; text-align: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,.35); }
+  #noticeBar.show { display: block; }
+  #noticeClose { position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    background: transparent; border: none; color: #fff; font-size: 16px; cursor: pointer;
+    padding: 6px 10px; opacity: .8; flex: none; }
+  #noticeClose:hover { opacity: 1; }
+  body.has-notice { padding-top: 58px; }
+  body.has-notice #menuBtn { top: 62px; }
+  /* ---- voice input ---- */
+  .promptrow { display: flex; gap: 8px; align-items: stretch; }
+  .promptrow textarea { flex: 1; }
+  .micbtn { flex: none; width: 52px; font-size: 22px; padding: 0; cursor: pointer;
+    background: linear-gradient(90deg, #2563eb, #3b82f6); }
+  .micbtn.listening { background: linear-gradient(90deg, #dc2626, #ef4444);
+    animation: pulse 1.2s infinite; }
   /* ---- hamburger menu + drawer ---- */
   #menuBtn { position: fixed; top: 14px; left: 14px; z-index: 150; width: 44px; height: 44px;
     border-radius: 12px; font-size: 22px; line-height: 1; padding: 0; flex: none;
@@ -174,6 +198,8 @@
 </style>
 </head>
 <body>
+<!-- Notification bar (announcements; message set in NOTICE_MSG below) -->
+<div id="noticeBar"><span id="noticeText"></span><button id="noticeClose" onclick="dismissNotice()" aria-label="Dismiss">✕</button></div>
 <!-- Hamburger button -->
 <button id="menuBtn" onclick="toggleDrawer(true)" aria-label="Menu">☰</button>
 
@@ -374,7 +400,10 @@
     <!-- IMAGE PANEL -->
     <div id="panelImg" class="panel active">
     <div class="card">
-      <textarea id="prompt" placeholder="Describe your image... (e.g. a beautiful Pakistani village at sunset, photorealistic)"></textarea>
+      <div class="promptrow">
+        <textarea id="prompt" placeholder="Describe your image... (e.g. a beautiful Pakistani village at sunset, photorealistic)"></textarea>
+        <button type="button" class="micbtn" id="micImg" onclick="startVoice('prompt','micImg')" title="Voice input" aria-label="Voice input">🎤</button>
+      </div>
       <div class="row">
         <select id="size">
           <option value="512x512">Square 512</option>
@@ -395,7 +424,10 @@
     <!-- VIDEO PANEL -->
     <div id="panelVid" class="panel">
     <div class="card">
-      <textarea id="vprompt" placeholder="Describe your video... (e.g. a lion walking in a haveli courtyard, cinematic)"></textarea>
+      <div class="promptrow">
+        <textarea id="vprompt" placeholder="Describe your video... (e.g. a lion walking in a haveli courtyard, cinematic)"></textarea>
+        <button type="button" class="micbtn" id="micVid" onclick="startVoice('vprompt','micVid')" title="Voice input" aria-label="Voice input">🎤</button>
+      </div>
       <div class="row">
         <select id="vdur">
           <option value="3">3 sec</option>
@@ -438,6 +470,7 @@
       <div class="err" id="authErr"></div>
       <input id="authEmail" type="email" placeholder="Email address" autocomplete="email">
       <input id="authPass" type="password" placeholder="Password (min 6 characters)" autocomplete="current-password">
+      <div class="capbrand">🔒 Secured by <b>Ayaz AI Studio</b></div>
       <div class="crow">
         <span class="cq" id="capQ">…</span>
         <button type="button" onclick="loadCaptcha()" title="New question" aria-label="New question">↻</button>
@@ -479,6 +512,70 @@
 </div>
 
 <script>
+/* ═══════════════════════════════════════════════════════════════
+   ANNOUNCEMENT: edit this message to update the notification bar.
+   Changing the text makes the bar re-appear for users who dismissed
+   the old one (dismissal is keyed to the message itself).
+   Set to '' to hide the bar entirely.
+   ═══════════════════════════════════════════════════════════════ */
+const NOTICE_MSG = "🎉 New: Watch ads for extra credits!";
+function showNotice(){
+  if(!NOTICE_MSG) return;
+  if(localStorage.getItem('aas_notice_dismissed') === NOTICE_MSG) return;
+  document.getElementById('noticeText').textContent = NOTICE_MSG;
+  document.getElementById('noticeBar').classList.add('show');
+  document.body.classList.add('has-notice');
+}
+function dismissNotice(){
+  localStorage.setItem('aas_notice_dismissed', NOTICE_MSG);
+  document.getElementById('noticeBar').classList.remove('show');
+  document.body.classList.remove('has-notice');
+}
+
+/* ---------- voice input (Web Speech API) ---------- */
+const _placeholders = {};
+function voiceSupported(){
+  return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+}
+function initVoiceButtons(){
+  if(voiceSupported()) return;
+  // Graceful fallback: hide mic buttons where speech recognition is unavailable
+  ['micImg','micVid'].forEach(function(id){
+    const b = document.getElementById(id);
+    if(b) b.style.display = 'none';
+  });
+}
+function startVoice(targetId, btnId){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){
+    showToast('🎤 Voice input is not supported in this browser.');
+    return;
+  }
+  const ta = document.getElementById(targetId);
+  const btn = document.getElementById(btnId);
+  if(!(targetId in _placeholders)) _placeholders[targetId] = ta.placeholder;
+  const rec = new SR();
+  rec.lang = 'en-US';
+  rec.interimResults = false;
+  rec.maxAlternatives = 1;
+  btn.classList.add('listening');
+  btn.textContent = '🔴';
+  ta.placeholder = 'Listening... speak now';
+  rec.onresult = function(e){
+    const t = e.results[0][0].transcript;
+    ta.value = (ta.value ? ta.value.replace(/\s+$/,'') + ' ' : '') + t;
+  };
+  rec.onerror = function(){
+    showToast('🎤 Could not hear you clearly. Please try again.');
+  };
+  rec.onend = function(){
+    btn.classList.remove('listening');
+    btn.textContent = '🎤';
+    ta.placeholder = _placeholders[targetId] || '';
+  };
+  try { rec.start(); }
+  catch(err){ showToast('🎤 Voice input failed to start.'); rec.onend(); }
+}
 /* ---------- hamburger drawer + info modals ---------- */
 function toggleDrawer(open){
   document.getElementById('drawer').classList.toggle('open', open);
@@ -765,6 +862,8 @@ function showToast(msg){
 window.addEventListener('DOMContentLoaded', () => {
   renderAuthState();
   if(getToken()) refreshCredits();
+  showNotice();
+  initVoiceButtons();
 });
 function updateCreditsFromHeaders(r){
   const i = r.headers.get('X-Images-Left'), v = r.headers.get('X-Videos-Left');
