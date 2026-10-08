@@ -1814,6 +1814,7 @@ app.post('/api/lipsync', requireAuth, express.json({ limit: '10mb' }), async (re
       } catch (e) { lastErr = e; }
     }
     if (!result) {
+      if (tmpAudio) { try { fs.unlinkSync(tmpAudio); } catch (e) {} }
       throw new Error('lipsync failed: ' + (lastErr?.message || 'no working endpoint found'));
     }
 
