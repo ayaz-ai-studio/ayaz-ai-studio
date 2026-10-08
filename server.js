@@ -2010,17 +2010,17 @@ async function runVideoJob(jobId, email, prompt, duration, motion, seed) {
     let videoBuffer = null;
     let source = null;
 
-    // PRIORITY 1: Agnes AI
+    // PRIORITY 1: NovAI (cogvideox-flash, $0/generation forever, 2-3 min — fastest free)
     try {
-      const v = await tryAgnesVideo(prompt);
-      if (v && v.length > 10000) { videoBuffer = v; source = 'agnes-video-2.5-flash'; }
+      const v = await tryNovAIVideo(prompt);
+      if (v && v.length > 10000) { videoBuffer = v; source = 'novai-cogvideox-flash'; }
     } catch (e) {}
 
-    // PRIORITY 2: NovAI
+    // PRIORITY 2: Agnes AI (limited-time $0/sec)
     if (!videoBuffer) {
       try {
-        const v = await tryNovAIVideo(prompt);
-        if (v && v.length > 10000) { videoBuffer = v; source = 'novai-cogvideox-flash'; }
+        const v = await tryAgnesVideo(prompt);
+        if (v && v.length > 10000) { videoBuffer = v; source = 'agnes-video-2.5-flash'; }
       } catch (e) {}
     }
 
