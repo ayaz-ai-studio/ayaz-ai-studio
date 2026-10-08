@@ -3101,8 +3101,8 @@ function setLandingTab(mode){
 }
 function openAuth(mode){
   document.getElementById('authErr').textContent = '';
-  document.getElementById('authEmail').value = '';
-  document.getElementById('authPass').value = '';
+  // Do NOT clear email/password — let browser autofill saved passwords work.
+  // (Previously cleared here, which broke "save password" UX.)
   setAuthTab(mode || 'login');
   document.getElementById('authModal').classList.add('show');
   loadCaptcha();
