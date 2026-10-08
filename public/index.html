@@ -5315,15 +5315,45 @@ async function generateVideo(){
   document.getElementById('result').style.display = 'none';
   document.getElementById('status').textContent = 'Creating your video... (30-90 seconds, please wait)';
   try{
-    const url = `/api/generate-video?prompt=${encodeURIComponent(prompt)}&duration=${duration}&motion=${motion}&seed=${Math.floor(Math.random()*999999)}&res=${encodeURIComponent(vset.vidRes)}&audio=${vset.vidAudio ? 1 : 0}`;
-    const r = await fetch(url, { headers: authHeaders() });
-    if(!r.ok){ const e = await r.json().catch(()=>({})); throw new Error(e.error || ('HTTP '+r.status)); }
+    // NEW: Job-based video generation (no more timeouts!)
+    // Submit job, then poll every 3s until done
+    const submitRes = await fetch('/api/video-jobs', {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, duration, motion, seed: Math.floor(Math.random()*999999) })
+    });
+    if(!submitRes.ok){ const e = await submitRes.json().catch(()=>({})); throw new Error(e.error || ('HTTP '+submitRes.status)); }
+    const { jobId } = await submitRes.json();
+
+    // Poll for completion (every 3 seconds, up to 10 minutes)
+    let videoUrl = null;
+    let jobSource = 'ai-video';
+    const maxPolls = 200;
+    for(let i = 0; i < maxPolls; i++){
+      document.getElementById('status').textContent = `Creating your video... (${Math.floor(i*3/60)}:${String((i*3)%60).padStart(2,'0')} elapsed, please wait)`;
+      await new Promise(r => setTimeout(r, 3000));
+      const pollRes = await fetch(`/api/video-jobs/${jobId}`, { headers: authHeaders() });
+      if(!pollRes.ok) throw new Error('Job check failed');
+      const job = await pollRes.json();
+      if(job.status === 'done'){
+        videoUrl = job.videoUrl;
+        jobSource = job.source || 'ai-video';
+        if(job.videosLeft !== undefined) updateCreditsDisplay(job.videosLeft);
+        break;
+      }
+      if(job.status === 'failed') throw new Error(job.error || 'Video generation failed');
+      // else: pending/processing, keep polling
+    }
+    if(!videoUrl) throw new Error('Video took too long. Please try again.');
+
+    // Download the video
+    const r = await fetch(videoUrl, { headers: authHeaders() });
+    if(!r.ok) throw new Error('Video download failed');
     const blob = await r.blob();
     if(!blob.type.startsWith('video')) throw new Error('Server did not return a video');
-    updateCreditsFromHeaders(r);
     const objUrl = URL.createObjectURL(blob);
     lastGen = { kind: 'video', prompt: raw, blobUrl: objUrl };
-    showResult('video', objUrl, 'ayaz-ai-studio');
+    showResult('video', objUrl, jobSource);
     document.getElementById('status').textContent = '✅ Done! (AI video)';
   }catch(e){
     document.getElementById('status').textContent = '❌ ' + e.message;
