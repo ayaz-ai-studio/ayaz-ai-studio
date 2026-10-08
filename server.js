@@ -1795,14 +1795,27 @@ app.post('/api/lipsync', requireAuth, express.json({ limit: '10mb' }), async (re
     // Call Hugging Face Space via gradio client
     // LivePortrait: KwaiVGI/LivePortrait (humans + animals, no login)
     // LatentSync: fffiloni/LatentSync (HD human lip-sync)
-    // SadTalker: vinthony/SadTalker (fast)
     const space = mode === 'animal' ? 'KwaiVGI/LivePortrait' : 'fffiloni/LatentSync';
     const client = await Client.connect(space);
 
-    const result = await client.predict('/generate', {
-      image: image_url,
-      audio: audio_url,
-    });
+    // Try correct Gradio endpoints ("/generate" doesn't exist on these Spaces)
+    let result = null;
+    const endpointsToTry = mode === 'animal'
+      ? ['/gpu_wrapped_execute_video', '/gpu_wrapped_execute_image']
+      : ['/predict', '/generate_video', '/inference'];
+    let lastErr = null;
+    for (const ep of endpointsToTry) {
+      try {
+        result = await client.predict(ep, {
+          image: image_url,
+          audio: audio_url,
+        });
+        if (result) break;
+      } catch (e) { lastErr = e; }
+    }
+    if (!result) {
+      throw new Error('lipsync failed: ' + (lastErr?.message || 'no working endpoint found'));
+    }
 
     const videoUrl = result?.data?.[0]?.url || result?.data?.[0];
     if (!videoUrl) return res.status(502).json({ error: 'lipsync provider returned no video' });
