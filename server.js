@@ -1962,6 +1962,131 @@ app.get('/api/generate-video', requireAuth, async (req, res) => {
 });
 
 /* ------------------------------------------------------------------ */
+/* Video Job System — fixes Render 30-60s timeout                       */
+/*                                                                     */
+/* POST /api/video-jobs { prompt, duration?, motion?, seed? }           */
+/*   → { jobId } immediately (202). Generation runs in background.     */
+/* GET /api/video-jobs/:id                                             */
+/*   → { status: 'pending'|'processing'|'done'|'failed',               */
+/*       videoUrl?, source?, error? }                                  */
+/* Frontend polls every 3s until done/failed. No more timeouts!        */
+/* ------------------------------------------------------------------ */
+const videoJobs = {}; // jobId -> { status, videoPath, source, error, createdAt, email }
+
+function newJobId() {
+  return 'vj_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+
+// Cleanup old jobs every 10 min (keep 30 min of results)
+setInterval(() => {
+  const cutoff = Date.now() - 30 * 60 * 1000;
+  for (const [id, job] of Object.entries(videoJobs)) {
+    if (job.createdAt < cutoff) {
+      if (job.videoPath) { try { fs.unlinkSync(job.videoPath); } catch (e) {} }
+      delete videoJobs[id];
+    }
+  }
+}, 10 * 60 * 1000);
+
+async function runVideoJob(jobId, email, prompt, duration, motion, seed) {
+  const job = videoJobs[jobId];
+  if (!job) return;
+  job.status = 'processing';
+  try {
+    let videoBuffer = null;
+    let source = null;
+
+    // PRIORITY 1: Agnes AI
+    try {
+      const v = await tryAgnesVideo(prompt);
+      if (v && v.length > 10000) { videoBuffer = v; source = 'agnes-video-2.5-flash'; }
+    } catch (e) {}
+
+    // PRIORITY 2: NovAI
+    if (!videoBuffer) {
+      try {
+        const v = await tryNovAIVideo(prompt);
+        if (v && v.length > 10000) { videoBuffer = v; source = 'novai-cogvideox-flash'; }
+      } catch (e) {}
+    }
+
+    // PRIORITY 3: SiliconFlow
+    if (!videoBuffer) {
+      try {
+        const v = await trySiliconFlowVideo(prompt);
+        if (v && v.length > 10000) { videoBuffer = v; source = 'siliconflow-wan2.2'; }
+      } catch (e) {}
+    }
+
+    if (videoBuffer) {
+      const videoPath = tmpName('videojob', 'mp4');
+      fs.writeFileSync(videoPath, videoBuffer);
+      const left = recordUsage(email, 'video');
+      recordCreation(email, 'video', prompt, { duration, motion, seed, source });
+      job.status = 'done';
+      job.videoPath = videoPath;
+      job.source = source;
+      job.videosLeft = left.videos;
+    } else {
+      job.status = 'failed';
+      job.error = 'All video providers failed. Please try again.';
+    }
+  } catch (e) {
+    job.status = 'failed';
+    job.error = 'Video generation failed: ' + e.message;
+  }
+}
+
+app.post('/api/video-jobs', requireAuth, express.json({ limit: '1mb' }), (req, res) => {
+  const prompt = ((req.body && req.body.prompt) || '').toString().slice(0, 500);
+  if (!prompt) return res.status(400).json({ error: 'prompt required' });
+
+  const gate = checkLimit(req.authEmail, 'video');
+  if (!gate.ok) return res.status(gate.status).json({ error: gate.message });
+
+  const duration = Math.min(Math.max(parseInt(req.body.duration) || 5, 3), MAX_VIDEO_SEC);
+  const motion = ['zoomin', 'zoomout', 'panleft', 'panright'].includes(req.body.motion)
+    ? req.body.motion : 'zoomin';
+  const seed = parseInt(req.body.seed) || Math.floor(Math.random() * 999999);
+
+  const jobId = newJobId();
+  videoJobs[jobId] = { status: 'pending', createdAt: Date.now(), email: req.authEmail };
+
+  // Start generation in background (don't await)
+  runVideoJob(jobId, req.authEmail, prompt, duration, motion, seed);
+
+  res.status(202).json({ jobId, status: 'pending' });
+});
+
+app.get('/api/video-jobs/:id', requireAuth, (req, res) => {
+  const job = videoJobs[req.params.id];
+  if (!job) return res.status(404).json({ error: 'job not found' });
+  if (job.email !== req.authEmail) return res.status(403).json({ error: 'not your job' });
+
+  if (job.status === 'done') {
+    return res.json({
+      status: 'done',
+      videoUrl: '/api/video-jobs/' + req.params.id + '/video',
+      source: job.source,
+      videosLeft: job.videosLeft,
+    });
+  }
+  if (job.status === 'failed') {
+    return res.json({ status: 'failed', error: job.error });
+  }
+  res.json({ status: job.status });
+});
+
+app.get('/api/video-jobs/:id/video', requireAuth, (req, res) => {
+  const job = videoJobs[req.params.id];
+  if (!job || job.email !== req.authEmail) return res.status(404).json({ error: 'not found' });
+  if (job.status !== 'done' || !job.videoPath) return res.status(404).json({ error: 'video not ready' });
+  res.setHeader('Content-Type', 'video/mp4');
+  res.setHeader('X-Video-Source', job.source || 'ai-video');
+  fs.createReadStream(job.videoPath).pipe(res);
+});
+
+/* ------------------------------------------------------------------ */
 /* Ask tab — chat with free AI (Pollinations text API)                  */
 /*                                                                     */
 /* POST /api/chat { message, imageId? } — auth required. Proxies to    */
