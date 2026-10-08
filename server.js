@@ -1798,11 +1798,11 @@ app.post('/api/lipsync', requireAuth, express.json({ limit: '10mb' }), async (re
     const space = mode === 'animal' ? 'KwaiVGI/LivePortrait' : 'fffiloni/LatentSync';
     const client = await Client.connect(space);
 
-    // Try correct Gradio endpoints ("/generate" doesn't exist on these Spaces)
+    // Try correct Gradio endpoints (verified via live test 2026-10-08)
     let result = null;
     const endpointsToTry = mode === 'animal'
       ? ['/gpu_wrapped_execute_video', '/gpu_wrapped_execute_image']
-      : ['/predict', '/generate_video', '/inference'];
+      : ['/generate_lip_sync_video', '/predict'];
     let lastErr = null;
     for (const ep of endpointsToTry) {
       try {
