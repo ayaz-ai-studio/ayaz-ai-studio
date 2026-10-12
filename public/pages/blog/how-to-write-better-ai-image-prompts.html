@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>How to Write Better AI Image Prompts: A Practical Guide — Ayaz AI Studio</title>
+<meta name="description" content="Learn the anatomy of a great AI image prompt: subject, style, lighting, composition and camera language — with before-and-after examples.">
+<link rel="icon" href="/icon-192.png">
+<style>
+:root{--bg:#0d1117;--card:#161b22;--line:#2a3340;--txt:#e6edf3;--mut:#9aa4b2;--acc:#8b7cf6}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.8;font-size:16px}
+a{color:var(--acc);text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:760px;margin:0 auto;padding:0 20px}
+header.site{border-bottom:1px solid var(--line);background:#0a0d12;position:sticky;top:0;z-index:10}
+.nav{max-width:960px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+.brand{font-weight:800;font-size:18px;color:var(--txt);margin-right:auto}
+.brand span{color:var(--acc)}
+.nav a.nl{color:var(--mut);font-size:14px}
+.nav a.nl:hover{color:var(--txt)}
+main{padding:40px 0 60px}
+h1{font-size:32px;line-height:1.3;margin:0 0 8px}
+h2{font-size:22px;margin:36px 0 10px}
+h3{font-size:18px;margin:28px 0 8px}
+p,li{color:#d4dbe4}
+.meta{color:var(--mut);font-size:13px;margin-bottom:24px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin:18px 0}
+.card h3{margin:0 0 6px;font-size:19px}
+.card p{margin:6px 0;color:var(--mut);font-size:14.5px}
+.excerpt{color:var(--mut);font-size:15px}
+footer.site{border-top:1px solid var(--line);padding:28px 0;color:var(--mut);font-size:13.5px}
+footer.site .wrap{display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+footer.site .sp{margin-left:auto}
+blockquote{border-left:3px solid var(--acc);margin:20px 0;padding:10px 18px;background:var(--card);border-radius:0 10px 10px 0;color:#d4dbe4}
+code{background:#1e2530;padding:2px 7px;border-radius:6px;font-size:14px}
+.toc{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 22px;margin:24px 0}
+.toc b{display:block;margin-bottom:8px}
+.toc ol{margin:0;padding-left:20px;color:var(--mut);font-size:15px}
+img{max-width:100%;border-radius:10px}
+.cta{display:inline-block;background:var(--acc);color:#fff!important;padding:12px 26px;border-radius:10px;font-weight:700;margin-top:14px}
+.cta:hover{text-decoration:none;opacity:.92}
+</style>
+</head>
+<body>
+<header class="site"><nav class="nav">
+<a class="brand" href="/">Ayaz <span>AI Studio</span></a>
+<a class="nl" href="/">App</a>
+<a class="nl" href="/blog">Blog</a>
+<a class="nl" href="/about">About</a>
+<a class="nl" href="/contact">Contact</a>
+</nav></header>
+<main><div class="wrap">
+<h1>How to Write Better AI Image Prompts: A Practical Guide</h1>
+<p class="meta">October 5, 2026 · 9 min read</p>
+<p>Ask two people to generate "a cat" with an AI image tool and you will get two completely different results.
+Ask someone who understands prompting, and you will get something that looks like it belongs in a magazine.
+The model is the same — the difference is the prompt. Good prompting is not magic and it is not luck; it is a
+skill with a structure you can learn in one sitting.</p>
+<h2>1. Start with a concrete subject</h2>
+<p>Every strong prompt begins with a specific subject, not a vague idea. "A dog" gives the model almost nothing
+to work with. "An elderly golden retriever with a grey muzzle, sitting on a wooden porch" gives it a character,
+an age, a setting. Specificity is the single highest-leverage thing you can add. Name the subject, its key
+features, and what it is doing. If there are multiple subjects, describe their relationship: who is in front,
+who is behind, who is looking at whom.</p>
+<h2>2. Name the style explicitly</h2>
+<p>AI models default to a generic digital-art look unless you tell them otherwise. If you want photorealism, say
+"photorealistic". If you want a watercolor, an oil painting, a 3D render, a film still, or a pencil sketch — say
+so, in the first sentence if possible. Style words act like a lens: they change everything downstream, from
+texture to color palette. You can also reference eras and movements ("1970s film photography", "ukiyo-e woodblock
+print") but keep it to one style per prompt; mixing three styles usually produces a muddy compromise.</p>
+<h2>3. Direct the light</h2>
+<p>Lighting is what separates amateur-looking generations from professional ones. "Soft morning light through a
+window", "dramatic side lighting", "neon glow at night", "golden hour backlight" — each of these completely
+changes the mood. Photographers obsess over light for a reason, and the same vocabulary works on AI models.
+Add the time of day, the light source, and the mood you want: warm and cozy, cold and clinical, dramatic and
+high-contrast.</p>
+<h2>4. Use camera and composition language</h2>
+<p>Terms borrowed from photography are extremely effective: "close-up portrait", "wide-angle landscape",
+"aerial view", "shallow depth of field", "rule of thirds", "low-angle shot". These tell the model how to frame
+the scene. "Shallow depth of field" reliably produces that blurred-background portrait look. "Wide-angle" pulls
+the scene open. If you want a poster-style image, add "centered composition, symmetrical".</p>
+<h2>5. Add texture and detail words</h2>
+<p>Once the big decisions are made, sprinkle in material and detail words: "weathered wood", "morning dew on
+grass", "intricate embroidery", "film grain", "highly detailed". These push the model toward richness instead
+of flat, plasticky surfaces. A little goes a long way — five or six detail words are plenty.</p>
+<h2>6. Know what to leave out</h2>
+<p>Longer is not always better. Prompts stuffed with twenty adjectives often confuse the model, which then drops
+half of them or blends them strangely. Aim for 30–60 words: one clear subject, one style, lighting, framing,
+and a handful of details. If the result ignores part of your prompt, that part was probably competing with
+something else — simplify and try again.</p>
+<h2>Before and after</h2>
+<p><strong>Weak:</strong> "a beautiful landscape with mountains"</p>
+<p><strong>Strong:</strong> "Photorealistic wide-angle landscape of snow-capped Himalayan peaks at sunrise, warm
+golden light hitting the ridgelines, a small wooden cabin with smoke rising in the valley below, mist rolling
+between pine forests, dramatic clouds, highly detailed, 35mm film photography"</p>
+<p>The second prompt makes dozens of decisions the first one leaves to chance. That is the whole game.</p>
+<h2>A practice routine that works</h2>
+<p>Pick one subject and generate it five times, changing only one element each time — first the style, then the
+lighting, then the framing. Save the versions you like and note which words caused the change. Within a week you
+will have an intuition for which words move the needle. Keep a small personal "prompt notebook" of phrases that
+worked; most experienced creators reuse their best fragments constantly.</p>
+<p>Prompting well is the closest thing to a superpower in the AI art world. The models keep getting better, but
+the person who can describe exactly what they want will always get better results than the person who cannot.
+Start specific, direct the light, speak camera — and iterate.</p>
+<h2>Working across different tools</h2>
+<p>Prompting dialects differ slightly between model families. Some respond strongly to photographic vocabulary;
+others prefer plain descriptive language. If you switch tools, expect to recalibrate: a prompt that sings on
+one model may underperform on another. The fix is quick — regenerate your three best prompts on the new tool
+and note what changes. Within a day you will have translated your style. The underlying principles (specific
+subject, named style, directed light, camera language) transfer everywhere; only the seasoning changes.</p>
+<h2>Build a personal prompt recipe book</h2>
+<p>Professionals rarely write prompts from scratch. They maintain a small library of proven fragments: a
+lighting recipe that always looks expensive, a portrait formula, a landscape opener. When starting a new piece,
+they assemble fragments and adjust. Start yours today: every time a generation delights you, save the exact
+prompt in a note with the image. After a month you will own a toolkit that compounds — each new project starts
+from your best past work instead of a blank box.</p>
+<p><a class="cta" href="/">Try your prompts in Ayaz AI Studio</a></p>
+<p style="margin-top:32px"><a href="/blog">&larr; Back to all articles</a></p>
+</div></main>
+<footer class="site"><div class="wrap">
+<a href="/about">About</a><a href="/contact">Contact</a><a href="/privacy">Privacy Policy</a><a href="/terms">Terms of Service</a><a href="/blog">Blog</a>
+<span class="sp">&copy; 2026 Ayaz AI Studio. All rights reserved.</span>
+</div></footer>
+</body>
+</html>

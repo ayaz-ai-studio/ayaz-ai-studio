@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Text-to-Image vs. Image-to-Image: Which Should You Use? — Ayaz AI Studio</title>
+<meta name="description" content="Two ways to create AI art explained: when to start from words alone and when to start from an existing picture.">
+<link rel="icon" href="/icon-192.png">
+<style>
+:root{--bg:#0d1117;--card:#161b22;--line:#2a3340;--txt:#e6edf3;--mut:#9aa4b2;--acc:#8b7cf6}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.8;font-size:16px}
+a{color:var(--acc);text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:760px;margin:0 auto;padding:0 20px}
+header.site{border-bottom:1px solid var(--line);background:#0a0d12;position:sticky;top:0;z-index:10}
+.nav{max-width:960px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+.brand{font-weight:800;font-size:18px;color:var(--txt);margin-right:auto}
+.brand span{color:var(--acc)}
+.nav a.nl{color:var(--mut);font-size:14px}
+.nav a.nl:hover{color:var(--txt)}
+main{padding:40px 0 60px}
+h1{font-size:32px;line-height:1.3;margin:0 0 8px}
+h2{font-size:22px;margin:36px 0 10px}
+h3{font-size:18px;margin:28px 0 8px}
+p,li{color:#d4dbe4}
+.meta{color:var(--mut);font-size:13px;margin-bottom:24px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin:18px 0}
+.card h3{margin:0 0 6px;font-size:19px}
+.card p{margin:6px 0;color:var(--mut);font-size:14.5px}
+.excerpt{color:var(--mut);font-size:15px}
+footer.site{border-top:1px solid var(--line);padding:28px 0;color:var(--mut);font-size:13.5px}
+footer.site .wrap{display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+footer.site .sp{margin-left:auto}
+blockquote{border-left:3px solid var(--acc);margin:20px 0;padding:10px 18px;background:var(--card);border-radius:0 10px 10px 0;color:#d4dbe4}
+code{background:#1e2530;padding:2px 7px;border-radius:6px;font-size:14px}
+.toc{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 22px;margin:24px 0}
+.toc b{display:block;margin-bottom:8px}
+.toc ol{margin:0;padding-left:20px;color:var(--mut);font-size:15px}
+img{max-width:100%;border-radius:10px}
+.cta{display:inline-block;background:var(--acc);color:#fff!important;padding:12px 26px;border-radius:10px;font-weight:700;margin-top:14px}
+.cta:hover{text-decoration:none;opacity:.92}
+</style>
+</head>
+<body>
+<header class="site"><nav class="nav">
+<a class="brand" href="/">Ayaz <span>AI Studio</span></a>
+<a class="nl" href="/">App</a>
+<a class="nl" href="/blog">Blog</a>
+<a class="nl" href="/about">About</a>
+<a class="nl" href="/contact">Contact</a>
+</nav></header>
+<main><div class="wrap">
+<h1>Text-to-Image vs. Image-to-Image: Which Should You Use?</h1>
+<p class="meta">October 7, 2026 · 7 min read</p>
+<p>Most AI art tools offer two creation modes, and beginners often ignore the second one entirely. That is a
+shame, because image-to-image is where some of the most practical AI art happens. Here is what each mode does,
+where each shines, and how to combine them.</p>
+<h2>Text-to-image: inventing from nothing</h2>
+<p>You write a description; the model creates an image from pure noise guided by your words. This is the mode
+everyone knows. Its strength is total freedom — anything you can describe, you can attempt. Its weakness is
+control: composition, exact poses, and specific layouts are hard to dictate precisely, and you may generate ten
+versions before one matches the picture in your head.</p>
+<h2>Image-to-image: transforming the existing</h2>
+<p>You provide a starting image plus a prompt, and the model reimagines it. A rough sketch becomes a polished
+illustration. A daytime photo becomes a night scene. A selfie becomes a Renaissance oil painting. A "strength"
+or "denoise" slider usually controls how far the result may stray from the original: low values keep the
+composition and just restyle it; high values reinvent more freely.</p>
+<h2>When to use which</h2>
+<p><strong>Use text-to-image when</strong> you are exploring ideas, need something entirely new, or have no
+suitable source image — concept art, fantasy scenes, product ideas that do not exist yet.</p>
+<p><strong>Use image-to-image when</strong> composition matters more than invention: restyling photos, turning
+sketches into finished art, changing the season or lighting of a real photo, creating consistent characters
+across images, or fixing a nearly-good generation by pushing it in a new direction.</p>
+<h2>The power combo: sketch → generate → refine</h2>
+<p>Professionals rarely use one mode alone. A common workflow: scribble a rough composition (even stick figures
+work), use image-to-image at medium strength to turn it into a detailed scene, then use text-to-image variations
+or inpainting to fix the weak spots. You get the composition control of drawing with the rendering skill of the
+model — the best of both worlds.</p>
+<h2>Practical tips for image-to-image</h2>
+<ul>
+<li><strong>Start with clean inputs:</strong> the model amplifies what is there, including blur and noise.</li>
+<li><strong>Match aspect ratios:</strong> results are best when the input matches your target dimensions.</li>
+<li><strong>Tune the strength:</strong> try 0.4 for restyling, 0.6–0.75 for bigger transformations.</li>
+<li><strong>Describe the change, not the image:</strong> "make it night, neon signs glowing" beats re-describing
+the whole photo.</li>
+<li><strong>Respect rights:</strong> only transform images you own or have permission to use.</li>
+</ul>
+<h2>Bottom line</h2>
+<p>Text-to-image is your imagination engine; image-to-image is your transformation engine. Learn both and you
+stop fighting the tool for control — you direct it instead.</p>
+<h2>Creative exercises to build intuition</h2>
+<p>Try this three-day exercise. Day one: take a simple pencil sketch of a house and run image-to-image at three
+strength levels — 0.3, 0.55, 0.8 — with the prompt "cozy cottage illustration". Notice how composition survives
+at 0.3 and dissolves by 0.8. Day two: take your favorite result and run text-to-image variations on its prompt
+alone; notice how composition drifts. Day three: combine — sketch the composition you actually want, transform
+it, then fix details with a second pass. This single exercise teaches more than a week of random generating.</p>
+<h2>When to break the rules</h2>
+<p>Guidelines are starting points. High transformation strength on a photo can produce dreamlike art that no
+text prompt would reach — some artists build entire styles on "misusing" image-to-image at 0.85+. Conversely,
+feeding the model a nearly-finished render at very low strength (0.2–0.3) acts as a polish pass: same image,
+cleaner. The modes are sliders, not switches — the interesting territory is often in between.</p>
+<h2>A note on faces and identity</h2>
+<p>Image-to-image on photos of real people deserves care. Transforming your own photos is fine and fun;
+transforming others' photos into misleading or embarrassing imagery is not. Keep the same standard you would
+apply to photo editing — the tool is new, the ethics are not.</p><h2>Real-world example: a YouTube thumbnail</h2>
+<p>Say you need a thumbnail: your face looking shocked beside a giant robot. Text-to-image alone may give you a
+great robot and a stranger's face. Better: take a real photo of your shocked expression, then image-to-image at
+0.45 strength with "epic youtube thumbnail style, giant robot beside the person, dramatic lighting, vibrant".
+Your face stays yours, the scene becomes epic. This is the everyday reality of image-to-image — not fine art,
+but practical control where it counts.</p>
+<h2>Cost and speed considerations</h2>
+<p>Image-to-image at low strength often needs fewer denoising steps to look good, since it starts from a real
+image rather than noise — meaning faster, cheaper generations. When you are iterating on a client project,
+that speed compounds: ten quick refinements beat two slow reinventions. Professionals use image-to-image not
+just for control, but for velocity.</p>
+<p><a class="cta" href="/">Try both modes in Ayaz AI Studio</a></p>
+<p style="margin-top:32px"><a href="/blog">&larr; Back to all articles</a></p>
+</div></main>
+<footer class="site"><div class="wrap">
+<a href="/about">About</a><a href="/contact">Contact</a><a href="/privacy">Privacy Policy</a><a href="/terms">Terms of Service</a><a href="/blog">Blog</a>
+<span class="sp">&copy; 2026 Ayaz AI Studio. All rights reserved.</span>
+</div></footer>
+</body>
+</html>

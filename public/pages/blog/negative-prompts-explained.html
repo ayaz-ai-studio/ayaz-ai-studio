@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Negative Prompts Explained: Telling AI What NOT to Draw — Ayaz AI Studio</title>
+<meta name="description" content="What negative prompts are, why they matter, and a ready-to-use list of negative prompts for cleaner AI images.">
+<link rel="icon" href="/icon-192.png">
+<style>
+:root{--bg:#0d1117;--card:#161b22;--line:#2a3340;--txt:#e6edf3;--mut:#9aa4b2;--acc:#8b7cf6}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.8;font-size:16px}
+a{color:var(--acc);text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:760px;margin:0 auto;padding:0 20px}
+header.site{border-bottom:1px solid var(--line);background:#0a0d12;position:sticky;top:0;z-index:10}
+.nav{max-width:960px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+.brand{font-weight:800;font-size:18px;color:var(--txt);margin-right:auto}
+.brand span{color:var(--acc)}
+.nav a.nl{color:var(--mut);font-size:14px}
+.nav a.nl:hover{color:var(--txt)}
+main{padding:40px 0 60px}
+h1{font-size:32px;line-height:1.3;margin:0 0 8px}
+h2{font-size:22px;margin:36px 0 10px}
+h3{font-size:18px;margin:28px 0 8px}
+p,li{color:#d4dbe4}
+.meta{color:var(--mut);font-size:13px;margin-bottom:24px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin:18px 0}
+.card h3{margin:0 0 6px;font-size:19px}
+.card p{margin:6px 0;color:var(--mut);font-size:14.5px}
+.excerpt{color:var(--mut);font-size:15px}
+footer.site{border-top:1px solid var(--line);padding:28px 0;color:var(--mut);font-size:13.5px}
+footer.site .wrap{display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+footer.site .sp{margin-left:auto}
+blockquote{border-left:3px solid var(--acc);margin:20px 0;padding:10px 18px;background:var(--card);border-radius:0 10px 10px 0;color:#d4dbe4}
+code{background:#1e2530;padding:2px 7px;border-radius:6px;font-size:14px}
+.toc{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 22px;margin:24px 0}
+.toc b{display:block;margin-bottom:8px}
+.toc ol{margin:0;padding-left:20px;color:var(--mut);font-size:15px}
+img{max-width:100%;border-radius:10px}
+.cta{display:inline-block;background:var(--acc);color:#fff!important;padding:12px 26px;border-radius:10px;font-weight:700;margin-top:14px}
+.cta:hover{text-decoration:none;opacity:.92}
+</style>
+</head>
+<body>
+<header class="site"><nav class="nav">
+<a class="brand" href="/">Ayaz <span>AI Studio</span></a>
+<a class="nl" href="/">App</a>
+<a class="nl" href="/blog">Blog</a>
+<a class="nl" href="/about">About</a>
+<a class="nl" href="/contact">Contact</a>
+</nav></header>
+<main><div class="wrap">
+<h1>Negative Prompts Explained: Telling AI What NOT to Draw</h1>
+<p class="meta">October 8, 2026 · 6 min read</p>
+<p>Every AI image tool lets you describe what you want. Fewer beginners discover the second box: the negative
+prompt, where you describe what you <em>do not</em> want. It is a small feature with an outsized effect, and
+once you start using it, you will never go back.</p>
+<h2>What a negative prompt does</h2>
+<p>During generation, the model is pulled toward your positive prompt and pushed away from your negative prompt.
+If your images keep coming out with mangled hands, blurry faces, or ugly watermarks, a negative prompt is
+usually the fastest fix — far faster than regenerating and hoping. Think of it as setting quality guardrails
+before the model starts.</p>
+<h2>The universal starter list</h2>
+<p>Most experienced creators keep a default negative prompt they paste into nearly everything. A solid starting
+point:</p>
+<blockquote>blurry, low quality, distorted, deformed, disfigured, bad anatomy, extra limbs, missing limbs,
+mutated hands, fused fingers, watermark, text, logo, signature, grainy, oversaturated, dull</blockquote>
+<p>Adjust it per use-case: for portraits, emphasize "bad anatomy, deformed face, asymmetric eyes"; for landscapes,
+"watermark, text" matters more.</p>
+<h2>When negative prompts backfire</h2>
+<p>Negation is blunt. "No red" can drain all warmth from an image; "no people" in a street scene can produce an
+eerily empty world. Also, stuffing the negative prompt with twenty terms can degrade overall quality, because
+the model spends capacity avoiding things instead of rendering your subject. Rule of thumb: 5–12 well-chosen
+terms beat a laundry list.</p>
+<h2>Negative prompts for photorealism</h2>
+<p>The plasticky, "AI look" often comes from the model defaulting to over-smooth rendering. Counter it with:
+"cartoon, 3d render, illustration, smooth skin, plastic, airbrushed, oversaturated". Pair that with positive
+words like "film grain, natural skin texture, candid photo" and the results get dramatically more believable.</p>
+<h2>Advanced: negative prompting as style control</h2>
+<p>Beyond fixing defects, negatives sculpt style. Want a minimalist logo? Negate "detailed, photorealistic,
+shadows". Want a bright children's illustration? Negate "dark, horror, grungy, photorealistic". Each negation
+narrows the model's options toward your target — it is subtraction as a creative tool.</p>
+<h2>Putting it into practice</h2>
+<p>Next time you generate, run the same prompt twice: once with an empty negative prompt, once with the starter
+list above. Compare them side by side. The difference — cleaner hands, sharper faces, no stray text — will
+convert you permanently. Save your favorite negative prompt somewhere handy; you will reuse it daily.</p>
+<h2>Building your personal negative library</h2>
+<p>One list does not fit all. Build three: a <strong>general quality</strong> list (blurry, low quality,
+watermark, text), a <strong>people</strong> list (bad anatomy, deformed hands, asymmetric eyes, extra fingers),
+and a <strong>style</strong> list you adjust per project (cartoon, 3d render for photos; photorealistic, photo
+for illustrations). Save them in a note app. Over time you will develop a feel for which five terms matter for
+each kind of image — and your first-try success rate will climb steeply.</p>
+<h2>Model-specific notes</h2>
+<p>Some newer models handle negatives more gracefully than older ones, and a few tools hide the negative prompt
+behind "advanced settings" or call it "things to avoid". A handful of models even accept natural-language
+avoidance inside the main prompt ("a forest with no people"). If your tool lacks a negative box, try appending
+avoidance phrases to the main prompt — it is weaker than a dedicated negative prompt but better than nothing.</p>
+<h2>Real example: fixing a portrait</h2>
+<p>Prompt: "photorealistic portrait of a smiling chef in a kitchen, warm light". Without negatives, a common
+failure is waxy skin and odd teeth. Add positive "natural skin texture, subtle smile" and negative "airbrushed
+skin, plastic, deformed teeth, asymmetric eyes, blurry". The second version typically looks like a different
+photographer shot it — same idea, professional execution. That gap is the entire value of the negative prompt.</p><h2>Negative prompts for video</h2>
+<p>The same principle applies to AI video, where the stakes are higher — a bad frame can ruin a whole clip.
+Useful video negatives: "morphing, flickering, warping, inconsistent, jittery, sudden changes". These target
+temporal artifacts directly. Combined with positive "smooth motion, consistent character", they meaningfully
+improve output stability. Video negatives will not fix a fundamentally broken generation, but they raise the
+floor of your average result.</p>
+<h2>When to skip negatives entirely</h2>
+<p>There are cases where negatives add little: highly stylized work (anime, flat illustration) where "defects"
+are part of the aesthetic, and very short prompts where the model needs all its capacity for the subject. If
+your generations look good without them, do not add negatives out of habit — every constraint has a cost, and
+unnecessary ones narrow your results for no benefit.</p><h2>Testing your negative prompt</h2>
+<p>Do not set and forget. Run a simple A/B test: generate the same prompt three times with your negative list
+and three times without it, then compare the batches honestly. Sometimes you will find a term that was helping
+with hands but dulling colors — split it into a context-specific list instead of the default. Your negative
+prompt should evolve as your subjects change; review it monthly and prune terms that no longer earn their place.</p>
+<p><a class="cta" href="/">Generate cleaner images free</a></p>
+<p style="margin-top:32px"><a href="/blog">&larr; Back to all articles</a></p>
+</div></main>
+<footer class="site"><div class="wrap">
+<a href="/about">About</a><a href="/contact">Contact</a><a href="/privacy">Privacy Policy</a><a href="/terms">Terms of Service</a><a href="/blog">Blog</a>
+<span class="sp">&copy; 2026 Ayaz AI Studio. All rights reserved.</span>
+</div></footer>
+</body>
+</html>
