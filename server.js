@@ -26,6 +26,34 @@ app.use(express.json({ limit: '50mb' })); // 50mb: camera photos as base64 data 
 app.use(express.static(path.join(__dirname, 'public')));
 
 /* ------------------------------------------------------------------ */
+/* Public content pages — crawlable, server-rendered (AdSense-ready).    */
+/* About / Contact / Privacy / Terms + Blog with original articles.     */
+/* ------------------------------------------------------------------ */
+const PAGES_DIR = path.join(__dirname, 'public', 'pages');
+['about', 'contact', 'privacy', 'terms'].forEach((p) => {
+  app.get('/' + p, (req, res) => res.sendFile(path.join(PAGES_DIR, p + '.html')));
+});
+app.get('/blog', (req, res) => res.sendFile(path.join(PAGES_DIR, 'blog', 'index.html')));
+const BLOG_SLUGS = new Set([
+  'how-to-write-better-ai-image-prompts',
+  'ai-video-generation-beginners-guide',
+  'text-to-image-vs-image-to-image',
+  'negative-prompts-explained',
+  'photorealistic-ai-portraits-guide',
+  'ai-product-photography-small-business',
+  'who-owns-ai-generated-art',
+  'how-ai-video-models-work',
+  'ai-voiceover-talking-photo-guide',
+  'aspect-ratio-composition-ai-images',
+  'free-ai-image-generators-compared-2026',
+  'monetizing-ai-content-youtube-2026',
+]);
+app.get('/blog/:slug', (req, res) => {
+  if (!BLOG_SLUGS.has(req.params.slug)) return res.status(404).send('Article not found');
+  res.sendFile(path.join(PAGES_DIR, 'blog', req.params.slug + '.html'));
+});
+
+/* ------------------------------------------------------------------ */
 /* Auth — email + password accounts                                      */
 /*                                                                     */
 /* Passwords are hashed with PBKDF2 (SHA-512, 120k iterations, unique   */
