@@ -48,6 +48,9 @@ const BLOG_SLUGS = new Set([
   'free-ai-image-generators-compared-2026',
   'monetizing-ai-content-youtube-2026',
   'how-much-does-ai-video-cost-2026',
+  'matric-science-group-subjects-pakistan-2026',
+  'o-level-vs-matric-pakistan-which-to-choose',
+  'fsc-pre-medical-vs-pre-engineering-guide',
 ]);
 app.get('/blog/:slug', (req, res) => {
   if (!BLOG_SLUGS.has(req.params.slug)) return res.status(404).send('Article not found');
