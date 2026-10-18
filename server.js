@@ -47,6 +47,7 @@ const BLOG_SLUGS = new Set([
   'aspect-ratio-composition-ai-images',
   'free-ai-image-generators-compared-2026',
   'monetizing-ai-content-youtube-2026',
+  'how-much-does-ai-video-cost-2026',
 ]);
 app.get('/blog/:slug', (req, res) => {
   if (!BLOG_SLUGS.has(req.params.slug)) return res.status(404).send('Article not found');
