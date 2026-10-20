@@ -51,6 +51,7 @@ const BLOG_SLUGS = new Set([
   'matric-science-group-subjects-pakistan-2026',
   'o-level-vs-matric-pakistan-which-to-choose',
   'fsc-pre-medical-vs-pre-engineering-guide',
+  'faceless-youtube-channel-cost-2026',
 ]);
 app.get('/blog/:slug', (req, res) => {
   if (!BLOG_SLUGS.has(req.params.slug)) return res.status(404).send('Article not found');
