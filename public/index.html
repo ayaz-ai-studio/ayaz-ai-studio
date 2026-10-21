@@ -1463,18 +1463,20 @@
   <button id="topRightBtn" onclick="toggleBotPanel()" title="Chat with Ayaz Bot" aria-label="Chat with Ayaz Bot">💬</button>
 </header>
 
-<!-- ══════════ Adsterra Banner (728x90 desktop / 320x50 mobile) ══════════
-     HOW TO ENABLE:
-     1. In your Adsterra dashboard create a Banner ad unit.
-     2. Copy the embed code Adsterra gives you.
-     3. Paste it inside the div below (replacing the comment).
-     4. Set ADSTERRA_CONFIG.enabled = true at the top of the <script>.
-     While enabled:false this whole slot stays hidden. -->
+<!-- ══════════ Adsterra Banner 728x90 — LIVE (unit key f8797c2c…) ══════════
+     Slot visibility is controlled by ADSTERRA_CONFIG.enabled via the
+     body.ads-live CSS rules; the invoke snippet below renders the ad. -->
 <div id="adsterraBannerTop" class="adsterra-slot adsterra-banner" style="display:none">
-  <!-- Adsterra Banner - Replace with your ad code.
-       Paste Adsterra's banner "invoke" snippet here (the async script tag
-       plus its container div, e.g. id="container-YOUR_BANNER_ID").
-  -->
+  <script>
+    atOptions = {
+      'key' : 'f8797c2cfbe17e23c21c08f18aa5c024',
+      'format' : 'iframe',
+      'height' : 90,
+      'width' : 728,
+      'params' : {}
+    };
+  </script>
+  <script src="https://bauval.org/22/f8797c2cfbe17e23c21c08f18aa5c024"></script>
 </div>
 
 <div id="drawerOverlay" onclick="toggleDrawer(false)"></div>
@@ -1557,14 +1559,11 @@
       </div>
       <div class="featgrid" id="featGrid"></div>
 
-      <!-- ══════════ Adsterra Native Ad (between templates) ══════════
-           HOW TO ENABLE:
-           1. In your Adsterra dashboard create a Native Banner ad unit.
-           2. Copy the embed code and paste it inside the div below.
-           3. Set ADSTERRA_CONFIG.enabled = true at the top of the <script>.
-           While enabled:false this slot stays hidden. -->
+      <!-- ══════════ Adsterra Native Ad (between templates) — LIVE
+           (unit key aaf72fb7…) ══════════ -->
       <div id="adsterraNativeImagine" class="adsterra-slot adsterra-native" style="display:none">
-        <!-- Adsterra Native - Replace with your ad code -->
+        <script async="async" data-cfasync="false" src="https://bauval.org/21/aaf72fb702011f9587015662a8107457"></script>
+        <div id="container-aaf72fb702011f9587015662a8107457"></div>
       </div>
 
       <div class="secttl">✨ Trending styles</div>
@@ -2595,17 +2594,21 @@
    ═══════════════════════════════════════════════════════════════ */
 const NOTICE_MSG = "";
 /* ═══════════════════════════════════════════════════════════════
-   ADSTERRA AD CONFIG — fill these in from your Adsterra dashboard
-   (https://beta.adsterra.com/) and set enabled:true to go live.
-   Until then, enabled:false keeps every ad slot hidden — no
-   broken iframes, no console errors, nothing user-visible.
+   ADSTERRA AD CONFIG — LIVE since 2026-10-21.
+   Banner + Native units are live (real invoke snippets are pasted
+   in the HTML slots above: "Adsterra Banner" / "Adsterra Native").
+   POPUNDER IS DELIBERATELY DISABLED: popunderEnabled stays false
+   while the Google AdSense review is pending (popunders are risky
+   for AdSense approval). Do NOT enable it until that is resolved.
    ═══════════════════════════════════════════════════════════════ */
 const ADSTERRA_CONFIG = {
-  enabled: false,                 // ← set true after pasting your IDs
-  publisherId: 'YOUR_PUBLISHER_ID', // Adsterra account / publisher key
-  bannerId: 'YOUR_BANNER_ID',       // 728x90 (desktop) / 320x50 (mobile) banner key
-  nativeId: 'YOUR_NATIVE_ID',       // Native banner key
-  popunderScript: ''                // Paste full Adsterra popunder script URL here, e.g. 'https://....js'
+  enabled: true,                  // Banner + Native ads are LIVE
+  publisherId: '6138991',         // Adsterra website ID for ayaz-ai-studio.onrender.com
+  bannerId: 'f8797c2cfbe17e23c21c08f18aa5c024',  // Banner 728x90 unit key
+  nativeId: 'aaf72fb702011f9587015662a8107457',  // Native Banner unit key
+  popunderKey: 'df90c618f133533b188e951351fbc175', // Popunder unit key (stored only — NOT loaded)
+  popunderEnabled: false,         // ← keep false until AdSense review is resolved
+  popunderScript: ''              // Popunder script URL — intentionally empty while disabled
 };
 /* Load Adsterra banner/native ad units once the config is live. */
 function loadAdsterraAds(){
@@ -2616,9 +2619,10 @@ function loadAdsterraAds(){
      scripts come from Adsterra's own embed codes you paste there. */
   document.body.classList.add('ads-live');
 }
-/* Popunder trigger — call on rewarded-ad click when enabled. */
+/* Popunder trigger — hard-gated by popunderEnabled (false while the
+   AdSense review is pending). Never fires unless BOTH flags allow it. */
 function triggerAdsterraPopunder(){
-  if(!ADSTERRA_CONFIG.enabled || !ADSTERRA_CONFIG.popunderScript) return;
+  if(!ADSTERRA_CONFIG.enabled || !ADSTERRA_CONFIG.popunderEnabled || !ADSTERRA_CONFIG.popunderScript) return;
   const s = document.createElement('script');
   s.src = ADSTERRA_CONFIG.popunderScript;
   s.async = true;
@@ -4523,9 +4527,10 @@ function watchAd(){
   if(needAuth()) return;
   const btn = document.getElementById('adBtn');
   if(btn && btn.disabled) return;
-  /* Adsterra popunder: when the config is live, fire the real ad first.
-     The simulated 30s countdown below only runs while ads are disabled. */
-  if(ADSTERRA_CONFIG.enabled && ADSTERRA_CONFIG.popunderScript){
+  /* Adsterra popunder: only when popunderEnabled is explicitly true
+     (currently false — AdSense review pending). Otherwise the
+     simulated 30s countdown below runs as before. */
+  if(ADSTERRA_CONFIG.enabled && ADSTERRA_CONFIG.popunderEnabled && ADSTERRA_CONFIG.popunderScript){
     triggerAdsterraPopunder();
     /* With a real ad network the provider confirms the view; until the
        server-side postback is wired, keep the simulated credit flow. */
