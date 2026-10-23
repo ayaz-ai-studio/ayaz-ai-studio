@@ -53,6 +53,9 @@ const BLOG_SLUGS = new Set([
   'fsc-pre-medical-vs-pre-engineering-guide',
   'faceless-youtube-channel-cost-2026',
   'free-ai-video-generators-compared-2026',
+  'best-free-ai-background-removers-2026',
+  'google-flow-ai-beginners-guide',
+  'pakistan-boards-date-sheet-2027',
 ]);
 app.get('/blog/:slug', (req, res) => {
   if (!BLOG_SLUGS.has(req.params.slug)) return res.status(404).send('Article not found');
