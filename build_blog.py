@@ -35,27 +35,6 @@ BLOG_INTRO = """<h1>The Ayaz AI Studio Blog</h1>
 and the business of creating with AI. New articles every week.</p>
 """
 
-# ── Adsterra ads (LIVE since 2026-10-21) ─────────────────────────────
-# Banner 728x90 + Native Banner on blog pages only (1 banner per page).
-# Popunder is intentionally NOT included anywhere (AdSense review pending).
-ADSTERRA_BANNER = """<div style="overflow:hidden;text-align:center;margin:28px auto;max-width:728px">
-<script>
-  atOptions = {
-    'key' : 'f8797c2cfbe17e23c21c08f18aa5c024',
-    'format' : 'iframe',
-    'height' : 90,
-    'width' : 728,
-    'params' : {}
-  };
-</script>
-<script src="https://bauval.org/22/f8797c2cfbe17e23c21c08f18aa5c024"></script>
-</div>"""
-
-ADSTERRA_NATIVE = """<div style="margin:28px auto;max-width:640px">
-<script async="async" data-cfasync="false" src="https://bauval.org/21/aaf72fb702011f9587015662a8107457"></script>
-<div id="container-aaf72fb702011f9587015662a8107457"></div>
-</div>"""
-
 cards = []
 for a in ARTICLES:
     cards.append(
@@ -64,10 +43,10 @@ for a in ARTICLES:
     )
 bp.page("blog/index.html", "Blog — Guides on AI Image & Video Generation",
         "Practical guides on AI image and video generation: prompting techniques, tools, workflows and monetization.",
-        BLOG_INTRO + "\n".join(cards) + "\n" + ADSTERRA_NATIVE + "\n" + ADSTERRA_BANNER)
+        BLOG_INTRO + "\n".join(cards)
 
 for a in ARTICLES:
-    body = (a["body"] + "\n" + ADSTERRA_NATIVE + "\n" + ADSTERRA_BANNER
+    body = (a["body]
             + '\n<p style="margin-top:32px"><a href="/blog">&larr; Back to all articles</a></p>')
     bp.page(f"blog/{a['slug']}.html", a["title"], a["desc"], body)
 
