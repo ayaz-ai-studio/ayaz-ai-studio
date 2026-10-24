@@ -48,14 +48,10 @@ const BLOG_SLUGS = new Set([
   'free-ai-image-generators-compared-2026',
   'monetizing-ai-content-youtube-2026',
   'how-much-does-ai-video-cost-2026',
-  'matric-science-group-subjects-pakistan-2026',
-  'o-level-vs-matric-pakistan-which-to-choose',
-  'fsc-pre-medical-vs-pre-engineering-guide',
   'faceless-youtube-channel-cost-2026',
   'free-ai-video-generators-compared-2026',
   'best-free-ai-background-removers-2026',
   'google-flow-ai-beginners-guide',
-  'pakistan-boards-date-sheet-2027',
 ]);
 app.get('/blog/:slug', (req, res) => {
   if (!BLOG_SLUGS.has(req.params.slug)) return res.status(404).send('Article not found');
@@ -1037,7 +1033,7 @@ const DAILY_VIDEO_LIMIT = 2;
 /*   /api/watch-ad-complete ONLY after the provider's server-side      */
 /*   postback verifies the completed view (anti-fraud).                 */
 /* ------------------------------------------------------------------ */
-const AD_PROVIDER = process.env.AD_PROVIDER || 'simulated';
+const AD_PROVIDER = 'simulated'; // Adsterra removed: rewarded ads always use the simulated flow
 const MAX_ADS_PER_DAY = 5;      // max rewarded-ad watches per user per day
 const AD_REWARD_IMAGES = 2;     // +images per completed ad watch
 const AD_REWARD_VIDEOS = 2;     // +videos per completed ad watch
