@@ -46,8 +46,8 @@ bp.page("blog/index.html", "Blog — Guides on AI Image & Video Generation",
         BLOG_INTRO + "\n".join(cards)
 
 for a in ARTICLES:
-    body = (a["body]
-            + '\n<p style="margin-top:32px"><a href="/blog">&larr; Back to all articles</a></p>')
+    body = (a["body].replace('<p class="meta">', '<p class="meta">By Khan Ayaz — Ayaz AI Studio · ', 1)
+            + "\n<h2>Related guides</h2>\n<ul>" + "".join(f'<li><a href="/blog/{ARTICLES[s]["slug"]}">{ARTICLES[s]["title"]}</a></li>' for s in [[3,9,4],[14,7,16],[0,3,10],[0,2,4],[0,9,5],[4,15,10],[11,13,4],[1,14,8],[1,16,13],[0,4,5],[15,2,5],[13,6,8],[14,1,13],[11,12,1],[1,12,7],[10,5,4],[1,8,14]][ARTICLES.index(a)]) + "</ul>" + '\n<p style="margin-top:32px"><a href="/blog">&larr; Back to all articles</a></p>')
     bp.page(f"blog/{a['slug']}.html", a["title"], a["desc"], body)
 
 print("done:", len(ARTICLES), "articles")
