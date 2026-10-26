@@ -12,10 +12,11 @@ from articles_5 import ARTICLES_5
 from articles_6 import ARTICLES_6
 from articles_7 import ARTICLES_7
 from articles_8 import ARTICLES_8
+from articles_9 import ARTICLES_9
 from expansions import EXPANSIONS
 from expansions2 import EXPANSIONS_2, EXPANSIONS_3
 
-ARTICLES = ARTICLES_1 + ARTICLES_2 + ARTICLES_3 + ARTICLES_4 + ARTICLES_5 + ARTICLES_6 + ARTICLES_7 + ARTICLES_8
+ARTICLES = ARTICLES_1 + ARTICLES_2 + ARTICLES_3 + ARTICLES_4 + ARTICLES_5 + ARTICLES_6 + ARTICLES_7 + ARTICLES_8 + ARTICLES_9
 for a in ARTICLES:
     extra = EXPANSIONS.get(a["slug"], "") + EXPANSIONS_2.get(a["slug"], "") + EXPANSIONS_3.get(a["slug"], "")
     if extra:
