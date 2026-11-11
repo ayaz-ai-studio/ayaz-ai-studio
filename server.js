@@ -30,7 +30,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 /* About / Contact / Privacy / Terms + Blog with original articles.     */
 /* ------------------------------------------------------------------ */
 const PAGES_DIR = path.join(__dirname, 'public', 'pages');
-['about', 'contact', 'privacy', 'terms'].forEach((p) => {
+['about', 'contact', 'privacy', 'terms', 'tools', 'ai-image-generator', 'ai-video-generator', 'talking-photo', 'ai-tutor', 'app-builder', 'gallery'].forEach((p) => {
   app.get('/' + p, (req, res) => res.sendFile(path.join(PAGES_DIR, p + '.html')));
 });
 app.get('/blog', (req, res) => res.sendFile(path.join(PAGES_DIR, 'blog', 'index.html')));
@@ -53,6 +53,12 @@ const BLOG_SLUGS = new Set([
   'best-free-ai-background-removers-2026',
   'google-flow-ai-beginners-guide',
   'free-ai-music-generators-2026',
+  'free-ai-image-generator-online-guide',
+  'ai-tools-for-small-business-owners-2026',
+  'ai-avatars-explained-guide',
+  'ai-for-students-homework-help-guide',
+  'ai-video-prompts-guide',
+  'ai-art-styles-explained',
 ]);
 app.get('/blog/:slug', (req, res) => {
   if (!BLOG_SLUGS.has(req.params.slug)) return res.status(404).send('Article not found');
