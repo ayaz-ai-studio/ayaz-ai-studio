@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>How to Write AI Video Prompts: Camera, Light and One Clear Action — Ayaz AI Studio</title>
+<meta name="description" content="A practical guide to writing prompts for AI video generation: the six parts every good prompt needs, the camera-movement words that actually work, lighting and mood, the one-action rule, and three example prompts broken down piece by piece.">
+<link rel="icon" href="/icon-192.png">
+<style>
+:root{--bg:#0d1117;--card:#161b22;--line:#2a3340;--txt:#e6edf3;--mut:#9aa4b2;--acc:#8b7cf6}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.8;font-size:16px}
+a{color:var(--acc);text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:760px;margin:0 auto;padding:0 20px}
+header.site{border-bottom:1px solid var(--line);background:#0a0d12;position:sticky;top:0;z-index:10}
+.nav{max-width:960px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+.brand{font-weight:800;font-size:18px;color:var(--txt);margin-right:auto}
+.brand span{color:var(--acc)}
+.nav a.nl{color:var(--mut);font-size:14px}
+.nav a.nl:hover{color:var(--txt)}
+main{padding:40px 0 60px}
+h1{font-size:32px;line-height:1.3;margin:0 0 8px}
+h2{font-size:22px;margin:36px 0 10px}
+h3{font-size:18px;margin:28px 0 8px}
+p,li{color:#d4dbe4}
+.meta{color:var(--mut);font-size:13px;margin-bottom:24px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin:18px 0}
+.card h3{margin:0 0 6px;font-size:19px}
+.card p{margin:6px 0;color:var(--mut);font-size:14.5px}
+.excerpt{color:var(--mut);font-size:15px}
+footer.site{border-top:1px solid var(--line);padding:28px 0;color:var(--mut);font-size:13.5px}
+footer.site .wrap{display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+footer.site .sp{margin-left:auto}
+blockquote{border-left:3px solid var(--acc);margin:20px 0;padding:10px 18px;background:var(--card);border-radius:0 10px 10px 0;color:#d4dbe4}
+code{background:#1e2530;padding:2px 7px;border-radius:6px;font-size:14px}
+.toc{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 22px;margin:24px 0}
+.toc b{display:block;margin-bottom:8px}
+.toc ol{margin:0;padding-left:20px;color:var(--mut);font-size:15px}
+img{max-width:100%;border-radius:10px}
+.cta{display:inline-block;background:var(--acc);color:#fff!important;padding:12px 26px;border-radius:10px;font-weight:700;margin-top:14px}
+.cta:hover{text-decoration:none;opacity:.92}
+</style>
+</head>
+<body>
+<header class="site"><nav class="nav">
+<a class="brand" href="/">Ayaz <span>AI Studio</span></a>
+<a class="nl" href="/">App</a>
+<a class="nl" href="/blog">Blog</a>
+<a class="nl" href="/about">About</a>
+<a class="nl" href="/contact">Contact</a>
+</nav></header>
+<main><div class="wrap">
+<h1>How to Write AI Video Prompts: Camera, Light and One Clear Action</h1>
+<p class="meta">November 12, 2026 · 10 min read</p>
+<p class="meta">By Khan Ayaz — Ayaz AI Studio · 12 Nov 2026 · 10 min read</p>
+<p>An image prompt describes a single frozen moment. A video prompt has a much harder job: it must
+direct a tiny film scene that lasts only a few seconds, in which something moves, the camera behaves
+in a particular way, and the light does something deliberate. When a prompt is vague, the model still
+has to make all of those decisions — it just makes them randomly, and you pay for the randomness in
+wasted generations. The good news is that video prompts have a structure. Learn the six parts, the
+camera vocabulary and the one-action rule, and your clips stop being lottery tickets and start being
+shots you directed.</p>
+<h2>The six parts of a working video prompt</h2>
+<p>Almost every reliable video prompt contains the same six ingredients, in roughly this order.
+<strong>Subject:</strong> who or what is on screen, described specifically — not "a dog" but "a golden
+retriever puppy". <strong>Action:</strong> the one thing the subject does, expressed with a clear verb.
+<strong>Setting:</strong> the place and time, in a few concrete words. <strong>Camera:</strong> how the
+camera moves and how the shot is framed. <strong>Light and mood:</strong> the quality of the light and
+the feeling it creates. <strong>Technical tail:</strong> duration, aspect ratio and style words, where
+your tool offers them. Assembled, the skeleton looks like this: <em>[subject] [action] in [setting],
+[camera movement and framing], [lighting], [mood], [duration]</em>. You will not always need all six,
+but when a clip disappoints, checking which ingredient was missing usually explains why.</p>
+<h2>Camera movement: the vocabulary that changes everything</h2>
+<p>Camera words are the highest-leverage words in a video prompt, because movement is what makes a
+clip feel filmed rather than generated. The core vocabulary is small. A <strong>static shot</strong>
+(or "locked-off camera") holds still and lets the subject move — best for dialogue and product shots.
+A <strong>slow push-in</strong> drifts toward the subject and builds intimacy or tension. A
+<strong>pull back</strong> reveals the surroundings. A <strong>pan</strong> sweeps left or right
+across a scene. A <strong>tracking shot</strong> moves alongside the subject, the classic walking or
+running shot. An <strong>orbit</strong> circles the subject, good for products and portraits. A
+<strong>handheld</strong> shot adds small natural shakes that read as realism, and an <strong>aerial
+rise</strong> lifts away like a drone. Pair movement with framing: close-up, medium shot, wide shot,
+low angle, over-the-shoulder. One firm rule: <strong>one camera move per clip</strong>. "Zoom in while
+orbiting while rising" asks the model to do three jobs at once, and the result is usually a wobble
+that does none of them.</p>
+<h2>Lighting and mood do the emotional heavy lifting</h2>
+<p>The same street can look hopeful, romantic or threatening depending entirely on the light, and
+video models respond strongly to lighting words. Give every prompt a light source and a time of day:
+"golden hour sunlight", "soft overcast daylight", "warm window light", "blue-grey rainy afternoon",
+"neon signs at night", "candlelight". Then add one mood word — calm, joyful, tense, lonely, majestic,
+eerie — as a steering hint for everything you did not specify: colour, pace, expression. Skipping the
+lighting is the most common reason two clips from similar prompts feel like they belong to different
+films. If a generation comes back looking flat, fixing the light usually fixes the clip faster than
+rewriting the subject.</p>
+<h2>The one-action rule, and why duration decides it</h2>
+<p>Most AI clips run somewhere between three and ten seconds. In that time, a subject can believably
+do <strong>one</strong> thing: walk to the door, or open it, or react to what is behind it — not all
+three. Prompts that narrate a whole little story ("she runs downstairs, grabs her bag, cycles to the
+station and boards the train") force the model to compress four shots into one, and it responds with
+morphing, skipped steps and melted details. Work like an editor instead: plan a sequence as a chain
+of single-action clips and cut them together. This is also why the duration belongs in the prompt or
+settings — a "5 seconds" clip should contain about five seconds of action, which is less than most
+beginners instinctively write. When in doubt, halve the action.</p>
+<h2>Three example prompts, broken down</h2>
+<p><strong>Example 1 — playful animal clip.</strong> "A golden retriever puppy bounds across a green
+lawn toward the camera, ears flopping, bright morning sunlight, low tracking shot at puppy height,
+joyful playful mood, 5 seconds." The breakdown: the subject is specific (breed and age, not "a dog");
+the action is single and directional (bounds toward the camera); the camera is low and tracking, which
+is what makes it feel like a pet video someone actually filmed; morning light plus "joyful" sets the
+grade and energy; the duration matches one burst of running.</p>
+<p><strong>Example 2 — moody street scene.</strong> "A man in a dark coat waits under a shop awning
+while rain pours on a neon-lit street at night, slow push-in from a wide shot to a medium shot,
+reflections on the wet pavement, quiet melancholic mood, cinematic, 6 seconds." Here the subject
+barely moves — waiting is the action — so the camera does the travelling, and the slow push-in is the
+entire drama. The reflections give the model something beautiful and concrete to render, and
+"melancholic" plus "cinematic" hold the colour and pace together.</p>
+<p><strong>Example 3 — product clip.</strong> "A glass perfume bottle on a marble surface rotates
+slowly as soft window light sweeps across it, static close-up camera, clean bright background,
+elegant calm mood, 4 seconds." Notice what is absent: no people, no story, no second action. Rotation
+plus moving light is enough motion for a product shot, and the locked camera keeps the bottle's shape
+— the thing that must not distort — perfectly stable.</p>
+<h2>Common mistakes that waste generations</h2>
+<p>The expensive errors repeat across almost every beginner. <strong>Writing a plot instead of a
+shot</strong> — covered above; think in shots. <strong>Contradictions</strong>: "a sunny midnight",
+"an empty crowded market", "running while standing still". The model averages contradictions into
+mush. <strong>Asking for readable text</strong>: shop signs, book covers and captions still come out
+garbled in most models; film the scene clean and add text later in an editor. <strong>Expecting the
+same face across clips</strong> from text alone: without a reference image, every generation casts a
+new actor. <strong>Negative-word stuffing</strong>: long lists of "no blur, no distortion, no extra
+fingers" work poorly in video prompts; describing clearly what you <em>do</em> want — "smooth slow
+movement, steady camera" — steers far better. <strong>Changing everything at once</strong>: when a
+clip fails, alter one element and retry, or you learn nothing about which word caused the failure.</p>
+<h2>Start from a still image when consistency matters</h2>
+<p>For characters, products, or any series of clips, the professional shortcut is image-to-video:
+first create or choose the still image — the exact face, costume, product and framing — and then
+animate it with a prompt that describes only the motion and camera. The model no longer has to invent
+the subject and the movement simultaneously, so identity and details hold together across a whole
+sequence. Free studios such as <a href="https://ayaz-ai-studio.onrender.com/">Ayaz AI Studio</a> are
+a sensible practice ground for exactly this workflow: generate the still, approve it, and only then
+spend your video attempts on shots that are already framed the way you wanted.</p>
+<h2>Frequently asked questions</h2>
+<p><strong>How long should a video prompt be?</strong> Usually one to three sentences. Long enough to
+name the six parts, short enough that no two instructions fight. If your prompt needs a comma splice
+and a plot twist, it is describing several clips, not one.</p>
+<p><strong>Why did the camera ignore my movement word?</strong> Most often because the prompt asked
+for two movements, or buried the camera instruction after a long subject description. Keep one move,
+and place it early enough to be noticed.</p>
+<p><strong>Why do faces melt in my clips?</strong> Faces suffer when they are small in the frame and
+moving fast. Move the camera closer, slow the action down, or start from a still image so the face
+begins correct and only has to survive gentle motion.</p>
+<p><strong>Can I reuse a good prompt?</strong> Yes — treat your best prompts as templates. Save them,
+swap one variable at a time (subject, setting, light), and you will build a personal library that
+produces reliable results instead of fresh gambles.</p>
+<p><a class="cta" href="/">Turn your prompts into videos — free</a></p>
+
+<h2>Related guides</h2>
+<ul>
+<li><a href="/blog/ai-video-generation-beginners-guide">AI Video Generation for Beginners: From Text to Moving Pictures</a></li>
+<li><a href="/blog/how-ai-video-models-work">How AI Video Models Work (Explained Simply)</a></li>
+<li><a href="/blog/how-much-does-ai-video-cost-2026">How Much Does AI Video Cost in 2026? A Creator's Honest Budget Guide</a></li>
+</ul>
+
+<p style="margin-top:32px"><a href="/blog">&larr; Back to all articles</a></p>
+</div></main>
+<footer class="site"><div class="wrap">
+<a href="/about">About</a><a href="/contact">Contact</a><a href="/privacy">Privacy Policy</a><a href="/terms">Terms of Service</a><a href="/blog">Blog</a>
+<span class="sp">&copy; 2026 Ayaz AI Studio. All rights reserved.</span>
+</div></footer>
+</body>
+</html>
