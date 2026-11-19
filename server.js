@@ -59,6 +59,7 @@ const BLOG_SLUGS = new Set([
   'ai-for-students-homework-help-guide',
   'ai-video-prompts-guide',
   'ai-art-styles-explained',
+  'ai-wolf-short-387000-views-case-study',
 ]);
 app.get('/blog/:slug', (req, res) => {
   if (!BLOG_SLUGS.has(req.params.slug)) return res.status(404).send('Article not found');
